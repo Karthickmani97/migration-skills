@@ -1,0 +1,30 @@
+{
+  "name": "playwright-e2b-poc",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "POC: run 500 Playwright tests in parallel E2B sandboxes",
+  "scripts": {
+    "generate:tests": "node scripts/generate-tests.mjs",
+    "test:local": "npx playwright test",
+    "test:visual:baseline": "npx playwright test --config=playwright.config.mjs --update-snapshots",
+    "test:visual:cat01": "npx playwright test --config=playwright.config.mjs --grep @cat01",
+    "test:local:50-shards": "node scripts/run-local-50-shards.mjs",
+    "template:build:dev": "node scripts/build-template.dev.mjs",
+    "template:build:prod": "node scripts/build-template.prod.mjs",
+    "test:e2b:parallel": "node scripts/run-e2b-parallel.mjs",
+    "test:e2b:cat01": "node scripts/run-e2b-parallel.mjs --category=cat01",
+    "test:e2b:failed": "node scripts/run-e2b-parallel.mjs --failed-from=reports/e2b/run-summary.json",
+    "report:e2b:merge": "node scripts/merge-e2b-results.mjs",
+    "report:e2b:visual-index": "node scripts/build-visual-index.mjs",
+    "report:e2b:all": "npm run report:e2b:merge && npm run report:e2b:visual-index"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "e2b": "^2.29.1",
+    "p-limit": "^6.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}
