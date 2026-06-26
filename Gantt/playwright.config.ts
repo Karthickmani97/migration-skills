@@ -103,20 +103,20 @@ const config: PlaywrightTestConfig = {
 
   /* Run your local dev server before starting the tests */
 
-  webServer: [
-    {
-      command: 'npm run start-server',
-      port: 5004,
-      reuseExistingServer: true,
-      timeout: 300 * 1000
-     },
-	{
-      command: 'npm run start-locale',
-      port: 5001,
-      reuseExistingServer: true,
-      timeout: 300 * 1000
-     }
-   ],
+ webServer: [
+  {
+    command: 'npm run start-server',
+    url: 'http://localhost:5004',
+    reuseExistingServer: true,
+    timeout: 300000
+  },
+  {
+    command: 'npm run start-locale',
+    url: 'http://localhost:5001',
+    reuseExistingServer: true,
+    timeout: 300000
+  }
+],
 
 };
 
