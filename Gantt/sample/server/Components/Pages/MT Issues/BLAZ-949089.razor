@@ -1,0 +1,346 @@
+@page "/BLAZ-949089"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Buttons
+@using System.Collections.ObjectModel
+
+<SfDropDownList @bind-Value="selectedCollectionType" DataSource="collectionTypes" Placeholder="Select a collection type" Width="150px">
+    <DropDownListEvents TItem="DropdownData" TValue="string" ValueChange="HandleCollectionChange"></DropDownListEvents>
+    <DropDownListFieldSettings Text="Text" Value="Value"></DropDownListFieldSettings>
+</SfDropDownList>
+<SfButton OnClick="UpdateRecord">Update Record Method</SfButton>
+@if (selectedCollectionType == "SelfReference" || selectedCollectionType == "Hierarchy"){
+    <SfGantt @ref="Gantt" TValue="TaskData" DataSource="@taskCollection" Height="450px" Width="1600px" TreeColumnIndex="0" EnableContextMenu AllowFiltering AllowSorting AllowMultiSorting ScrollToTaskbarOnClick
+             Toolbar="@(new List<string>{"Add", "Delete", "Edit", "Update", "Cancel", "Search", "NextTimeSpan", "PrevTimeSpan", "ZoomIn", "ZoomOut", "ZoomToFit", "Indent", "Outdent" })"
+                 DurationUnit="@DurationUnits">
+        @if (selectedCollectionType == "SelfReference")
+        {
+            <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor">
+            </GanttTaskFields>
+        }
+        else
+        {
+            <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" Child="SubTasks" Dependency="Predecessor">
+            </GanttTaskFields>
+        }
+        <GanttSegmentFields PrimaryKey="Id" ForeignKey="TaskId" StartDate="SegmentStartDate" EndDate="SegmentEndDate"
+                            Duration="SegmentDuration" TValue="TaskData" TSegments="SegmentModel" DataSource="segmentCollection" SegmentChanging="SegmentHandler"></GanttSegmentFields>
+        <GanttLabelSettings LeftLabel="TaskName" TValue="TaskData"></GanttLabelSettings>
+        <GanttColumns>
+            <GanttColumn Field="TaskId" Width="100" ></GanttColumn>
+            <GanttColumn Field="TaskName" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date" Type="Syncfusion.Blazor.Grids.ColumnType.DateTime"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date" Type="Syncfusion.Blazor.Grids.ColumnType.DateTime"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+            <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+        </GanttColumns>
+        <GanttEditSettings AllowAdding AllowDeleting AllowEditing AllowTaskbarEditing></GanttEditSettings>
+        <GanttTimelineSettings>
+            <GanttTopTierSettings Unit="TimelineViewMode.Day"></GanttTopTierSettings>
+            <GanttBottomTierSettings Unit="TimelineViewMode.Hour"></GanttBottomTierSettings>
+        </GanttTimelineSettings>
+        <GanttEvents TValue="TaskData" RowUpdated="RowUpdatingHandler"></GanttEvents>
+    </SfGantt>
+}else{
+    <SfGantt TValue="TaskData" DataSource="@obeservableCollection" Height="450px" Width="1000px" TreeColumnIndex="0" EnableContextMenu AllowFiltering AllowSorting AllowMultiSorting
+             Toolbar="@(new List<string>{"Add", "Delete", "Edit", "Update", "Cancel", "Search", "NextTimeSpan", "PrevTimeSpan", "ZoomIn", "ZoomOut", "ZoomToFit", "Indent", "Outdent" })">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor">
+        </GanttTaskFields>
+        <GanttSegmentFields PrimaryKey="Id" ForeignKey="TaskId" StartDate="SegmentStartDate" EndDate="SegmentEndDate"
+                            Duration="SegmentDuration" TValue="TaskData" TSegments="SegmentModel" DataSource="segmentCollection" SegmentChanging="SegmentHandler"></GanttSegmentFields>
+        <GanttLabelSettings LeftLabel="TaskName" TValue="TaskData"></GanttLabelSettings>
+        <GanttColumns>
+            <GanttColumn Field="TaskId" Width="100" ></GanttColumn>
+            <GanttColumn Field="TaskName" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+            <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+        </GanttColumns>
+        <GanttEditSettings AllowAdding AllowDeleting AllowEditing AllowTaskbarEditing></GanttEditSettings>
+    </SfGantt>
+}
+
+
+@code {
+    private ObservableCollection<TaskData> obeservableCollection{ get; set; }
+    private List<TaskData> taskCollection{ get; set; }
+    private List<DropdownData> collectionTypes = new List<DropdownData>
+    {
+        new DropdownData{ Text = "Self Reference", Value = "SelfReference" },
+        new DropdownData{ Text = "Hierarchy", Value = "Hierarchy" },
+        new DropdownData{ Text = "Observable", Value = "Observable" }
+    };
+    public class DropdownData{
+        public string? Text{ get; set; }
+        public string? Value{ get; set; }
+    }
+    protected override void OnInitialized()
+    {
+        SwitchDataBinding();
+        segmentCollection = GetSegmentCollection();
+    }
+    private void HandleCollectionChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, DropdownData> args)
+    {
+        selectedCollectionType = args.Value;
+        SwitchDataBinding(); // Refresh data source on selection change
+    }
+    private void SwitchDataBinding()
+    {
+        switch (selectedCollectionType)
+        {
+            case "SelfReference":
+                taskCollection = GetSelfReferenceCollection();
+                break;
+            case "Hierarchy":
+                taskCollection = GetHierarchyCollection();
+                break;
+            case "Observable":
+                obeservableCollection = GetObservableCollection();
+                break;
+        }
+ }
+        private string selectedCollectionType { get; set; } = "SelfReference";
+        private List<SegmentModel> segmentCollection { get; set; }
+        private SfGantt<TaskData> Gantt;
+        private DurationUnit DurationUnits { get; set; } = DurationUnit.Day;
+        public class SegmentModel
+        {
+            public int Id { get; set; }
+            public int TaskId { get; set; }
+            public DateTime SegmentStartDate { get; set; }
+            public DateTime SegmentEndDate { get; set; }
+            public string SegmentDuration { get; set; }
+        }
+
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string TaskName { get; set; }
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public string Duration { get; set; }
+            public int Progress { get; set; }
+            public int? ParentId { get; set; }
+            public string Predecessor { get; set; }
+            public List<TaskData> SubTasks { get; set; }
+        }
+
+        public static List<TaskData> GetSelfReferenceCollection()
+        {
+            var tasks = new List<TaskData>();
+
+            // Group 1: Tasks 1-5 with parent-child relationships
+            var parent1 = new TaskData
+            {
+                TaskId = 1,
+                TaskName = "Parent Task 1",
+                StartDate = DateTime.Now.AddDays(1),
+                EndDate = DateTime.Now.AddDays(5),
+                Duration = "4",
+                Progress = 20
+            };
+            tasks.Add(parent1);
+
+            tasks.Add(new TaskData { TaskId = 2, ParentId = 1, TaskName = "Child Task 1.1", StartDate = DateTime.Now.AddDays(2), EndDate = DateTime.Now.AddDays(4), Duration = "2", Progress = 30 });
+            tasks.Add(new TaskData { TaskId = 3, ParentId = 1, Predecessor = "2", TaskName = "Child Task 1.2", StartDate = DateTime.Now.AddDays(3), EndDate = DateTime.Now.AddDays(5), Duration = "2", Progress = 40 });
+
+            var parent2 = new TaskData
+            {
+                TaskId = 4,
+                TaskName = "Parent Task 2",
+                StartDate = DateTime.Now.AddDays(6),
+                EndDate = DateTime.Now.AddDays(10),
+                Duration = "4",
+                Progress = 50
+            };
+            tasks.Add(parent2);
+
+            tasks.Add(new TaskData { TaskId = 5, ParentId = 4, Predecessor = "3", TaskName = "Child Task 2.1", StartDate = DateTime.Now.AddDays(7), EndDate = DateTime.Now.AddDays(9), Duration = "2", Progress = 60 });
+
+            // Group 2: Tasks 6-15 with another set of hierarchy
+            var parent3 = new TaskData
+            {
+                TaskId = 6,
+                TaskName = "Parent Task 3",
+                StartDate = DateTime.Now.AddDays(11),
+                EndDate = DateTime.Now.AddDays(15),
+                Duration = "4",
+                Progress = 70
+            };
+            tasks.Add(parent3);
+
+            for (int i = 7; i <= 10; i++)
+            {
+                tasks.Add(new TaskData { TaskId = i, ParentId = 6, Predecessor = i-1 >= 6 && i < 8? $"{i - 2}" : $"{i - 1}", TaskName = "Child Task 3." + (i - 6), StartDate = DateTime.Now.AddDays(i + 5), EndDate = DateTime.Now.AddDays(i + 7), Duration = "2", Progress = i * 10 % 100 });
+            }
+
+            var parent4 = new TaskData
+            {
+                TaskId = 11,
+                TaskName = "Parent Task 4",
+                StartDate = DateTime.Now.AddDays(16),
+                EndDate = DateTime.Now.AddDays(20),
+                Duration = "4",
+                Progress = 80
+            };
+            tasks.Add(parent4);
+
+            for (int i = 12; i <= 15; i++)
+            {
+                tasks.Add(new TaskData { TaskId = i, ParentId = 11, Predecessor = i - 1 >= 11 && i < 13 ? $"{i - 2}" : $"{i - 1}", TaskName = "Child Task 4." + (i - 11), StartDate = DateTime.Now.AddDays(i + 7), EndDate = DateTime.Now.AddDays(i + 9), Duration = "2", Progress = i * 10 % 100 });
+            }
+
+            // Group 3: Independent tasks 16-25
+            for (int i = 16; i <= 25; i++)
+            {
+                tasks.Add(new TaskData
+                {
+                    TaskId = i,
+                    TaskName = "Independent Task " + i,
+                    StartDate = DateTime.Now.AddDays(i + 10),
+                    EndDate = DateTime.Now.AddDays(i + 12),
+                    Duration = "2",
+                    Progress = i * 4 % 100,
+                    Predecessor = $"{i-1}FS"
+                });
+            }
+
+            return tasks;
+        }
+
+        public static List<TaskData> GetHierarchyCollection()
+        {
+            var tasks = new List<TaskData>();
+
+            // Define multiple parent tasks and their sub-tasks
+            // Parent Task 1 with sub-tasks
+            var parentTask1 = new TaskData
+            {
+                TaskId = 1,
+                TaskName = "Parent Task 1",
+                StartDate = DateTime.Now.AddDays(1),
+                EndDate = DateTime.Now.AddDays(10),
+                Duration = "9",
+                Progress = 20,
+                SubTasks = new List<TaskData>
+                {
+                    new TaskData { TaskId = 2, TaskName = "Sub Task 1.1", StartDate = DateTime.Now.AddDays(2), EndDate = DateTime.Now.AddDays(4), Duration = "2", Progress = 30 },
+                    new TaskData { TaskId = 3, Predecessor="2", TaskName = "Sub Task 1.2", StartDate = DateTime.Now.AddDays(4), EndDate = DateTime.Now.AddDays(6), Duration = "2", Progress = 40 }
+                }
+            };
+            tasks.Add(parentTask1);
+
+            // Parent Task 2 with sub-tasks
+            var parentTask2 = new TaskData
+            {
+                TaskId = 4,
+                TaskName = "Parent Task 2",
+                StartDate = DateTime.Now.AddDays(11),
+                EndDate = DateTime.Now.AddDays(20),
+                Duration = "9",
+                Progress = 50,
+                SubTasks = new List<TaskData>
+                {
+                    new TaskData { TaskId = 5, Predecessor="3", TaskName = "Sub Task 2.1", StartDate = DateTime.Now.AddDays(12), EndDate = DateTime.Now.AddDays(13), Duration = "1", Progress = 60 },
+                    new TaskData { TaskId = 6, Predecessor="5", TaskName = "Sub Task 2.2", StartDate = DateTime.Now.AddDays(13), EndDate = DateTime.Now.AddDays(15), Duration = "2", Progress = 70 }
+                }
+            };
+            tasks.Add(parentTask2);
+
+            // Parent Task 3 with sub-tasks
+            var parentTask3 = new TaskData
+            {
+                TaskId = 7,
+                TaskName = "Parent Task 3",
+                StartDate = DateTime.Now.AddDays(21),
+                EndDate = DateTime.Now.AddDays(30),
+                Duration = "9",
+                Progress = 80,
+                SubTasks = new List<TaskData>
+                {
+                    new TaskData { TaskId = 8, Predecessor="6", TaskName = "Sub Task 3.1", StartDate = DateTime.Now.AddDays(22), EndDate = DateTime.Now.AddDays(24), Duration = "2", Progress = 70 },
+                    new TaskData { TaskId = 9, Predecessor="8", TaskName = "Sub Task 3.2", StartDate = DateTime.Now.AddDays(24), EndDate = DateTime.Now.AddDays(26), Duration = "2", Progress = 90 }
+                }
+            };
+            tasks.Add(parentTask3);
+
+            // Add remaining independent tasks to reach a total of 25 tasks
+            for (int taskId = 10; taskId <= 25; taskId++)
+            {
+                tasks.Add(new TaskData
+                {
+                    TaskId = taskId,
+                    TaskName = "Independent Task " + taskId,
+                    StartDate = DateTime.Now.AddDays(taskId),
+                    EndDate = DateTime.Now.AddDays(taskId + 2),
+                    Duration = "2",
+                    Progress = taskId * 2 % 100,
+                    Predecessor = $"{taskId - 1} FS",
+                });
+            }
+
+            return tasks;
+        }
+
+        public static ObservableCollection<TaskData> GetObservableCollection()
+        {
+            return new ObservableCollection<TaskData>(GetSelfReferenceCollection());
+        }
+
+        private List<SegmentModel> GetSegmentCollection()
+        {
+            var segments = new List<SegmentModel>();
+
+            for (int i = 6; i <= 25; i++)
+            {
+                if (i % 3 == 1) // Split into 2 segments for child tasks
+                {
+                    segments.Add(new SegmentModel { Id = i * 10 + 1, TaskId = i, SegmentStartDate = DateTime.Now.AddDays(i),  SegmentDuration = "1" });
+                    segments.Add(new SegmentModel { Id = i * 10 + 2, TaskId = i, SegmentStartDate = DateTime.Now.AddDays(i + 2),  SegmentDuration = "1" });
+                }
+                else if (i % 3 == 2) // Split into 3 segments for child tasks
+                {
+                    segments.Add(new SegmentModel { Id = i * 10 + 1, TaskId = i, SegmentStartDate = DateTime.Now.AddDays(i),  SegmentDuration = "1" });
+                    segments.Add(new SegmentModel { Id = i * 10 + 2, TaskId = i, SegmentStartDate = DateTime.Now.AddDays(i + 1), SegmentDuration = "1" });
+                    segments.Add(new SegmentModel { Id = i * 10 + 3, TaskId = i, SegmentStartDate = DateTime.Now.AddDays(i + 2),  SegmentDuration = "1" });
+                }
+            }
+
+            return segments;
+        }
+        private void SegmentHandler(SegmentEventArgs<SegmentModel> args)
+        {
+
+        }
+        private async void UpdateRecord()
+        {
+            var record = await Gantt.GetSelectedRecordsAsync();
+            DateTime dateTime = (DateTime)record[0].StartDate;
+            switch (DurationUnits)
+            {
+                case DurationUnit.Day:
+                    record[0].StartDate = dateTime.AddDays(1);
+                    record[0].Duration = "5";
+                    break;
+                case DurationUnit.Hour:
+                    record[0].StartDate = dateTime.AddHours(1);
+                    record[0].Duration = "5";
+                    break;
+                case DurationUnit.Minute:
+                    record[0].StartDate = dateTime.AddMinutes(1);
+                    record[0].Duration = "5";
+                    break;
+            }
+            await Gantt.UpdateRecordByIDAsync(record[0]);
+        }
+        private void RowUpdatingHandler(GanttRowUpdatedEventArgs<TaskData> args)
+        {
+
+        }
+    }
+}
+

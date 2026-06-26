@@ -1,0 +1,218 @@
+@page "/E2EMigration/ColumnIndex"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+<div>@messsage</div>
+<button id="ToggleTaskView" @onclick="ToggleTaskView">ToggleTaskView</button>
+<button id="ToggleGanttView" @onclick="ToggleGanttView">ToggleGanttView</button>
+<button id="SetIndexTo0" @onclick="SetIndexTo0">SetIndexTo0</button>
+<button id="SetIndexTo1" @onclick="SetIndexTo1">SetIndexTo1</button>    
+<button id="SetIndexTo2" @onclick="SetIndexTo2">SetIndexTo2</button>
+<button id="SetIndexTo3" @onclick="SetIndexTo3">SetIndexTo3</button>
+<button id="SetIndexTo4" @onclick="SetIndexTo4">SetIndexTo4</button>
+<button id="Width" @onclick="ToChangeWidth">Chage Width</button>
+<br />
+
+<SfGantt @ref="TaskGantt"
+		 Id="ColumnIndex"
+         DataSource="@TaskCollection"
+         Height="400px" Width="1400px" HighlightWeekends="true"
+         TreeColumnIndex="4" AllowFiltering="true"
+         ProjectStartDate="@ProjectStart" ProjectEndDate="@ProjectEnd"
+         AllowSorting="true"
+         GridLines="Syncfusion.Blazor.Gantt.GridLine.Both">
+  <GanttColumns>
+        <GanttColumn Field="TaskId" HeaderText="Task Id" Width="@TaskIdWidth" Visible="@IsVisible"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Service Name" ></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start time"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+        <GanttColumn Field="ParentId" HeaderText="Parent Id"></GanttColumn>
+    </GanttColumns>
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate"
+                     Duration="Duration" ParentID="ParentId"></GanttTaskFields>
+   
+    <GanttFilterSettings HierarchyMode="FilterHierarchyMode.Both"></GanttFilterSettings>
+
+    <GanttEvents TValue="TaskData" Created="Created"OnActionFailure="ActionFailureHandler" ></GanttEvents>
+
+    <GanttSplitterSettings View="@taskGanttSplitterView" ColumnIndex="@splitterColumnIndex"></GanttSplitterSettings>
+</SfGantt>
+
+@code{
+    public SfGantt<TaskData> TaskGantt;
+    public string TaskIdWidth { get; set; } = "120";
+    public bool IsVisible { get; set; } = true;
+    public string messsage{ get; set; }
+    public DateTime ProjectStart = new DateTime(2019, 3, 29);
+    public DateTime ProjectEnd = new DateTime(2019, 7, 28);
+
+    //public SplitterView taskGanttSplitterView = SplitterView.Default;
+    //public int splitterColumnIndex = 3;
+    private SplitterView taskGanttSplitterView = SplitterView.Default;
+    private int splitterColumnIndex = 3;
+
+    public List<TaskData> TaskCollection { get; set; }
+
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+     public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+    public async Task Created()
+    {   
+     
+    }
+     public async Task ToChangeWidth()
+    {
+       this.TaskIdWidth = "250";
+        
+    }
+    private async Task ToggleTaskView()
+    {
+        if (taskGanttSplitterView == SplitterView.Default || taskGanttSplitterView == SplitterView.Chart)
+        {
+            taskGanttSplitterView = SplitterView.Grid;
+        }
+        else
+        {
+            taskGanttSplitterView = SplitterView.Default;
+        }
+        await SetTaskGanttView();
+    }
+
+    private async Task ToggleGanttView()
+    {
+        if (taskGanttSplitterView == SplitterView.Default || taskGanttSplitterView == SplitterView.Grid)
+        {
+            taskGanttSplitterView = SplitterView.Chart;
+        }
+        else
+        {
+            taskGanttSplitterView = SplitterView.Default;
+        }
+        await SetTaskGanttView();
+    }
+
+    private async Task SetTaskGanttView()
+    {
+        switch (taskGanttSplitterView)
+        {
+            case SplitterView.Default:
+                await this.TaskGantt?.SetSplitterPositionAsync(splitterColumnIndex);
+                break;
+            case SplitterView.Grid:
+                await this.TaskGantt?.SetSplitterPositionAsync(SplitterView.Grid);
+                break;
+            case SplitterView.Chart:
+                await this.TaskGantt?.SetSplitterPositionAsync(SplitterView.Chart);
+                break;
+        }
+    }
+
+    private async Task SetIndexTo0()
+    {
+        await this.TaskGantt?.SetSplitterPositionAsync(0);
+    }
+    private async Task SetIndexTo1()
+    {
+        await this.TaskGantt?.SetSplitterPositionAsync(1);
+    }
+    private async Task SetIndexTo2()
+    {
+        await this.TaskGantt?.SetSplitterPositionAsync(2);
+    }
+    private async Task SetIndexTo3()
+    {
+        await this.TaskGantt?.SetSplitterPositionAsync(3);
+    }
+    private async Task SetIndexTo4()
+    {
+        await this.TaskGantt?.SetSplitterPositionAsync(4);
+    }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+            new TaskData() {
+                TaskId = 1,
+                TaskName = "Project initiation",
+                StartDate = new DateTime(2019, 03, 28),
+                EndDate = new DateTime(2019, 07, 28),
+                Duration="4",
+                Progress = 60
+            },
+            new TaskData() {
+                TaskId = 2,
+                TaskName = "Identify Site location",
+                StartDate = new DateTime(2019, 03, 29),
+                Progress = 30,
+                ParentId = 1,
+                Duration="2"
+            },
+            new TaskData() {
+                TaskId = 3,
+                TaskName = "Perform soil test",
+                StartDate = new DateTime(2019, 03, 29),
+                ParentId = 1,
+                Duration="4",
+                Progress = 70
+            },
+            new TaskData() {
+                TaskId = 4,
+                TaskName = "Soil test approval",
+                StartDate = new DateTime(2019, 03, 29),
+                Duration = "4",
+                Progress = 30,
+                ParentId = 1
+            },
+            new TaskData() {
+                TaskId = 5,
+                TaskName = "Project estimation",
+                StartDate = new DateTime(2019, 03, 29),
+                EndDate = new DateTime(2019, 04, 2),
+                Duration="4",
+                Progress = 80
+            },
+            new TaskData() {
+                TaskId = 6,
+                TaskName = "Develop floor plan for estimation",
+                StartDate = new DateTime(2019, 03, 29),
+                Duration = "3",
+                Progress = 30,
+                ParentId = 5
+            },
+            new TaskData() {
+                TaskId = 7,
+                TaskName = "List materials",
+                StartDate = new DateTime(2019, 04, 01),
+                Duration = "3",
+                Progress = 30,
+                ParentId = 5
+            },
+            new TaskData() {
+                TaskId = 8,
+                TaskName = "Estimation approval",
+                StartDate = new DateTime(2019, 04, 01),
+                Duration = "2",
+                ParentId = 5,
+                Progress = 50
+            }
+        };
+        return Tasks;
+    }
+}

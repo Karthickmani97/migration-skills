@@ -1,0 +1,113 @@
+@page "/BLAZ-977406"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Popups
+<div>@messsage</div> 
+<SfGantt @ref="GanttRef" ID="GanttOverview" DataSource="TaskCollection" Height="100%" Width="100%" ScrollToTaskbarOnClick="true" TreeColumnIndex="1"
+AllowExcelExport="true" AllowPdfExport="true" GridLines="Syncfusion.Blazor.Gantt.GridLine.Both"
+WorkUnit="WorkUnit.Hour" HighlightWeekends="true" EnableRowHover="true" AutoCalculateDateScheduling="true" EnablePredecessorValidation="true"
+AllowSorting="true" AllowFiltering="true" EnableContextMenu="false" AllowResizing="true">
+<GanttEditSettings AllowEditing="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Dialog"></GanttEditSettings>
+<GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" ParentID="ParentId" Notes="Note">
+</GanttTaskFields>
+<GanttEvents TValue="TaskData" GanttDialogOpening="OnGanttDialogOpening" OnActionFailure="ActionFailureHandler"></GanttEvents>
+    @* <GanttTemplates TValue="ganttTaskObject">
+<TaskbarTemplate>
+            @{
+                var task = context as ganttTaskObject; // Cast context to your task data model
+ 
+                <div class="e-gantt-child-taskbar @task.StatusColor"
+                style="height:20px; border-radius:20px; padding:4px; display:flex; align-items:center; width:100%; box-sizing:border-box;"
+                tabindex="-1">
+ 
+ 
+                    <div style="flex: 1; overflow: hidden; white-space: normal; word-break: break-word; display: flex; flex-direction: column;">
+                        @if (task.StatusId == 1)
+                        {
+<span class="e-task-label">Not Started</span>
+                        }
+ 
+                    </div>
+ 
+                </div>
+            }
+</TaskbarTemplate>
+</GanttTemplates>
+*@
+<GanttColumns>
+<GanttColumn Field="Id" HeaderText="Task TaskId" Visible="false" />
+<GanttColumn Field="TaskName" HeaderText="Tasks" Width="300" IsFrozen="true"  />
+<GanttColumn Field="AssignedTo" HeaderText="Assigned To" Width="150" IsFrozen="true" />
+ 
+ 
+    </GanttColumns>
+<GanttSplitterSettings ColumnIndex="3"></GanttSplitterSettings>
+ 
+</SfGantt>
+ 
+<SfDialog Width="60%" AllowDragging="true" IsModal="true" ShowCloseIcon="true" @bind-Visible="@ShowEditDialog">
+<DialogTemplates>
+<Header>
+ 
+            <div id="template" class="e-icon-settings">New Task</div>
+</Header>
+<Content>
+ 
+            @*  <TasksEditComponent TaskId="Selected.Id" ></TasksEditComponent> *@
+</Content>
+</DialogTemplates>
+ 
+</SfDialog>
+ 
+@code {
+    SfGantt<TaskData> GanttRef;
+    private bool ShowEditDialog;
+    private TaskData? Selected;
+    private List<TaskData> TaskCollection { get; set; }
+    public string messsage{ get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        TaskCollection = GetTaskCollection();
+ 
+    }
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+
+    private void OnGanttDialogOpening(GanttDialogOpenEventArgs<TaskData> args)
+    {
+        args.Cancel = true;
+        //if (args.Data.ParentId == 0) return; //top level project
+        Selected = args.Data;        // the double-clicked task
+        ShowEditDialog = true;
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string StatusColor { get; set; }
+        public List<TaskData> taskLIst { get; set; } = new();
+    }
+ 
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+            new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 04, 05), EndDate = new DateTime(2022, 04, 21), },
+            // new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 30, ParentId = 1 },
+            new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 04, 05), EndDate = new DateTime(2022, 04, 08), Duration = "4", Progress = 40, ParentId = 1 },
+            // new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 30, ParentId = 1 },
+            new TaskData() { TaskId = 5, TaskName = "Project estimation", StartDate = new DateTime(2022, 04, 06), EndDate = new DateTime(2022, 04, 21), },
+            new TaskData() { TaskId = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 30, ParentId = 5 },
+            new TaskData() { TaskId = 7, TaskName = "List materials", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 40, ParentId = 5 },
+            new TaskData() { TaskId = 8, TaskName = "Estimation approval", StartDate = new DateTime(2022, 04, 06), Duration = "0", Progress = 30, ParentId = 5 }
+        };
+        return Tasks;
+    }
+}

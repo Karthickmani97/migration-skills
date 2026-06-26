@@ -1,0 +1,116 @@
+@page "/BLAZ-1009804"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor.Gantt
+<div>@messsage</div>
+<SfGantt @ref="Gantt" class="gantt" ID="ScheduleBuilder" DataSource="@TaskCollection" Height="100%" Width="100%" TreeColumnIndex="0" Toolbar="@(new List<string> { "ZoomToFit" })"
+         CopyHierarchyMode="Syncfusion.Blazor.TreeGrid.CopyHierarchyType.None"
+         EnableRowHover
+         TaskbarHeight="mRowHeight"
+         RowHeight="mRowHeight"
+         AllowRowDragAndDrop
+         TaskMode="ScheduleMode.Custom"
+         ScrollToTaskbarOnClick
+         AllowFiltering="true"
+         HighlightWeekends="true"
+         GridLines="Syncfusion.Blazor.Gantt.GridLine.Both"
+         ShowColumnChooser="true"
+         EnablePredecessorValidation="true"
+         AutoUpdatePredecessorOffset="false"
+         AllowResizing
+         EnableRowVirtualization
+         EnableTimelineVirtualization
+         OverscanCount="-1"
+         AllowPdfExport
+         EnableCriticalPath
+         ShowColumnMenu
+         EnableContextMenu="true"
+         ContextMenuItems="@(new string[] { "Add" })"
+         >
+    <GanttColumns>
+        <GanttColumn Field="TaskID" HeaderText="ID" Width="60">
+            <Template>
+                @{
+                    var data = context as TaskData;
+                }
+                <span>@($"#{data?.TaskID}")</span>
+            </Template>
+        </GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Task Name" Width="250"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date" Format="yyyy-MM-dd" Width="100"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date" Format="yyyy-MM-dd" Width="100"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration" Width="80"></GanttColumn>
+
+    </GanttColumns>
+    <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Work="Work" TaskType="TaskType" Dependency="Predecessor" Manual="IsManual" ExpandState="IsExpanded" Notes="Notes">
+    </GanttTaskFields><GanttTooltipSettings TValue="TaskData" ShowTooltipOnEditing="false"></GanttTooltipSettings>
+    <GanttEditSettings AllowSchedulingOnDrag="@true" AllowAdding="@true" AllowDeleting="false" AllowEditing="@true" AllowTaskbarEditing="@true" ShowDeleteConfirmDialog="false" Mode="Syncfusion.Blazor.Gantt.EditMode.Auto">
+    </GanttEditSettings>
+    <GanttSplitterSettings Position="50%"> </GanttSplitterSettings>
+    <GanttEvents TValue="TaskData"OnActionFailure="ActionFailureHandler" ContextMenuOpen="() => { }"></GanttEvents>
+    <GanttSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Both" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple" AllowDragSelection EnableToggle />
+</SfGantt>
+
+
+@code {
+    public bool IsGanttVisible { get; set; } = true;
+    public string messsage{ get; set; }
+    public SfGantt<TaskData> Gantt;
+    public TaskData record = new TaskData() { TaskName = "New Added Record", StartDate = new DateTime(2022, 04, 05), Duration = "3", Progress = 50 };
+
+    private int mRowHeight = 30;
+    public bool CanEdit { get; set; } = true;
+    /// <summary>
+    /// Custom Zooming Levels for Gantt Chart
+    /// </summary>
+   
+
+
+    private List<TaskData> TaskCollection { get; set; }
+
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+   
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+
+    public class TaskData
+    {
+        public int TaskID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string? Predecessor { get; set; }
+        public bool IsManual { get; set; }
+        public bool IsExpanded { get; set; } = true;
+        public double? Work { get; set; }
+        public string? TaskType { get; set; }
+        public string? Notes { get; set; }
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>()
+        {
+            new TaskData() { TaskID = 1, TaskName = "Project initiation", StartDate = new DateTime(2024, 04, 05), EndDate = new DateTime(2024, 04, 07)},
+            new TaskData() { TaskID = 2, TaskName = "Identify site location", StartDate = new DateTime(2024, 04, 05), Duration = "0", Progress = 30, ParentId = 1 },
+            new TaskData() { TaskID = 3, TaskName = "Perform soil test", StartDate = new DateTime(2024, 04, 03), Duration = "4", Progress = 40, ParentId = 1, Predecessor="2FS"},
+            new TaskData() { TaskID = 4, TaskName = "Soil test approval", StartDate = new DateTime(2024, 04, 05), Duration = "0", Progress = 30, ParentId = 1},
+            new TaskData() { TaskID = 5, TaskName = "Project estimation", StartDate = new DateTime(2024, 04, 06), EndDate = new DateTime(2024, 04, 21)},
+            new TaskData() { TaskID = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2024, 03, 06), Duration = "3", EndDate = new DateTime(2024, 03, 29), Progress = 30, ParentId = 5},
+            new TaskData() { TaskID = 7, TaskName = "List materials", StartDate = new DateTime(2024, 04, 06), Duration = "3", EndDate = new DateTime(2024, 04, 29), Progress = 40, ParentId = 5},
+            new TaskData() { TaskID = 8, TaskName = "Estimation approval", StartDate = new DateTime(2024, 04, 06), Duration = "1", EndDate = new DateTime(2024, 04, 27), Progress = 30, ParentId = 5},
+            new TaskData() { TaskID = 9, TaskName = "Estimation approval", StartDate = new DateTime(2024, 04, 26), Duration = "1", EndDate = new DateTime(2024, 04, 27), Progress = 30, ParentId = 5}
+
+        };
+        return Tasks;
+    }
+
+}

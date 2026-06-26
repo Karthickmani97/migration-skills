@@ -1,0 +1,338 @@
+@page "/gantt-sidebar"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Gantt
+@using Microsoft.AspNetCore.Components.Web
+
+<h3>Project Management - Gantt Chart with Sidebar Navigation</h3>
+
+<div class="mb-3">
+    <p class="text-muted">This sample demonstrates a Sidebar with project navigation. Click the hamburger menu to expand/collapse the project sidebar. Select different projects from the sidebar to view their corresponding Gantt charts.</p>
+</div>
+
+<div class="mb-3">
+    <SfButton Id="toggleSidebarBtn" CssClass="e-primary" IconCss="e-icons e-menu" OnClick="ToggleSidebar">
+        Toggle Projects Sidebar
+    </SfButton>
+    <span class="ms-3 badge bg-info">Selected: @SelectedProject</span>
+</div>
+
+<div id="main" style="position: relative; height: 650px; border: 1px solid #ddd;">
+    <SfSidebar Width="280px" @bind-IsOpen="IsSidebarOpen" Target="#main" EnableDock="true" DockSize="50px" Type="SidebarType.Push">
+        <div class="p-3">
+            <h6 class="mb-3 text-primary">
+                <i class="e-icons e-folder me-2"></i>Projects
+            </h6>
+            
+            <div class="list-group">
+                <button type="button" 
+                        class="list-group-item list-group-item-action d-flex align-items-center @(SelectedProject == "Website Redesign" ? "active" : "")" 
+                        @onclick='() => SelectProject("Website Redesign")'>
+                    <i class="e-icons e-file-new me-2"></i>
+                    <div>
+                        <div class="fw-bold">Website Redesign</div>
+                        <small class="text-muted">8 tasks, 45% complete</small>
+                    </div>
+                </button>
+                
+                <button type="button" 
+                        class="list-group-item list-group-item-action d-flex align-items-center @(SelectedProject == "Mobile App Development" ? "active" : "")" 
+                        @onclick='() => SelectProject("Mobile App Development")'>
+                    <i class="e-icons e-file-new me-2"></i>
+                    <div>
+                        <div class="fw-bold">Mobile App Development</div>
+                        <small class="text-muted">9 tasks, 60% complete</small>
+                    </div>
+                </button>
+                
+                <button type="button" 
+                        class="list-group-item list-group-item-action d-flex align-items-center @(SelectedProject == "Database Migration" ? "active" : "")" 
+                        @onclick='() => SelectProject("Database Migration")'>
+                    <i class="e-icons e-file-new me-2"></i>
+                    <div>
+                        <div class="fw-bold">Database Migration</div>
+                        <small class="text-muted">6 tasks, 75% complete</small>
+                    </div>
+                </button>
+            </div>
+            
+            <hr class="my-3" />
+            
+            <div class="mt-3">
+                <h6 class="text-muted small">FILTERS</h6>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" @bind="ShowCompleted" @bind:after="UpdateGanttData" id="showCompleted">
+                    <label class="form-check-label small" for="showCompleted">
+                        Show Completed Tasks
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" @bind="ShowInProgress" @bind:after="UpdateGanttData" id="showInProgress">
+                    <label class="form-check-label small" for="showInProgress">
+                        Show In-Progress Tasks
+                    </label>
+                </div>
+            </div>
+        </div>
+    </SfSidebar>
+    
+    <div class="p-3" style="height: 100%; overflow: hidden; background-color: #f8f9fa;">
+        @if (!string.IsNullOrEmpty(SelectedProject))
+        {
+            <div style="background-color: white; border: 1px solid #dee2e6; border-radius: 4px; padding: 10px;">
+                <SfGantt DataSource="@GanttData" Height="520px" Width="1000px" 
+                         Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll" })">
+                    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" 
+                                     Duration="Duration" Progress="Progress" Child="SubTasks" Dependency="Predecessor"></GanttTaskFields>
+                    <GanttEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true"></GanttEditSettings>
+                    <GanttColumns>
+                        <GanttColumn Field="TaskId" HeaderText="ID" Width="80"></GanttColumn>
+                        <GanttColumn Field="TaskName" HeaderText="Task Name" Width="250"></GanttColumn>
+                        <GanttColumn Field="StartDate" HeaderText="Start Date" Width="150" Format="d"></GanttColumn>
+                        <GanttColumn Field="EndDate" HeaderText="End Date" Width="150" Format="d"></GanttColumn>
+                        <GanttColumn Field="Duration" HeaderText="Duration" Width="100"></GanttColumn>
+                        <GanttColumn Field="Progress" HeaderText="Progress %" Width="120"></GanttColumn>
+                    </GanttColumns>
+                </SfGantt>
+            </div>
+        }
+        else
+        {
+            <div class="text-center mt-5 pt-5">
+                <i class="e-icons e-folder-open" style="font-size: 64px; color: #ccc;"></i>
+                <h5 class="mt-3 text-muted">No Project Selected</h5>
+                <p class="text-muted">Select a project from the sidebar to view its Gantt chart</p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private bool IsSidebarOpen { get; set; } = true;
+    private string SelectedProject { get; set; } = "";
+    private List<GanttTask> GanttData { get; set; } = new();
+    private List<GanttTask> AllProjectData { get; set; } = new();
+    private bool ShowCompleted { get; set; } = true;
+    private bool ShowInProgress { get; set; } = true;
+
+    protected override void OnInitialized()
+    {
+        SelectProject("Website Redesign");
+    }
+
+    private void ToggleSidebar(MouseEventArgs args)
+    {
+        IsSidebarOpen = !IsSidebarOpen;
+    }
+
+    private void SelectProject(string projectName)
+    {
+        SelectedProject = projectName;
+        AllProjectData = GetProjectData(projectName);
+        UpdateGanttData();
+    }
+
+    private void UpdateGanttData()
+    {
+        GanttData = AllProjectData.Where(task =>
+        {
+            if (task.Progress == 100 && !ShowCompleted) return false;
+            if (task.Progress > 0 && task.Progress < 100 && !ShowInProgress) return false;
+            return true;
+        }).ToList();
+    }
+
+    private int GetTotalSubtasks()
+    {
+        return GanttData.Sum(task => task.SubTasks?.Count ?? 0);
+    }
+
+    private int GetCompletedPercentage()
+    {
+        if (!AllProjectData.Any()) return 0;
+        return (int)AllProjectData.Average(task => task.Progress);
+    }
+
+    private List<GanttTask> GetProjectData(string projectName)
+    {
+        return projectName switch
+        {
+            "Website Redesign" => new List<GanttTask>
+            {
+                new GanttTask 
+                { 
+                    TaskId = 1, 
+                    TaskName = "Planning & Discovery", 
+                    StartDate = DateTime.Today.AddDays(-10), 
+                    EndDate = DateTime.Today.AddDays(-7),
+                    Duration = 3, 
+                    Progress = 100,
+                    SubTasks = new List<GanttTask>
+                    {
+                        new GanttTask { TaskId = 2, TaskName = "Requirements Gathering", StartDate = DateTime.Today.AddDays(-10), EndDate = DateTime.Today.AddDays(-9), Duration = 1, Progress = 100 },
+                        new GanttTask { TaskId = 3, TaskName = "Competitor Analysis", StartDate = DateTime.Today.AddDays(-9), EndDate = DateTime.Today.AddDays(-7), Duration = 2, Progress = 100, Predecessor = "2FS" }
+                    }
+                },
+                new GanttTask 
+                { 
+                    TaskId = 4, 
+                    TaskName = "Design Phase", 
+                    StartDate = DateTime.Today.AddDays(-7), 
+                    EndDate = DateTime.Today.AddDays(-2),
+                    Duration = 5, 
+                    Progress = 100,
+                    Predecessor = "1FS",
+                    SubTasks = new List<GanttTask>
+                    {
+                        new GanttTask { TaskId = 5, TaskName = "Wireframes", StartDate = DateTime.Today.AddDays(-7), EndDate = DateTime.Today.AddDays(-5), Duration = 2, Progress = 100 },
+                        new GanttTask { TaskId = 6, TaskName = "High-Fidelity Mockups", StartDate = DateTime.Today.AddDays(-5), EndDate = DateTime.Today.AddDays(-2), Duration = 3, Progress = 100, Predecessor = "5FS" }
+                    }
+                },
+                new GanttTask 
+                { 
+                    TaskId = 7, 
+                    TaskName = "Development", 
+                    StartDate = DateTime.Today.AddDays(-2), 
+                    EndDate = DateTime.Today.AddDays(5),
+                    Duration = 7, 
+                    Progress = 60,
+                    Predecessor = "4FS",
+                    SubTasks = new List<GanttTask>
+                    {
+                        new GanttTask { TaskId = 8, TaskName = "Homepage", StartDate = DateTime.Today.AddDays(-2), EndDate = DateTime.Today, Duration = 2, Progress = 100 },
+                        new GanttTask { TaskId = 9, TaskName = "Product Pages", StartDate = DateTime.Today.AddDays(1), EndDate = DateTime.Today.AddDays(3), Duration = 2, Progress = 80, Predecessor = "8FS" },
+                        new GanttTask { TaskId = 10, TaskName = "Contact & Forms", StartDate = DateTime.Today.AddDays(3), EndDate = DateTime.Today.AddDays(5), Duration = 2, Progress = 20, Predecessor = "9FS" }
+                    }
+                },
+                new GanttTask { TaskId = 11, TaskName = "Responsive Testing", StartDate = DateTime.Today.AddDays(5), EndDate = DateTime.Today.AddDays(7), Duration = 2, Progress = 0, Predecessor = "7FS" },
+                new GanttTask { TaskId = 12, TaskName = "Content Migration", StartDate = DateTime.Today.AddDays(7), EndDate = DateTime.Today.AddDays(9), Duration = 2, Progress = 0, Predecessor = "11FS" },
+                new GanttTask { TaskId = 13, TaskName = "SEO Optimization", StartDate = DateTime.Today.AddDays(9), EndDate = DateTime.Today.AddDays(11), Duration = 2, Progress = 0, Predecessor = "12FS" },
+                new GanttTask { TaskId = 14, TaskName = "Launch", StartDate = DateTime.Today.AddDays(11), EndDate = DateTime.Today.AddDays(12), Duration = 1, Progress = 0, Predecessor = "13FS" }
+            },
+            
+            "Mobile App Development" => new List<GanttTask>
+            {
+                new GanttTask 
+                { 
+                    TaskId = 1, 
+                    TaskName = "Backend API", 
+                    StartDate = DateTime.Today.AddDays(-12), 
+                    EndDate = DateTime.Today.AddDays(-5),
+                    Duration = 7, 
+                    Progress = 100,
+                    SubTasks = new List<GanttTask>
+                    {
+                        new GanttTask { TaskId = 2, TaskName = "Database Schema", StartDate = DateTime.Today.AddDays(-12), EndDate = DateTime.Today.AddDays(-10), Duration = 2, Progress = 100 },
+                        new GanttTask { TaskId = 3, TaskName = "Authentication Module", StartDate = DateTime.Today.AddDays(-10), EndDate = DateTime.Today.AddDays(-8), Duration = 2, Progress = 100, Predecessor = "2FS" },
+                        new GanttTask { TaskId = 4, TaskName = "Data Sync Service", StartDate = DateTime.Today.AddDays(-8), EndDate = DateTime.Today.AddDays(-5), Duration = 3, Progress = 100, Predecessor = "3FS" }
+                    }
+                },
+                new GanttTask 
+                { 
+                    TaskId = 5, 
+                    TaskName = "iOS Development", 
+                    StartDate = DateTime.Today.AddDays(-5), 
+                    EndDate = DateTime.Today.AddDays(3),
+                    Duration = 8, 
+                    Progress = 65,
+                    Predecessor = "1FS",
+                    SubTasks = new List<GanttTask>
+                    {
+                        new GanttTask { TaskId = 6, TaskName = "UI/UX Implementation", StartDate = DateTime.Today.AddDays(-5), EndDate = DateTime.Today.AddDays(-2), Duration = 3, Progress = 100 },
+                        new GanttTask { TaskId = 7, TaskName = "Core Features", StartDate = DateTime.Today.AddDays(-2), EndDate = DateTime.Today.AddDays(1), Duration = 3, Progress = 80, Predecessor = "6FS" },
+                        new GanttTask { TaskId = 8, TaskName = "API Integration", StartDate = DateTime.Today.AddDays(1), EndDate = DateTime.Today.AddDays(3), Duration = 2, Progress = 30, Predecessor = "7FS" }
+                    }
+                },
+                new GanttTask 
+                { 
+                    TaskId = 9, 
+                    TaskName = "Android Development", 
+                    StartDate = DateTime.Today.AddDays(-4), 
+                    EndDate = DateTime.Today.AddDays(4),
+                    Duration = 8, 
+                    Progress = 55,
+                    Predecessor = "1FS",
+                    SubTasks = new List<GanttTask>
+                    {
+                        new GanttTask { TaskId = 10, TaskName = "UI/UX Implementation", StartDate = DateTime.Today.AddDays(-4), EndDate = DateTime.Today.AddDays(-1), Duration = 3, Progress = 100 },
+                        new GanttTask { TaskId = 11, TaskName = "Core Features", StartDate = DateTime.Today.AddDays(-1), EndDate = DateTime.Today.AddDays(2), Duration = 3, Progress = 70, Predecessor = "10FS" },
+                        new GanttTask { TaskId = 12, TaskName = "API Integration", StartDate = DateTime.Today.AddDays(2), EndDate = DateTime.Today.AddDays(4), Duration = 2, Progress = 20, Predecessor = "11FS" }
+                    }
+                },
+                new GanttTask { TaskId = 13, TaskName = "Cross-Platform Testing", StartDate = DateTime.Today.AddDays(4), EndDate = DateTime.Today.AddDays(7), Duration = 3, Progress = 0, Predecessor = "5FS,9FS" },
+                new GanttTask { TaskId = 14, TaskName = "Beta Testing", StartDate = DateTime.Today.AddDays(7), EndDate = DateTime.Today.AddDays(10), Duration = 3, Progress = 0, Predecessor = "13FS" },
+                new GanttTask { TaskId = 15, TaskName = "App Store Submission", StartDate = DateTime.Today.AddDays(10), EndDate = DateTime.Today.AddDays(11), Duration = 1, Progress = 0, Predecessor = "14FS" }
+            },
+            
+            "Database Migration" => new List<GanttTask>
+            {
+                new GanttTask 
+                { 
+                    TaskId = 1, 
+                    TaskName = "Assessment Phase", 
+                    StartDate = DateTime.Today.AddDays(-10), 
+                    EndDate = DateTime.Today.AddDays(-6),
+                    Duration = 4, 
+                    Progress = 100,
+                    SubTasks = new List<GanttTask>
+                    {
+                        new GanttTask { TaskId = 2, TaskName = "Current State Analysis", StartDate = DateTime.Today.AddDays(-10), EndDate = DateTime.Today.AddDays(-8), Duration = 2, Progress = 100 },
+                        new GanttTask { TaskId = 3, TaskName = "Schema Analysis", StartDate = DateTime.Today.AddDays(-8), EndDate = DateTime.Today.AddDays(-6), Duration = 2, Progress = 100, Predecessor = "2FS" }
+                    }
+                },
+                new GanttTask { TaskId = 4, TaskName = "Full Data Backup", StartDate = DateTime.Today.AddDays(-6), EndDate = DateTime.Today.AddDays(-4), Duration = 2, Progress = 100, Predecessor = "1FS" },
+                new GanttTask 
+                { 
+                    TaskId = 5, 
+                    TaskName = "Migration Scripts Development", 
+                    StartDate = DateTime.Today.AddDays(-4), 
+                    EndDate = DateTime.Today.AddDays(1),
+                    Duration = 5, 
+                    Progress = 80,
+                    Predecessor = "4FS",
+                    SubTasks = new List<GanttTask>
+                    {
+                        new GanttTask { TaskId = 6, TaskName = "User Data Scripts", StartDate = DateTime.Today.AddDays(-4), EndDate = DateTime.Today.AddDays(-2), Duration = 2, Progress = 100 },
+                        new GanttTask { TaskId = 7, TaskName = "Transaction Data Scripts", StartDate = DateTime.Today.AddDays(-2), EndDate = DateTime.Today, Duration = 2, Progress = 90, Predecessor = "6FS" },
+                        new GanttTask { TaskId = 8, TaskName = "Reference Data Scripts", StartDate = DateTime.Today, EndDate = DateTime.Today.AddDays(1), Duration = 1, Progress = 50, Predecessor = "7FS" }
+                    }
+                },
+                new GanttTask 
+                { 
+                    TaskId = 9, 
+                    TaskName = "Testing & Validation", 
+                    StartDate = DateTime.Today.AddDays(1), 
+                    EndDate = DateTime.Today.AddDays(4),
+                    Duration = 3, 
+                    Progress = 20,
+                    Predecessor = "5FS",
+                    SubTasks = new List<GanttTask>
+                    {
+                        new GanttTask { TaskId = 10, TaskName = "Data Integrity Check", StartDate = DateTime.Today.AddDays(1), EndDate = DateTime.Today.AddDays(2), Duration = 1, Progress = 50 },
+                        new GanttTask { TaskId = 11, TaskName = "Performance Testing", StartDate = DateTime.Today.AddDays(2), EndDate = DateTime.Today.AddDays(3), Duration = 1, Progress = 10, Predecessor = "10FS" },
+                        new GanttTask { TaskId = 12, TaskName = "UAT", StartDate = DateTime.Today.AddDays(3), EndDate = DateTime.Today.AddDays(4), Duration = 1, Progress = 0, Predecessor = "11FS" }
+                    }
+                },
+                new GanttTask { TaskId = 13, TaskName = "Staging Deployment", StartDate = DateTime.Today.AddDays(4), EndDate = DateTime.Today.AddDays(5), Duration = 1, Progress = 0, Predecessor = "9FS" },
+                new GanttTask { TaskId = 14, TaskName = "Production Deployment", StartDate = DateTime.Today.AddDays(5), EndDate = DateTime.Today.AddDays(6), Duration = 1, Progress = 0, Predecessor = "13FS" },
+                new GanttTask { TaskId = 15, TaskName = "Post-Migration Monitoring", StartDate = DateTime.Today.AddDays(6), EndDate = DateTime.Today.AddDays(8), Duration = 2, Progress = 0, Predecessor = "14FS" }
+            },
+            
+            _ => new List<GanttTask>()
+        };
+    }
+
+    private class GanttTask
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; } = string.Empty;
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public int Duration { get; set; }
+        public int Progress { get; set; }
+        public string Predecessor { get; set; } = string.Empty;
+        public List<GanttTask>? SubTasks { get; set; } = new();
+    }
+}

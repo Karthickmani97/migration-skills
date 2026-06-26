@@ -1,0 +1,98 @@
+@page "/UnScheduleTasks"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+
+<SfGantt @ref="Gantt" ID="Unscheduled" EnableContextMenu="true" DataSource="@TaskCollection" Toolbar="@(new List<string>() { "Add", "Cancel", "Update", "Delete", "Edit" })" Height="450px" Width="1400px" AllowUnscheduledTasks="true" >
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" >
+    </GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Auto"></GanttEditSettings>
+    <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+</SfGantt>
+
+@code{
+    public SfGantt<TaskData> Gantt;
+    public List<TaskData> TaskCollection { get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+
+    }
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+            new TaskData() {
+            TaskId = 1,
+            TaskName = "Project initiation",
+            StartDate = new DateTime(2019, 04, 02),
+        },
+
+        new TaskData() {
+            TaskId = 2,
+            TaskName = "Identify Site location",
+            Progress = 30,
+           
+            ParentId = 1,
+        },
+
+        new TaskData() {
+            TaskId = 3,
+            TaskName = "Perform soil test",
+            Progress = 40,
+            ParentId = 1,
+        },
+
+        new TaskData() {
+            TaskId = 4,
+            TaskName = "Soil test approval",
+            EndDate =new DateTime(2019, 04, 03),
+           
+            Progress = 30,
+            ParentId = 1
+        },
+
+        new TaskData() {
+            TaskId = 5,
+            TaskName = "Project initiation",
+            StartDate = new DateTime(2019, 04, 04),
+        },
+
+        new TaskData() {
+            TaskId = 6,
+            TaskName = "Identify Site location",
+            StartDate = new DateTime(2019, 04, 02),
+            Progress = 30,
+            ParentId = 5,
+        },
+
+        new TaskData() {
+            TaskId = 7,
+            TaskName = "Perform soil test",
+            StartDate = new DateTime(2019, 04, 02),
+            Progress = 40,
+            ParentId = 5,
+        },
+
+        new TaskData() {
+            TaskId = 8,
+            TaskName = "Soil test approval",
+            EndDate = new DateTime(2019, 04, 02),
+            Progress = 30,
+            ParentId = 5
+        },
+
+    };
+            return Tasks;
+        }
+    }
+

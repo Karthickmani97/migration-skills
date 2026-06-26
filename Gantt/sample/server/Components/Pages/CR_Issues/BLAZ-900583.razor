@@ -1,0 +1,262 @@
+﻿@page "/BLAZ-900583"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+<div>@messsage</div>
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt @ref="@gantt" DataSource="@TaskCollection" AllowResizing="true" Height="750px" TreeColumnIndex="0" HighlightWeekends="true"
+                     Toolbar="@(new List<string>(){ "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll","Indent","Outdent"})"
+                     AllowSelection="true">
+                <GanttEditSettings AllowEditing="false" AllowAdding="false" AllowTaskbarEditing="false" AllowSchedulingOnDrag="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Dialog"></GanttEditSettings>
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                                 Dependency="Predecessor" ParentID="ParentId"></GanttTaskFields>
+                <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+                <GanttColumns>
+                    <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+                    <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+                    <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+                    <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+                    <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+                    <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+                    <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+                </GanttColumns>
+                <GanttLabelSettings RightLabel="TaskName" TValue="GanttData.TaskData"></GanttLabelSettings>
+                <GanttSplitterSettings Position="20%"> </GanttSplitterSettings>
+                <GanttEvents TValue="GanttData.TaskData" Created="CreatedHandler"OnActionFailure="ActionFailureHandler"></GanttEvents>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+<style>
+    html, body {
+        height: 100%;
+    }
+</style>
+@code {
+    private DateTime ProjectStart = new DateTime(2023, 01, 22);
+    SfGantt<GanttData.TaskData> gantt;
+    public string messsage{ get; set; }
+    private List<GanttData.TaskData> TaskCollection { get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GanttData.EditingData().ToList();
+    }
+      public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+    public async Task CreatedHandler(object args)
+    {
+        await gantt.ZoomToFitAsync();
+    }
+    public class GanttData
+    {
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string TaskName { get; set; }
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public string Duration { get; set; }
+            public int Progress { get; set; }
+            public string Predecessor { get; set; }
+            public string Notes { get; set; }
+            public int? ParentId { get; set; }
+            public bool IsManual { get; set; } = true;
+        }
+        public static List<TaskData> EditingData()
+        {
+            List<TaskData> Tasks = new List<TaskData>() {
+        new TaskData() {
+            TaskId = 1,
+            TaskName = "Product concept",
+            StartDate = new DateTime(2023,12,04),
+            EndDate = new DateTime(2028,03,15),
+            Duration = "1051"
+        },
+        new TaskData() {
+            TaskId = 2,
+            TaskName = "Defining the product usage",
+            StartDate = new DateTime(2023,12,4),
+            EndDate = new DateTime(2024,07,17),
+            Duration = "155",
+            Progress = 30,
+            ParentId = 1
+        },
+        new TaskData() {
+            TaskId = 3,
+            TaskName = "Defining the target audience",
+            StartDate = new DateTime(2023,12,4),
+            EndDate = new DateTime(2023,12,22),
+            Duration = "15",
+            Progress = 40,
+            ParentId = 2,
+        },
+        new TaskData() {
+            TaskId = 4,
+            TaskName = "Prepare product sketch and notes",
+            StartDate = new DateTime(2024,8,1),
+            EndDate = new DateTime(2024,07,17),
+            Duration = "140",
+            Progress = 30,
+            ParentId = 2,
+            Predecessor = "3"
+        },
+        new TaskData() {
+            TaskId = 5,
+            TaskName = "Product concept",
+            StartDate = new DateTime(2024,08,05),
+            EndDate = new DateTime(2024,09,10),
+            Duration = "20",
+            ParentId = 1,
+        },
+        new TaskData() {
+            TaskId = 6,
+            TaskName = "Defining the product usage",
+            StartDate = new DateTime(2024,09,04),
+            EndDate = new DateTime(2024,10,15),
+            Duration = "30",
+            Progress = 30,
+            ParentId = 1,
+            Predecessor = "7"
+        },
+        new TaskData() {
+            TaskId = 7,
+            TaskName = "Defining the target audience",
+            StartDate = new DateTime(2024,09,02),
+            EndDate = new DateTime(2024,09,03),
+            Duration = "2",
+            Progress = 40,
+            ParentId = 1,
+        },
+        new TaskData() {
+            TaskId = 8,
+            TaskName = "Prepare product sketch and notes",
+            StartDate = new DateTime(2024,10,16),
+            EndDate = new DateTime(2024,11,19),
+            Duration = "25",
+            Progress = 30,
+            ParentId = 1,
+            Predecessor = "6"
+        },
+        new TaskData() {
+            TaskId = 9,
+            TaskName = "Product concept",
+            StartDate = new DateTime(2024,11,20),
+            EndDate = new DateTime(2024,12,12),
+            Duration = "17",
+            Predecessor = "8",
+            ParentId = 1,
+        },
+        new TaskData() {
+            TaskId = 10,
+            TaskName = "Defining the product usage",
+            StartDate = new DateTime(2024,12,13),
+            EndDate = new DateTime(2025,02,24),
+            Duration = "40",
+            Progress = 30,
+            ParentId = 1,
+            //Predecessor = "11SS"
+        },
+        new TaskData() {
+            TaskId = 11,
+            TaskName = "Defining the target audience",
+            StartDate = new DateTime(2025,02,25),
+            EndDate = new DateTime(2025,04,07),
+            Duration = "30",
+            Progress = 40,
+            ParentId = 1,
+            Predecessor = "10"
+        },
+        new TaskData() {
+            TaskId = 12,
+            TaskName = "Prepare product sketch and notes",
+            StartDate = new DateTime(2025,04,07),
+            EndDate = new DateTime(2025,04,07),
+            Duration = "0",
+            Progress = 30,
+            ParentId = 1,
+            Predecessor = "11"
+        },
+        new TaskData() {
+            TaskId = 13,
+            TaskName = "Product concept",
+            StartDate = new DateTime(2025,04,08),
+            EndDate = new DateTime(2025,05,23),
+            Duration = "34",
+            Predecessor = "12",
+            ParentId = 1,
+        },
+        new TaskData() {
+            TaskId = 14,
+            TaskName = "Defining the product usage",
+            StartDate = new DateTime(2024,07,15),
+            EndDate = new DateTime(2024,07,25),
+            Duration = "10",
+            Progress = 30,
+            ParentId = 18,
+            Predecessor = "17",
+        },
+        new TaskData() {
+            TaskId = 15,
+            TaskName = "Defining the target audience",
+            StartDate = new DateTime(2025,05,23),
+            EndDate = new DateTime(2025,05,23),
+            Duration = "0",
+            Progress = 40,
+            ParentId = 1,
+            Predecessor = "13"
+        },
+        new TaskData() {
+            TaskId = 16,
+            TaskName = "Prepare product sketch and notes",
+            StartDate = new DateTime(2025,06,02),
+            EndDate = new DateTime(2026,01,12),
+            Duration = "140",
+            Progress = 30,
+            ParentId = 1,
+            //Predecessor = "15FS+20"
+        },
+         new TaskData() {
+            TaskId = 17,
+            TaskName = "Product concept",
+            StartDate = new DateTime(2024,06,10),
+            EndDate = new DateTime(2024,07,12),
+            Duration = "25",
+            ParentId = 18,
+        },
+        new TaskData() {
+            TaskId = 18,
+            TaskName = "Defining the product usage",
+            StartDate = new DateTime(2024,06,10),
+            EndDate = new DateTime(2024,07,25),
+            Duration = "35",
+            Progress = 30,
+            ParentId = 1,
+        },
+        new TaskData() {
+            TaskId = 19,
+            TaskName = "Defining the target audience",
+            StartDate = new DateTime(2026,06,08),
+            EndDate = new DateTime(2026,07,06),
+            Duration = "21",
+            Progress = 40,
+            ParentId = 1,
+            //Predecessor = "14FF-10,17"
+        },
+        new TaskData() {
+            TaskId = 20,
+            TaskName = "Prepare product sketch and notes",
+            StartDate = new DateTime(2026,02,17),
+            EndDate = new DateTime(2026,07,06),
+            Duration = "100",
+            Progress = 30,
+            ParentId = 1,
+            Predecessor = "19FS+100"
+        },
+    };
+            return Tasks;
+        }
+    }
+}

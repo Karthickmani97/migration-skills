@@ -1,0 +1,106 @@
+
+@page "/Custom-validation"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using System.ComponentModel.DataAnnotations
+<div>@message</div>
+<SfGantt @ref="Gantt" TValue="TaskInfoModel" DataSource="@TaskCollection" Height="450px" Width="1400px" HighlightWeekends="true"
+         Toolbar="@(new List<string>(){ "Add", "Edit", "Update", "Delete", "Cancel"})" TreeColumnIndex="1">
+    <GanttTaskFields Id="TaskID" Name="ActivityName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                     ParentID="ParentID"></GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true"></GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskID" HeaderText="Task ID" IsPrimaryKey="true"
+                     Width="80" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+        </GanttColumn>
+        <GanttColumn Field="ActivityName" HeaderText="Task Name" Width="160" />
+        <GanttColumn Field="StartDate" HeaderText="Start Date" Width="150">
+        </GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date" Width="150"
+                    Format="MM/dd/yyyy HH:mm" EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit">
+        </GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration" Width="100"
+                     TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+        </GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress" Width="100" EditType="Syncfusion.Blazor.Grids.EditType.NumericEdit"
+                     TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+        </GanttColumn>
+    </GanttColumns>
+    <GanttEvents TValue="TaskInfoModel" OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+
+@code {
+    private List<TaskInfoModel> TaskCollection { get; set; }
+    private SfGantt<TaskInfoModel> Gantt;
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = EditingData().ToList();
+    }
+    public string message{ get; set; } 
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+
+    public class TaskInfoModel
+    {
+        public int TaskID { get; set; }
+        [CustomValidationActivityName]
+        public string ActivityName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public int? Duration { get; set; }
+        [CustomValidationProgress]
+        public int Progress { get; set; }
+        public int? ParentID { get; set; }
+    }
+
+    /// <summary>
+    /// Provides custom validation for the <c>ActivityName</c> property.
+    /// Ensures that the task name is not empty and its length is between 5 and 10 characters.
+    /// </summary>
+    public class CustomValidationActivityName : ValidationAttribute
+    {
+        protected override System.ComponentModel.DataAnnotations.ValidationResult IsValid(object value, System.ComponentModel.DataAnnotations.ValidationContext validationContext)
+        {
+            var str = value as string;
+            if (string.IsNullOrWhiteSpace(str))
+                return new System.ComponentModel.DataAnnotations.ValidationResult("Task Name is required.");
+            if (str.Length < 5 || str.Length > 10)
+                return new System.ComponentModel.DataAnnotations.ValidationResult("Task Name must be between 5 and 10 characters.");
+            return System.ComponentModel.DataAnnotations.ValidationResult.Success;
+        }
+    }
+
+    /// <summary>
+    /// Provides custom validation for the <c>Progress</c> property.
+    /// Ensures that the progress value is provided and falls within the range of 5 to 50.
+    /// </summary>
+    public class CustomValidationProgress : ValidationAttribute
+    {
+        protected override System.ComponentModel.DataAnnotations.ValidationResult IsValid(object value, System.ComponentModel.DataAnnotations.ValidationContext context)
+        {
+            if (value == null)
+                return new System.ComponentModel.DataAnnotations.ValidationResult("Progress is required.");
+            var v = (int)value;
+            if (v < 5)
+                return new System.ComponentModel.DataAnnotations.ValidationResult("Progress must be greater than 5");
+            if (v > 50)
+                return new System.ComponentModel.DataAnnotations.ValidationResult("Progress must be lesser than 50");
+            return System.ComponentModel.DataAnnotations.ValidationResult.Success;
+        }
+    }
+    public static List<TaskInfoModel> EditingData()
+    {
+        List<TaskInfoModel> Tasks = new List<TaskInfoModel>() {
+        new TaskInfoModel() { TaskID = 1, ActivityName = "Product concept", StartDate = new DateTime(2021, 04, 02), Duration = 5, Progress = 60, ParentID = null },
+        new TaskInfoModel() { TaskID = 2, ActivityName = "Defining the product usage", StartDate = new DateTime(2021, 04, 02), Duration = 3, Progress = 70, ParentID = 1 },
+        new TaskInfoModel() { TaskID = 3, ActivityName = "Defining the target audience", StartDate = new DateTime(2021, 04, 02), Duration = 3, Progress = 80, ParentID = 1 },
+        new TaskInfoModel() { TaskID = 4, ActivityName = "Prepare product sketch and notes", StartDate = new DateTime(2021, 04, 05), Duration = 2, Progress = 90, ParentID = 1 },
+        new TaskInfoModel() { TaskID = 5, ActivityName = "Concept approval", StartDate = new DateTime(2021, 04, 08), Duration = 0, Progress = 100, ParentID = 1 },
+        new TaskInfoModel() { TaskID = 6, ActivityName = "Market research", StartDate = new DateTime(2021, 04, 09), Duration = 4, Progress = 30, ParentID = null },
+        new TaskInfoModel() { TaskID = 7, ActivityName = "Demand analysis", StartDate = new DateTime(2021, 04, 09), Duration = 4, Progress = 40, ParentID = 6 }
+        };
+        return Tasks;
+    }
+}

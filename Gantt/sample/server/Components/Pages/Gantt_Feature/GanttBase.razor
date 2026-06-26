@@ -1,0 +1,224 @@
+﻿@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using System.Collections.Generic
+@using System.Dynamic
+@using SyncfusionBlazorApp.Data;
+
+<SfGantt @ref="ganttChartInstance"
+         DataSource="@DataSource"
+         AllowExcelExport="@AllowExcelExport"
+         AllowFiltering="@AllowFiltering"
+         AllowReordering="@AllowReordering"
+         AllowResizing="@AllowResizing"
+         AllowRowDragAndDrop="@AllowRowDragAndDrop"
+         AllowSorting="@AllowSorting"
+         AllowSelection="@AllowSelection"
+         AllowUnscheduledTasks="@AllowUnscheduledTasks"
+         BaselineColor="@BaselineColor"
+         CollapseAllParentTasks="@CollapseAllParentTasks"
+         ColumnMenuItems="@ColumnMenuItems"
+         Height="450px"
+         HighlightWeekends="@HighlightWeekends"
+         ID="@ID"
+         IncludeWeekend="@IncludeWeekend"
+         Locale="@Locale"
+         ProjectEndDate="@ProjectEndDate"
+         ProjectStartDate="@ProjectStartDate"
+         RenderBaseline="@RenderBaseline"
+         RowHeight="@RowHeight"
+         ScrollToTaskbarOnClick="@ScrollToTaskbarOnClick"
+         ShowInlineNotes="@ShowInlineNotes"
+         ShowOverallocation="@ShowOverallocation"
+         TaskbarHeight="@TaskbarHeight"
+         Toolbar="@Toolbar"
+         Width="@Width"
+         WorkWeek="@WorkWeek"
+         ShowColumnMenu="@ShowColumnMenu"
+         ShowColumnChooser="@ShowColumnChooser"
+         TaskMode="@TaskMode"
+         WorkUnit="@WorkUnit"
+         EnableRtl="@EnableRtl"
+         EnableContextMenu="@EnableContextMenu"
+         EnablePersistence="@EnablePersistence"
+         EnablePredecessorValidation="@EnablePredecessorValidation"
+         EnableCriticalPath="@EnableCriticalPath"
+         EnableRowVirtualization="@EnableRowVirtualization"
+         EnableTimelineVirtualization="@EnableTimelineVirtualization"
+         EnableColumnVirtualization="@EnableColumnVirtualization"
+         DurationUnit="@DurationUnit"
+         LoadChildOnDemand="@LoadChildOnDemand"
+         DependencyTypes="@DependencyTypes"
+         FrozenColumns="@FrozenColumns"
+         GridLines="@GridLines"
+         ViewType="@ViewType" 
+         TreeColumnIndex="@TreeColumnIndex">
+        @if (IsHierarchy)
+        {
+            <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                             Child="SubTask" Work="Work" TaskType="TaskType" BaselineEndDate="BaselineEndDate" BaselineStartDate="BaselineStartDate" Dependency="Predecessor">
+            </GanttTaskFields>
+        }
+        else
+        {
+            <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                             ParentID="ParentId" Work="Work" TaskType="TaskType" BaselineEndDate="BaselineEndDate" BaselineStartDate="BaselineStartDate" Dependency="Predecessor">
+            </GanttTaskFields>
+        }
+   
+    <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" MaxUnits="MaxUnit" Group="Group" TValue="GanttDataModel.CustomTaskDataModel" TResources="GanttDataModel.ResourceInfoModel"></GanttResource>
+    <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="Id" TaskID="TaskId" ResourceID="ResourceId" TValue="GanttDataModel.CustomTaskDataModel" TAssignment="GanttDataModel.AssignmentModel"></GanttAssignmentFields>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Task Name" Width="250"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+        <GanttColumn Field="Predecessor" HeaderText="Predecessor"></GanttColumn>
+        <GanttColumn Field="BaselineStartDate" HeaderText="BaselineStartDate"></GanttColumn>
+        <GanttColumn Field="BaselineEndDate" HeaderText="BaselineEndDate"></GanttColumn>
+        <GanttColumn Field="Assignee" HeaderText="Assignee"></GanttColumn>
+        <GanttColumn Field="Details" HeaderText="Details"></GanttColumn>
+        <GanttColumn Field="ModelName" HeaderText="ModelName"></GanttColumn>
+    </GanttColumns>
+    <GanttEditSettings AllowAdding="@EditAllowAdding" AllowEditing="@EditAllowEditing" AllowDeleting="@EditAllowDeleting" AllowTaskbarEditing="@EditAllowTaskbarEditing" NewRowPosition="@EditRowPosition" ShowDeleteConfirmDialog="@EditShowConfirmDialog" Mode="@EditingMode" AllowSchedulingOnDrag="@EditAllowSchedulingOnDrag"></GanttEditSettings>
+    @if (IsEditDialogFieldsEnable)
+    {
+        <GanttEditDialogFields>
+            <GanttEditDialogField Type="GanttDialogFieldType.General" HeaderText="General"></GanttEditDialogField>
+            <GanttEditDialogField Type="GanttDialogFieldType.Dependency"></GanttEditDialogField>
+            <GanttEditDialogField Type="GanttDialogFieldType.Resources"></GanttEditDialogField>
+            <GanttEditDialogField Type="GanttDialogFieldType.Notes"></GanttEditDialogField>
+        </GanttEditDialogFields>
+    }
+    @if (IsAddDialogFieldsEnable)
+    {
+        <GanttAddDialogFields>
+            <GanttAddDialogField Type="GanttDialogFieldType.General" HeaderText="General"></GanttAddDialogField>
+            <GanttAddDialogField Type="GanttDialogFieldType.Dependency"></GanttAddDialogField>
+            <GanttAddDialogField Type="GanttDialogFieldType.Resources"></GanttAddDialogField>
+        </GanttAddDialogFields>
+    }
+    @if (IsEventmarkersEnable)
+    {
+        <GanttEventMarkers>
+            <GanttEventMarker Day="new DateTime(2021,4,2)" Label="Project Start"></GanttEventMarker>
+        </GanttEventMarkers>
+    }
+    @if (IsHolidayEnable)
+    {
+        <GanttHolidays>
+            <GanttHoliday Label="Telugu New Year" From="new DateTime(2021, 04, 9)" To="new DateTime(2021, 04, 09)"></GanttHoliday>
+            <GanttHoliday Label="Tamil New Year" From="new DateTime(2021, 04, 14)" To="new DateTime(2021, 04, 14)"></GanttHoliday>
+        </GanttHolidays>
+    }
+   
+    <GanttFilterSettings HierarchyMode="@FilterHierarchyMode" IgnoreAccent="@FilterIgnoreAccent"></GanttFilterSettings>
+    <GanttLabelSettings TValue="GanttDataModel.CustomTaskDataModel" RightLabel="@RightLabel" LeftLabel="@LeftLabel" TaskLabel="@TaskLabel"></GanttLabelSettings>
+    <GanttSearchSettings IgnoreCase="@SearchIgnoreCase" IgnoreAccent="@SearchIgnoreAccent" Fields="@SearchFields" HierarchyMode="SearchHierarchyMode" Operator="@SearchOperator"></GanttSearchSettings>
+    <GanttSortSettings AllowUnsort="@AllowUnsort">
+        @if (EnableSortDescriptors)
+        {
+            <GanttSortDescriptors>
+                <GanttSortDescriptor Field="@SortField" Direction="@SortDirection"></GanttSortDescriptor>
+            </GanttSortDescriptors>
+        }
+    </GanttSortSettings>
+    <GanttTaskbarSettings AllowTaskbarDragAndDrop="@AllowTaskbarDragAndDrop" EnableMultiTaskbar="@EnableMultiTaskbar"></GanttTaskbarSettings>
+    <GanttSelectionSettings Mode="@SelectionMode" Type="@SelectionType" AllowDragSelection="@AllowDragSelection"></GanttSelectionSettings>
+    <GanttTimelineSettings ShowTooltip="@ShowTimelineTooltip" TimelineUnitSize="@TimelineUnitSize" TimelineViewMode="@TimelineViewMode" UpdateTimescaleView="@TimelineUpdateTimescaleView" WeekStartDay="@TimelineWeekStartDay">
+        <GanttTopTierSettings Count="@TimelineTopTierCount" Format="@TimelineTopTierFormat" Unit="@TimelineTopTierUnit"></GanttTopTierSettings>
+        <GanttBottomTierSettings Count="@TimelineBottomTierCount" Format="@TimelineBottomTierFormat" Unit="@TimelineBottomTierUnit"></GanttBottomTierSettings>
+    </GanttTimelineSettings>
+    <GanttCriticalPathSettings SlackValue="SlackValue"></GanttCriticalPathSettings>
+    <GanttDayWorkingTimeCollection>
+        <GanttDayWorkingTime From="@DayWorkTimeFrom" To="DayWorkTimeTo"></GanttDayWorkingTime>
+    </GanttDayWorkingTimeCollection>
+    <GanttTooltipSettings ShowTooltip="@ShowTooltip" ShowTooltipOnEditing="@ShowTooltipOnEditing" TValue="GanttDataModel.CustomTaskDataModel"></GanttTooltipSettings>
+    @if (SplitterSettingsColumn)
+    {
+        <GanttSplitterSettings ColumnIndex="@SplitterColumnIndex" Collapsible="@IsSplitterCollapsible" View="@SplitterView" SeparatorSize="@SplitterSeperatorSize" Minimum="@SplitterMinimumWidth"></GanttSplitterSettings>
+    }
+    else
+    {
+        <GanttSplitterSettings Position="@SplitterPosition" Collapsible="@IsSplitterCollapsible" View="@SplitterView" SeparatorSize="@SplitterSeperatorSize" Minimum="@SplitterMinimumWidth"></GanttSplitterSettings>
+    }
+    @if (EnableSplitTask)
+    {
+        <GanttSegmentFields PrimaryKey="Id" ForeignKey="TaskId" StartDate="SegmentStartDate" EndDate="SegmentEndDate" Duration="SegmentDuration" TValue="GanttDataModel.CustomTaskDataModel" TSegments="GanttDataModel.SegmentModel" DataSource="SegmentCollection"></GanttSegmentFields>
+    }
+    
+   @* SplitterResizeStart="OnSplitterResizeStartHandler"
+                 SplitterResized="OnSplitterResizedHandler"
+                 SplitterResizing="OnSplitterResizingHandler"
+                 SplitterCreated="OnSplitterCreatedHandler"
+    OnLoad="OnLoadHandler" *@
+    <GanttEvents Created="OnCreatedHandler"
+                 Destroyed="OnDestroyedHandler"
+                 OnActionFailure="OnActionFailureHandler"
+                 OnToolbarClick="OnToolbarClickHandler"
+                 TaskbarEdited="OnTaskbarEditedHandler"
+                 EndEdit="OnEndEditHandler"
+                 OnCellEdit="OnCellEditHandler"
+                 OnCellSave="OnCellSaveHandler"
+                 CellSaved="OnCellSavedHandler"
+                 CellSelected="OnCellSelectedHandler"
+                 CellSelecting="OnCellSelectingHandler"
+                 CellDeselecting="OnCellDeselectingHandler"
+                 CellDeselected="OnCellDeselectedHandler"
+                 RowDeselected="OnRowDeselectedHandler"
+                 RowDeselecting="OnRowDeselectingHandler"
+                 RowSelected="OnRowSelectedHandler"
+                 RowSelecting="OnRowSelectingHandler"
+                 OnActionBegin="OnActionBeginHandler"
+                 OnActionComplete="OnActionCompleteHandler"
+                 BeforeTooltipRender="OnBeforeTooltipRenderHandler"
+                 ContextMenuItemClicked="OnContextMenuItemClickedHandler"
+                 ContextMenuOpen="OnContextMenuOpenHandler"
+                 ColumnMenuClicked="OnColumnMenuClickedHandler"
+                 RowDropped="OnRowDroppedHandler"
+                 RowDragStarting="OnRowDragStartingHandler"
+                 RowDropping="OnRowDroppingHandler"
+                 Expanding="OnExpandingHandler"
+                 Expanded="OnExpandedHandler"
+                 Collapsing="OnCollapsingHandler"
+                 Collapsed="OnCollapsedHandler"
+                 ColumnResizeStart="OnColumnResizeStartHandler"
+                 ColumnResized="OnColumnResizedHandler"
+                 TaskbarEditing="OnTaskbarEditingHandler"
+                 BeforeCopy="OnBeforeCopyHandler"
+                 FreezeLineMoving="OnFreezeLineMovingHandler"
+                 FreezeLineMoved="OnFreezeLineMovedHandler"
+                 Sorting="OnSortingHandler"
+                 Sorted="OnSortedHandler"
+                 Searching="OnSearchingHandler"
+                 Searched="OnSearchedHandler"
+                 RowUpdating="OnRowUpdatingHandler"
+                 RowUpdated="OnRowUpdatedHandler"
+                 Filtering="OnFilteringHandler"
+                 Filtered="OnFilteredHandler"
+                 FilterDialogOpening="OnFilterDialogOpeningHandler"
+                 FilterDialogOpened="OnFilterDialogOpenedHandler"
+                 RowDeleting="OnRowDeletingHandler"
+                 RowDeleted="OnRowDeletedHandler"
+                 ColumnReordering="OnColumnReorderingHandler"
+                 ColumnReordered="OnColumnReorderedHandler"
+                 Zooming="OnZoomingHandler"
+                 GanttDialogOpening="OnGanttDialogOpeningHandler"
+                 TaskConnectorChanging="OnTaskConnectorChangingHandler"
+                 GanttDialogOpened="OnGanttDialogOpenedHandler"
+                 Zoomed="OnZoomedHandler"
+                 IndentationChanging="OnIndentationChangingHandler"
+                 IndentationChanged="OnIndentationChangedHandler"
+                 TaskConnectorChanged="OnTaskConnectorChangedHandler"
+                 RowCreating="OnRowCreatingHandler"
+                 RowCreated="OnRowCreatedHandler"
+                 PdfQueryTaskbarInfo="OnPdfQueryTaskbarInfoHandler"
+                 PdfQueryCellInfo="OnPdfQueryCellInfoHandler"
+                 PdfColumnHeaderQueryCellInfo="OnPdfColumnHeaderQueryCellInfoHandler"
+                 PdfQueryTimelineCellInfo="OnPdfQueryTimelineCellInfoHandler"
+                 PdfExporting="OnPdfExportingHandler"
+                 PdfExported="OnPdfExportedHandler"
+                 TValue="GanttDataModel.CustomTaskDataModel">
+    </GanttEvents>
+</SfGantt>

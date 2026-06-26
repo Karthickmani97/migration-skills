@@ -1,0 +1,105 @@
+@page "/DynamicObject"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using System.Dynamic
+@using Syncfusion.Blazor.TreeGrid
+@using Syncfusion.Blazor.Grids
+
+<SfGantt id="Ganttdynamicdata" DataSource="@GanttDynamicData" Toolbar="@(new List<string>() { "Add", "Cancel","Delete", "Edit","Update", "CollapseAll", "ExpandAll",  "Indent" , "Outdent" ,"ZoomIn", "ZoomOut", "ZoomToFit"})" AllowSelection="true" EnableContextMenu="true" AllowFiltering="true" AllowSorting="true" AllowResizing="true" AllowUnscheduledTasks="true" EnablePredecessorValidation="true" ShowColumnMenu="true" AllowReordering="true" AllowRowDragAndDrop="true"
+         Height="450px" Width="1400px" HighlightWeekends="true">
+<GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" Progress="Progress" Duration="Duration" ParentID="ParentId"></GanttTaskFields>
+<GanttColumns>
+    <GanttColumn Field="TaskId" HeaderText="Task ID" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right" Width="100"></GanttColumn>
+    <GanttColumn Field="TaskName" HeaderText="Task Name" Width="250"></GanttColumn>
+    <GanttColumn Field="StartDate" HeaderText="Start Date" Width="250"></GanttColumn>
+    <GanttColumn Field="Duration" HeaderText="Duration" Width="250"></GanttColumn>
+    <GanttColumn Field="Progress" HeaderText="Progress" Format="@NumberFormat" Width="250"></GanttColumn>
+</GanttColumns>
+ <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+<GanttEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+<GanttEvents TValue="DynamicDictionary"  OnActionBegin="ActionBegin" OnActionComplete="ActionComplete" Created="Created" ></GanttEvents>
+
+</SfGantt>
+
+@code {
+SfGantt<DynamicDictionary> GanttChart;
+public string NumberFormat = "C";
+public static List<DynamicDictionary> Data = new List<DynamicDictionary>();
+public List<DynamicDictionary> GanttDynamicData { get; set; }
+public static int ParentRecordID { get; set; }
+public static int ChildRecordID { get; set; }
+
+protected override void OnInitialized()
+{
+    this.GanttDynamicData = GetData().ToList();
+}
+
+public async Task Created()
+    {   
+     
+    }
+public void ActionComplete(GanttActionEventArgs<DynamicDictionary> args)
+        {
+            Console.WriteLine(args);
+        }
+
+public void ActionBegin(GanttActionEventArgs<DynamicDictionary> args) 
+        {
+              Console.WriteLine(args);
+        }
+public static List<DynamicDictionary> GetData()
+{
+    Data.Clear();
+    ParentRecordID = 0;
+    ChildRecordID = 0;
+    for (var i = 1; i <= 10; i++)
+    {
+        dynamic ParentRecord = new DynamicDictionary();
+        ParentRecord.TaskId = ++ParentRecordID;
+        ParentRecord.TaskName = "Parent Task " + i;
+        ParentRecord.StartDate = new DateTime(2021, 01, 07);
+        ParentRecord.Progress = 40;
+        ParentRecord.Duration = ParentRecordID % 2 == 0 ? (32).ToString() : (76).ToString();
+        ParentRecord.ParentId = null;
+        Data.Add(ParentRecord);
+        AddChildRecords(ParentRecordID);
+    }
+    return Data;
+}
+
+public static void AddChildRecords(int ParentId)
+{
+    for (var i = 1; i < 4; i++)
+    {
+        dynamic ChildRecord = new DynamicDictionary();
+        ChildRecord.TaskId = ++ParentRecordID;
+        ChildRecord.TaskName = "Child Task " + ++ChildRecordID;
+        ChildRecord.StartDate = new DateTime(2021, 01, 07);
+        ChildRecord.Progress = 50;
+        ChildRecord.Duration = ParentRecordID % 3 == 0 ? (64).ToString() : (98).ToString();
+        ChildRecord.ParentId = ParentId;
+        Data.Add(ChildRecord);
+    }
+}
+
+public class DynamicDictionary : DynamicObject
+{
+    Dictionary<string, object> dictionary = new Dictionary<string, object>();
+    public override bool TryGetMember(GetMemberBinder binder, out object result)
+    {
+        string name = binder.Name;
+        return dictionary.TryGetValue(name, out result);
+    }
+
+    public override bool TrySetMember(SetMemberBinder binder, object value)
+    {
+        dictionary[binder.Name] = value;
+        return true;
+    }
+
+    public override System.Collections.Generic.IEnumerable<string> GetDynamicMemberNames()
+    {
+        return this.dictionary?.Keys;
+    }
+}
+}

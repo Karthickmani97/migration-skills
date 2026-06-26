@@ -1,0 +1,164 @@
+@page "/E2EMigration/CustomAddDialog"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Gantt
+<div>@messsage</div>
+<SfGantt Id="CustomAddDialog" DataSource="@TaskCollection" Height="450px" Width="1300px" Toolbar="@(new List<string>(){ "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll","Indent","Outdent"})">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate"
+                     Duration="Duration" Progress="Progress" ParentID="ParentId">
+    </GanttTaskFields>
+   <GanttColumns>
+        <GanttColumn Field="TaskId" Width="40"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Job Name" DefaultValue="@obj.TaskName" Width="150"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date" Width="80"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date" Width="80"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration" Width="60"></GanttColumn>
+        <GanttColumn Field="Status" HeaderText="Status" Width="80" EditType=Syncfusion.Blazor.Grids.EditType.DefaultEdit></GanttColumn>
+        <GanttColumn Field="WorkersCount" HeaderText="Workers Count" Width="50" EditType=Syncfusion.Blazor.Grids.EditType.NumericEdit></GanttColumn>
+        <GanttColumn Field="Custom" HeaderText="Custom" Width="50" EditType="Syncfusion.Blazor.Grids.EditType.NumericEdit"></GanttColumn>
+        <GanttColumn Field="ProjectId" HeaderText="Id" Visible="true" Width="50" EditType="Syncfusion.Blazor.Grids.EditType.NumericEdit"></GanttColumn>
+    </GanttColumns>
+    <GanttSplitterSettings Position="80%"></GanttSplitterSettings>
+    <GanttHolidays>
+        <GanttHoliday From="@Holiday1" To="@Holiday2" Label="Public holidays"
+                      CssClass="e-custom-holiday"></GanttHoliday>
+        <GanttHoliday From="@Holiday3" To="@Holiday4" Label="Public holiday"
+                      CssClass="e-custom-holiday"></GanttHoliday>
+    </GanttHolidays>
+    <GanttEventMarkers>
+        <GanttEventMarker Day="@Event" Label="Project approval and kick-off"
+                          CssClass="e-custom-event-marker"></GanttEventMarker>
+    </GanttEventMarkers>
+    <GanttEditSettings AllowAdding="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Auto" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+     <GanttEvents TValue="TaskData" OnActionBegin="OnActionBegin" OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+
+@code{
+    private List<TaskData> TaskCollection { get; set; }
+    public string messsage{ get; set; }
+    public TaskData obj = new TaskData();
+    private DateTime Holiday1 = new DateTime(2022, 04, 11);
+    private DateTime Holiday2 = new DateTime(2022, 04, 12);
+    private DateTime Holiday3 = new DateTime(2022, 04, 01);
+    private DateTime Holiday4 = new DateTime(2022, 04, 01);
+    private DateTime Event = new DateTime(2022, 04, 15);
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+       // obj.ProjectId = 20;
+        obj.TaskName = "Test";
+    }
+
+    //deprecated 
+    public void OnActionBegin(GanttActionEventArgs<TaskData> args)
+    {
+
+        //try set default value for custom column "projectId" before BeforeOpenAddDialog. crash ?????
+        if (args.RequestType == Syncfusion.Blazor.Gantt.Action.BeforeOpenAddDialog)
+        {
+            args.RowData.ProjectId = 10;
+        }
+    }
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? Duration { get; set; }
+        public int? Progress { get; set; }
+        public string? Status { get; set; }
+        public int? WorkersCount { get; set; }
+        public int? ParentId { get; set; }
+        public int? Custom { get; set; }
+        public int? ProjectId { get; set; }
+    }
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>()
+    {
+            new TaskData() {
+                TaskId = 1,
+                TaskName = "Project initiation",
+                StartDate = new DateTime(2022, 04, 05),
+                EndDate = new DateTime(2022, 04, 21),
+                Status="Progress",
+                WorkersCount=20,
+            },
+           new TaskData() {
+                TaskId = 2,
+                TaskName = "Identify Site location",
+                StartDate = new DateTime(2022, 04, 05),
+                Duration = "0",
+                Progress = 5,
+                Status="Progress",
+                WorkersCount=10,
+                ParentId = 1
+            },
+           new TaskData() {
+                TaskId = 3,
+                TaskName = "Perform soil test",
+                StartDate = new DateTime(2022, 04, 05),
+                Duration = "4",
+                Progress = 10,
+                Status="Hold",
+                WorkersCount=15,
+                ParentId = 1
+            },
+            new TaskData() {
+                TaskId = 4,
+                TaskName = "Soil test approval",
+                StartDate = new DateTime(2022, 04, 05),
+                Duration = "0",
+                Progress = 30,
+                Status="PostPoned",
+                WorkersCount=5,
+                ParentId = 1
+            },
+            new TaskData() {
+                TaskId = 5,
+                TaskName = "Project estimation",
+                StartDate = new DateTime(2022, 04, 06),
+                EndDate = new DateTime(2022, 04, 21),
+                Status="Progress",
+                WorkersCount=25,
+            },
+            new TaskData() {
+                TaskId = 6,
+                TaskName = "Develop floor plan for estimation",
+                StartDate = new DateTime(2022, 04, 06),
+                Duration = "3",
+                Progress = 30,
+                Status="PostPoned",
+                WorkersCount=10,
+                ParentId = 5
+            },
+            new TaskData() {
+                TaskId = 7,
+                TaskName = "List materials",
+                StartDate = new DateTime(2022, 04, 06),
+                Duration = "3",
+                Progress = 40,
+                Status="Progress",
+                WorkersCount=5,
+                ParentId = 5
+            },
+            new TaskData() {
+                TaskId = 8,
+                TaskName = "Estimation approval",
+                StartDate = new DateTime(2022, 04, 06),
+                Duration = "0",
+                Progress = 30,
+                Status="Progress",
+                WorkersCount=10,
+                ParentId = 5
+            }
+        };
+        return Tasks;
+    }
+}

@@ -1,0 +1,43 @@
+﻿@page "/multipage-pdf-unscheduled"
+
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+<button @onclick="() => Gantt.ExportToPdfAsync(null, true)">Pdf Export</button>
+<SfGantt @ref="Gantt" DataSource="@TaskCollection" Height="300px" Width="1000px" AllowUnscheduledTasks="true" AllowPdfExport="true"  ProjectEndDate="new DateTime(2022,02,10)">
+<GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate"
+                     Duration="Duration" Progress="Progress" ParentID="ParentID">
+</GanttTaskFields>
+<GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+</SfGantt>
+ 
+@code {
+    private SfGantt<TaskData> Gantt;
+    private List<TaskData> TaskCollection { get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    public class TaskData
+    {
+        public int TaskID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentID { get; set; }
+    }
+ 
+    private static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>()
+        {
+            new TaskData() { TaskID = 1, TaskName = "Project initiation", Duration = "24", },
+            new TaskData() { TaskID = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 01, 05), },
+            new TaskData() { TaskID = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 01, 07), },
+            new TaskData() { TaskID = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 01, 05), EndDate = new DateTime(2022, 01, 07), Progress = 30, },
+            new TaskData() { TaskID = 5, TaskName = "Project estimation", Duration = "0"}
+        };
+        return Tasks;
+    }
+}

@@ -1,0 +1,760 @@
+@page "/BLAZ-958070"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Calendars
+<SfGantt DataSource="@TaskCollection" @ref="Gantt" Height="550px" Width="100%" HighlightWeekends="true" RenderBaseline="@IsBaseLine" EnableRtl="true"
+         Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll", "Indent", "Outdent","NextTimeSpan","PrevTimeSpan","ZoomIn","ZoomOut","ZoomToFit","Search" })"
+         AllowSelection="true" GridLines="Syncfusion.Blazor.Gantt.GridLine.Both" TreeColumnIndex="1" AllowFiltering="true" AllowPdfExport="true" AllowReordering="true" AllowResizing="true"
+         ProjectStartDate="@ProjectStartDate" ProjectEndDate="@ProjectEndDate" ScrollToTaskbarOnClick="true">
+    @if (IsCustomSchedulingEnabled)
+    {
+        <GanttTaskFields Id="Id" Name="Task" StartDate="StartDate" EndDate="EndDate" Progress="Progress" ParentID="ParentId" Manual="IsManual" Notes="Notes">
+        </GanttTaskFields>
+    }
+    else
+    {
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                         Dependency="Predecessor" ParentID="ParentId" BaselineEndDate="BaselineEndDate" BaselineStartDate="BaselineStartDate" Indicators="Indicators"></GanttTaskFields>
+    }
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip">
+            <HeaderTemplate>
+                <div>
+                    <i class="app-icon-job_title"></i>
+                    Job Name
+                </div>
+            </HeaderTemplate>
+            <Template>
+                @{
+                    @if (context != null)
+                    {
+                        <SfButton Content="@((context as TaskInfoModel).TaskName)"></SfButton>
+                    }
+                }
+            </Template>
+            <EditTemplate>
+                @{
+                    var task = (context as TaskInfoModel);
+                }
+                <SfAutoComplete @ref="dropdown" @bind-Value="task.TaskName" ID="ProjectName" TValue="string" TItem="string" Placeholder="e.g Product concept" DataSource="@TaskNameDropDownData">
+                    <AutoCompleteFieldSettings Value="ProjectName" />
+                </SfAutoComplete>
+            </EditTemplate>
+            <FilterTemplate>
+                <SfDropDownList Placeholder="TaskName" ID="TaskName" @bind-Value="@((context as PredicateModel<string>).Value)" TItem="TaskInfoModel" TValue="string" DataSource="@(TaskCollection)">
+                    <DropDownListFieldSettings Value="TaskName" Text="TaskName"></DropDownListFieldSettings>
+                </SfDropDownList>
+            </FilterTemplate>
+        </GanttColumn>
+        <GanttColumn Field="Assignee" HeaderText="Assigned Person" ClipMode="ClipMode.EllipsisWithTooltip">
+            <Template>
+                @{
+                    var task = (context as TaskInfoModel);
+                }
+                <div class="assignee-column" style="display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                    <strong>@task.Assignee</strong>
+                </div>
+            </Template>
+        </GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date">
+            <HeaderTemplate>
+                <div>
+                    <i class="app-icon-calendar"></i>
+                    Start Date
+                </div>
+            </HeaderTemplate>
+            <FilterTemplate>
+                <SfDatePicker TValue="DateTime?" @bind-Value="@((context as PredicateModel<DateTime?>).Value)"></SfDatePicker>
+            </FilterTemplate>
+            <EditTemplate>
+                @{
+                    var task = context as TaskInfoModel;
+                }
+                <SfDatePicker TValue="DateTime?" @bind-Value="task.StartDate"></SfDatePicker>
+            </EditTemplate>
+        </GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date">
+            <HeaderTemplate>
+                <div>
+                    <i class="app-icon-calendar"></i>
+                    End Date
+                </div>
+            </HeaderTemplate>
+        </GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration">
+            <HeaderTemplate>
+                <div>
+                    <i class="app-icon-time"></i>
+                    Duration
+                </div>
+            </HeaderTemplate>
+        </GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress">
+            <HeaderTemplate>
+                <div>
+                    <i class="app-icon-progress"></i>
+                    Progress
+                </div>
+            </HeaderTemplate>
+            <EditTemplate>
+                @{
+                    var task = context as TaskInfoModel;
+                }
+                <SfNumericTextBox TValue="int" @bind-Value="task.Progress">
+                </SfNumericTextBox>
+            </EditTemplate>
+            <FilterTemplate>
+                <SfNumericTextBox TValue="int" @bind-Value="@((context as PredicateModel<int>).Value)">
+                </SfNumericTextBox>
+            </FilterTemplate>
+        </GanttColumn>
+        <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+        <GanttColumn Field="Status" HeaderText="Status" EditType="Syncfusion.Blazor.Grids.EditType.DropDownEdit">
+            <EditTemplate>
+                @{
+                    var task = (context as TaskInfoModel);
+                }
+                <SfDropDownList ID="Status" @bind-Value="@task.Status" TItem="string" TValue="string" DataSource="@DropDownData">
+                </SfDropDownList>
+            </EditTemplate>
+        </GanttColumn>
+        <GanttColumn Field="WorkingDate" HeaderText="Working Date" Type="Syncfusion.Blazor.Grids.ColumnType.DateTime" EditType="Syncfusion.Blazor.Grids.EditType.DatePickerEdit"></GanttColumn>
+        <GanttColumn Field="WorkersCount" HeaderText="WorkersCount" EditType="Syncfusion.Blazor.Grids.EditType.NumericEdit"></GanttColumn>
+        <GanttColumn Field="Priority" HeaderText="Priority" EditType="Syncfusion.Blazor.Grids.EditType.DropDownEdit" EditorSettings="@editorParams"></GanttColumn>
+    </GanttColumns>
+    <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" MaxUnits="MaxUnit" TValue="TaskInfoModel" TResources="ResourceInfoModel"></GanttResource>
+    <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="Id" TaskID="TaskId" ResourceID="ResourceId" Units="Unit" TValue="TaskInfoModel" TAssignment="AssignmentModel"></GanttAssignmentFields>
+    <GanttSegmentFields DataSource="SegmentCollection" PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="TaskInfoModel" TSegments="SegmentModel"></GanttSegmentFields>
+    <GanttLabelSettings TValue="TaskInfoModel">
+        <LeftLabelTemplate>
+            @{
+                var TaskInfoModel = context as TaskInfoModel;
+                <div class="e-left-label-inner-div" style="height:22px;margin-top:6px;">
+                    <span class="e-label">@TaskInfoModel.TaskName</span>
+                </div>
+            }
+        </LeftLabelTemplate>
+        <TaskLabelTemplate>
+            <div class="e-task-label-inner-div" style="line-height:21px; height:22px;">
+                <span class="e-label">@((context as TaskInfoModel).Progress)%</span>
+            </div>
+        </TaskLabelTemplate>
+        <RightLabelTemplate>
+            @{
+                var TaskInfoModel = context as TaskInfoModel;
+                if (TaskInfoModel.Assignee != null)
+                {
+                    int randomIndex = 0;
+                    if (TaskInfoModel.TaskId % 2 == 0)
+                    {
+                        randomIndex = 0;
+                    }
+                    else if (TaskInfoModel.TaskId % 3 == 0)
+                    {
+                        randomIndex = 1;
+                    }
+                    else if (TaskInfoModel.TaskId % 2 != 0)
+                    {
+                        randomIndex = 2;
+                    }
+                    else if (TaskInfoModel.TaskId % 3 != 0)
+                    {
+                        randomIndex = 3;
+                    }
+                    var randomItem = GetResources[randomIndex];
+                    // Get the random name
+                    string resourceName = randomItem.Name.Trim().Replace(" ", "").ToLower();
+                    <div class="e-right-label-inner-div">
+                        <img class="e-label image" role="presentation"
+                             src=@($"https://cdn.syncfusion.com/blazor/images/gantt/{resourceName}.png")
+                             alt="@resourceName" />
+                    </div>
+                }
+            }
+        </RightLabelTemplate>
+    </GanttLabelSettings>
+    <GanttTimelineSettings ShowTooltip="true">
+        <GanttTopTierSettings Unit="TimelineViewMode.Month">
+            <FormatterTemplate>
+                @{
+                    @if (context.Tier == "top")
+                    {
+                        @this.Formatter((context.Date))
+                    }
+                }
+            </FormatterTemplate>
+        </GanttTopTierSettings>
+        <GanttBottomTierSettings Unit="TimelineViewMode.Day" Format="dd"></GanttBottomTierSettings>
+    </GanttTimelineSettings>
+    <GanttEditDialogFields>
+        <GanttEditDialogField Type="GanttDialogFieldType.General" HeaderText="General"></GanttEditDialogField>
+        <GanttEditDialogField Type="GanttDialogFieldType.Dependency"></GanttEditDialogField>
+        <GanttEditDialogField Type="GanttDialogFieldType.Resources"></GanttEditDialogField>
+        <GanttEditDialogField Type="GanttDialogFieldType.Segments"></GanttEditDialogField>
+        <GanttEditDialogField Type="GanttDialogFieldType.Custom"></GanttEditDialogField>
+    </GanttEditDialogFields>
+    <GanttAddDialogFields>
+        <GanttAddDialogField Type="GanttDialogFieldType.General" HeaderText="General"></GanttAddDialogField>
+        <GanttAddDialogField Type="GanttDialogFieldType.Dependency"></GanttAddDialogField>
+        <GanttAddDialogField Type="GanttDialogFieldType.Resources"></GanttAddDialogField>
+        <GanttAddDialogField Type="GanttDialogFieldType.Segments"></GanttAddDialogField>
+        <GanttAddDialogField Type="GanttDialogFieldType.Custom"></GanttAddDialogField>
+    </GanttAddDialogFields>
+    <GanttSplitterSettings ColumnIndex="2"></GanttSplitterSettings>
+    <GanttTooltipSettings TValue="TaskInfoModel">
+        <EditingTemplate>
+            <table>
+                @{
+                    text = string.Empty;
+                    var template = (context as TaskInfoModel);
+                    if (TaskbarEditAction == "LeftResizing")
+                    {
+                        text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Duration: {template.Duration}";
+                        <tr>
+                            <td style="padding:3px">@(template.StartDate?.ToString("MMM dd, yyyy"))</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:6px">@(template.Duration) days</td>
+                        </tr>
+                    }
+                    else if (TaskbarEditAction == "RightResizing")
+                    {
+                        text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Duration: {template.Duration}";
+                        <tr>
+                            <td style="padding:3px">@(template.EndDate?.ToString("MMM dd, yyyy"))</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:6px">@(template.Duration) days</td>
+                        </tr>
+                    }
+                    else if (TaskbarEditAction == "ChildDrag" || TaskbarEditAction == "ParentDrag")
+                    {
+                        text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Duration: {template.Duration}";
+                        <tr>
+                            <td style="padding:3px">@(template.StartDate?.ToString("MMM dd, yyyy"))</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:3px">@(template.EndDate?.ToString("MMM dd, yyyy"))</td>
+                        </tr>
+                    }
+                    else if (TaskbarEditAction == "ProgressResizing")
+                    {
+                        text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Progress: {template.Progress}";
+                        <tr>
+                            <td style="padding:3px">@(template.Progress) %</td>
+                        </tr>
+                    }
+                }
+            </table>
+        </EditingTemplate>
+        <BaselineTemplate>
+            <table>
+                @{
+                    text = string.Empty;
+                    var record = context as TaskInfoModel;
+                    text += $"BaseLine Template: TaskId: {record.TaskId} BaseLineStartDate: {record.BaselineStartDate} BaseLineEndDate: {record.BaselineEndDate}";
+                    <tr>
+                        <td style="padding:3px">BaselineStartDate:</td>
+                        <td style="padding:3px">@record.BaselineStartDate?.ToString("MM/dd/yyyy")</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:3px">BaselineEndDate:</td>
+                        <td style="padding:3px">@record.BaselineEndDate?.ToString("MM/dd/yyyy")</td>
+                    </tr>
+                }
+            </table>
+        </BaselineTemplate>
+        <ConnectorLineTemplate>
+            @{
+                text = string.Empty;
+                var dependencyContext = context as TaskInfoModel;
+                text += $"Connectorline Template: TaskId: {dependencyContext.TaskId} Predecessor: {dependencyContext.Predecessor}";
+                <div>
+                    @dependencyContext.Predecessor
+                </div>
+            }
+        </ConnectorLineTemplate>
+        <IndicatorTemplate>
+            @{
+                text = string.Empty;
+                var indicatorContext = context as TaskInfoModel;
+                text += $"Indicator Template: TaskId: {indicatorContext.TaskId} Indicators: {indicatorContext.Indicators}";
+                <div>
+                    @indicatorContext.Indicators
+                </div>
+            }
+        </IndicatorTemplate>
+        <ManualTaskbarTemplate>
+            @{
+                text = string.Empty;
+                var manualContext = context as TaskInfoModel;
+                text += $"Manual Taskbar Template: TaskId: {manualContext.TaskId} Manual: {manualContext.IsManual}";
+                <div>
+                    @manualContext.IsManual
+                </div>
+            }
+        </ManualTaskbarTemplate>
+        <TaskbarTemplate>
+            <table>
+                @{
+                    text = string.Empty;
+                    var taskbar = context as TaskInfoModel;
+                    text += $"Taskbar Template: TaskId: {taskbar.TaskId} StartDate: {taskbar.StartDate} EndDate: {taskbar.EndDate} Duration: {taskbar.Duration}";
+                    <tr>
+                        <td style="padding:3px">Starts On:</td>
+                        <td style="padding:3px">@taskbar.StartDate?.ToString("MM/dd/yyyy")</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:3px">Ends On:</td>
+                        <td style="padding:3px">@taskbar.EndDate?.ToString("MM/dd/yyyy")</td>
+                    </tr>
+                }
+            </table>
+        </TaskbarTemplate>
+        <TimelineCellTemplate>
+            @{
+                text = string.Empty;
+                var timelineCell = context as string;
+                text += $"Timeline Template: : Date: {timelineCell}";
+                <div>
+                    <i class="app-icon-calendar"></i>
+                    @timelineCell
+                </div>
+            }
+        </TimelineCellTemplate>
+    </GanttTooltipSettings>
+    <GanttTemplates TValue="TaskInfoModel">
+        <TaskbarTemplate>
+            @{
+                var task = (context as TaskInfoModel);
+                if (task == null)
+                {
+                    return;
+                }
+                var taskModel = GetTaskInfoModel(task);
+                List<GanttSegmentData> segments = taskModel.Segments;
+                @if (segments != null && segments.Count() > 1)
+                {
+                    foreach (var segment in segments)
+                    {
+                        <div class="e-gantt-child-taskbar-inner-div e-gantt-child-taskbar e-segmented-taskbar" style=@("height:24px;position: absolute;left:" + segment.Left + "px; width:" + segment.Width + "px;") tabindex=-1 data-segment-index="@(segment.SegmentIndex)">
+                            <div class="e-taskbar-left-resizer e-icon" style="margin-top: 5px; left:2px">
+                            </div>
+                            <div class="e-gantt-child-progressbar-inner-div e-gantt-child-progressbar" style="height:22px;width:@(segment.ProgressWidth + "px");border-radius: 0px;text-align: right;">
+                            </div>
+                            <div class="e-taskbar-right-resizer e-icon" style="margin-top: 5px;left:@((segment.Width) - 15)px">
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="e-gantt-child-taskbar e-gantt-child-taskbar-inner-div" style="height:22px;" tabindex=-1>
+                        <div class="e-taskbar-left-resizer e-icon" style="margin-top: 5px; left:2px">
+                        </div>
+                        <div class="e-gantt-child-progressbar-inner-div e-gantt-child-progressbar" style="height:22px;width:@(taskModel.ProgressWidth + "px");text-align: right;border-radius: 0px;">
+                            <span class="e-label">@((context as TaskInfoModel).Progress)%</span>
+                        </div>
+                        <div class="e-taskbar-right-resizer e-icon" style="margin-top: 5px;left:@(taskModel.Left)px">
+                        </div>
+                    </div>
+                }
+            }
+        </TaskbarTemplate>
+        <ParentTaskbarTemplate>
+            @{
+                var task = (context as TaskInfoModel);
+                if (task == null)
+                {
+                    return;
+                }
+                var taskModel = GetTaskInfoModel(task);
+                <div class="e-gantt-parent-taskbar-inner-div e-row-expand e-gantt-parent-taskbar" style="height:22px;" tabindex=-1>
+                    <div class="e-gantt-parent-progressbar-inner-div e-row-expand e-gantt-parent-progressbar" style="height:22px;width:@(taskModel.ProgressWidth + "px");text-align: right;border-radius: 0px;">
+                        <span class="e-label">@((context as TaskInfoModel).Progress)%</span>
+                    </div>
+                </div>
+            }
+        </ParentTaskbarTemplate>
+        <MilestoneTemplate>
+            <div class="e-gantt-milestone" style="width:12.7px;height:12.7px;transform: rotate(45deg);background-color: #ad7a66 !important;border:0px"></div>
+        </MilestoneTemplate>
+        <BaselineTemplate>
+            <div class="e-baseline-bar" style="width:163.625px;left:297px;margin-top:-7px;height:8px;"></div>
+        </BaselineTemplate>
+        <BaselineMilestoneTemplate>
+            <div class="e-gantt-milestone"></div>
+        </BaselineMilestoneTemplate>
+        <ManualTaskbarTemplate>
+            @{
+                var task = (context as TaskInfoModel);
+                if (task == null)
+                {
+                    return;
+                }
+                var taskModel = GetTaskInfoModel(task);
+                <div class="e-gantt-child-taskbar-inner-div e-gantt-child-taskbar e-gantt-child-manualtaskbar" style="height:22px;" tabindex=-1>
+                    <div class="e-taskbar-left-resizer e-icon" style="margin-top: 5px; left:2px">
+                    </div>
+                    <div class="e-gantt-child-progressbar-inner-div e-gantt-child-progressbar" style="height:22px;width:@(taskModel.ProgressWidth + "px");text-align: right;border-radius: 0px;">
+                        <span class="e-label">@((context as TaskInfoModel).Progress)%</span>
+                    </div>
+                    <div class="e-taskbar-right-resizer e-icon" style="margin-top: 5px;left:@(taskModel.Left)px">
+                    </div>
+                </div>
+            }
+        </ManualTaskbarTemplate>
+    </GanttTemplates>
+    <GanttEvents TValue="TaskInfoModel" BeforeTooltipRender="BeforeTooltipHandler" TaskbarEditing="TaskbarEditingHandler"></GanttEvents>
+</SfGantt>
+<div>
+    <label>@text</label>
+</div>
+<button @onclick="EnableBaseLine">Render BaseLine</button>
+<button @onclick="CustomScheduling">Custom Scheduling</button>
+<SfDropDownList @bind-Value="selectedMethod" DataSource="methods" Placeholder="Public Methods" Width="300px">
+    <DropDownListEvents TItem="DropdownData" TValue="string" ValueChange="HandleMethodChange"></DropDownListEvents>
+    <DropDownListFieldSettings Text="Text" Value="Value"></DropDownListFieldSettings>
+</SfDropDownList>
+<style>
+    @@font-face {
+        font-family: 'Gantt control icon';
+        src: url(data:application/x-font-ttf;charset=utf-8;base64,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) format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    i {
+        font-family: 'Gantt control icon' !important;
+        speak: none;
+        vertical-align: sub;
+        font-size: 18px;
+        font-style: normal;
+        font-weight: normal;
+        font-variant: normal;
+        text-transform: none;
+        line-height: 1;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    .e-gantt-child-manualtaskbar {
+        background-color: #1995AD !important;
+    }
+
+        .e-gantt-child-manualtaskbar .e-gantt-child-progressbar {
+            background-color: #90AFC5 !important;
+        }
+
+    .e-gantt-parent-taskbar-inner-div {
+        background-color: #7ab748 !important; /* Set parent taskbar color */
+    }
+
+    .e-label {
+        color: #1e74ca !important; /* Set label text color */
+    }
+
+    .e-baseline-gantt-milestone-container {
+        background-color: #fdb9c9 !important; /* Set baseline milestone color */
+    }
+
+    .e-baseline-bar {
+        background-color: #fdb9c9 !important; /* Set baseline bar color */
+    }
+
+    .e-gantt-parent-progressbar-inner-div {
+        background-color: #4b732a !important; /* Set parent progress bar color */
+    }
+
+    .e-gantt-child-taskbar-inner-div {
+        background-color: #6d619b !important; /* Set child taskbar color */
+    }
+
+    .e-gantt-child-progressbar-inner-div {
+        background-color: #4e466e !important; /* Set child progress bar color */
+    }
+
+    .e-segmented-taskbar.e-gantt-clone-taskbar {
+        top: 0px !important;
+    }
+
+    .app-icon-calendar:before {
+        content: "\e700";
+    }
+
+    .e-segmented-taskbar .e-gantt-child-progressbar {
+        background-color: #0056B3 !important;
+    }
+
+    .e-segmented-taskbar {
+        background-color: #8553F1 !important;
+        border: 1px solid #3f51b5 !important;
+    }
+
+    .e-baseline-gantt-milestone-container {
+        background-color: #fdb9c9 !important; /* Set baseline milestone color */
+    }
+
+    .app-icon-calendar:before {
+        content: "\e700";
+    }
+
+    .app-icon-resource:before {
+        content: "\e701";
+    }
+
+    .app-icon-time:before {
+        content: "\e702";
+    }
+
+    .app-icon-job_title:before {
+        content: "\e703";
+    }
+
+    .app-icon-progress:before {
+        content: "\e704";
+    }
+
+    .image {
+        width: 100%;
+        height: 28px;
+    }
+
+    .e-right-label-inner-div {
+        margin-top: 4px;
+    }
+</style>
+@code {
+    private DateTime ProjectStartDate { get; set; } = new DateTime(2025, 3, 25);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2025, 09, 01);
+    private List<TaskInfoModel> TaskCollection { get; set; }
+    private static List<AssignmentModel> AssignmentCollection { get; set; }
+    private List<SegmentModel> SegmentCollection { get; set; }
+    private List<ResourceInfoModel> ResourceCollection { get; set; }
+    public List<string> TaskNameDropDownData { get; set; }
+    SfAutoComplete<string, string> dropdown;
+    private string TaskbarEditAction { get; set; }
+    public SfGantt<TaskInfoModel> Gantt { get; set; }
+    public bool IsBaseLine { get; set; }
+    private bool IsCustomSchedulingEnabled { get; set; }
+    private string text;
+    public List<string> DropDownData = new List<string>() { "Open", "In Progress", "Validated", "Completed" };
+    public static List<TaskInfoModel> LocalData = new List<TaskInfoModel> {
+            new TaskInfoModel() { Priority= "High" },
+            new TaskInfoModel() { Priority= "Normal" },
+            new TaskInfoModel() { Priority= "Critical" },
+    };
+    private string selectedMethod { get; set; } = "";
+    public IEditorSettings editorParams = new DropDownEditCellParams
+        {
+            Params = new DropDownListModel<object, object>()
+            {
+                DataSource = LocalData
+            }
+        };
+    protected override void OnInitialized()
+    {
+        TaskCollection = EditingData().ToList();
+        this.ResourceCollection = GetResources;
+        AssignmentCollection = GetAssignmentCollection();
+        SegmentCollection = GetSegmentCollection();
+        this.TaskNameDropDownData = TaskCollection.Select(s => s.TaskName).Distinct().ToList();
+    }
+    private List<DropdownData> methods = new List<DropdownData>
+    {
+        new DropdownData{ Text = "AddRecord", Value = "Add Record" },
+        new DropdownData{ Text = "UpdateRecord", Value = "Update Record" },
+    };
+    private void HandleMethodChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, DropdownData> args)
+    {
+        selectedMethod = args.Value;
+        SwitchMethods();
+    }
+    private async void SwitchMethods()
+    {
+        switch (selectedMethod)
+        {
+            case "Add Record":
+                var record = new TaskInfoModel() { TaskId = 100, TaskName = "New Record", StartDate = new DateTime(2025, 04, 02), Duration = "3", Progress = 50, Status = "Open" };
+                await Gantt.AddRecordAsync(record);
+                break;
+            case "Update Record":
+                var data = Gantt.GetTaskByID("3");
+                data.TaskName = "Update Record";
+                data.StartDate = new DateTime(2025, 4, 6);
+                data.Progress = 50;
+                data.Status = "Open";
+                await Gantt.UpdateRecordByIDAsync(data);
+                break;
+        }
+    }
+    private void TaskbarEditingHandler(TaskbarEditingEventArgs<TaskInfoModel> args)
+    {
+        TaskbarEditAction = args.Action;
+    }
+    private IGanttTaskModel<TaskInfoModel> GetTaskInfoModel(TaskInfoModel data)
+    {
+        return Gantt.GetRowTaskModel(data);
+    }
+    private void EnableBaseLine()
+    {
+        IsBaseLine = IsBaseLine ? false : true;
+    }
+    private void CustomScheduling()
+    {
+        IsCustomSchedulingEnabled = IsCustomSchedulingEnabled ? false : true;
+    }
+    public string Formatter(DateTime? date)
+    {
+        DateTime dateTime = (DateTime)(date);
+        var month = dateTime.Month;
+        if (month >= 0 && month <= 2)
+        {
+            return "Q1";
+        }
+        else if (month >= 3 && month <= 5)
+        {
+            return "Q2";
+        }
+        else if (month >= 6 && month <= 8)
+        {
+            return "Q3";
+        }
+        else
+        {
+            return "Q4";
+        }
+    }
+    private async Task BeforeTooltipHandler(BeforeTooltipRenderEventArgs<TaskInfoModel> args)
+    {
+        await Task.CompletedTask;
+    }
+    public class DropdownData
+    {
+        public string? Text { get; set; }
+        public string? Value { get; set; }
+    }
+    public class TaskInfoModel
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public string Predecessor { get; set; }
+        public string Notes { get; set; }
+        public int? ParentId { get; set; }
+        public DateTime? BaselineStartDate { get; set; }
+        public DateTime? BaselineEndDate { get; set; }
+        public List<GanttIndicator> Indicators { get; set; }
+        public string Assignee { get; set; }
+        public bool IsManual { get; set; }
+        public string Status { get; set; }
+        public int? WorkersCount { get; set; }
+        public DateTime WorkingDate { get; set; }
+        public string Priority { get; set; }
+    }
+    public class ResourceInfoModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public double MaxUnit { get; set; }
+    }
+    public class AssignmentModel
+    {
+        public int Id { get; set; }
+        public int TaskId { get; set; }
+        public int ResourceId { get; set; }
+        public double Unit { get; set; }
+    }
+    public class SegmentModel
+    {
+        public int id { get; set; }
+        public int TaskId { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+    }
+    public static List<ResourceInfoModel> GetResources = new List<ResourceInfoModel>()
+    {
+        new ResourceInfoModel() { Id= 1, Name= "Martin Tamer" ,MaxUnit=70},
+        new ResourceInfoModel() { Id= 2, Name= "Rose Fuller" },
+        new ResourceInfoModel() { Id= 3, Name= "Margaret Buchanan" },
+        new ResourceInfoModel() { Id= 4, Name= "Fuller King", MaxUnit = 100},
+        new ResourceInfoModel() { Id= 5, Name= "Davolio Fuller" },
+        new ResourceInfoModel() { Id= 6, Name= "Van Jack" },
+        new ResourceInfoModel() { Id= 7, Name= "Fuller Buchanan" },
+        new ResourceInfoModel() { Id= 8, Name= "Jack Davolio" },
+        new ResourceInfoModel() { Id= 9, Name= "Tamer Vinet" },
+        new ResourceInfoModel() { Id= 10, Name= "Vinet Fuller" },
+        new ResourceInfoModel() { Id= 11, Name= "Bergs Anton" },
+        new ResourceInfoModel() { Id= 12, Name= "Construction Supervisor" }
+    };
+    public static List<AssignmentModel> GetAssignmentCollection()
+    {
+        List<AssignmentModel> assignments = new List<AssignmentModel>()
+        {
+            new AssignmentModel(){ Id=1, TaskId = 5, ResourceId = 1},
+            new AssignmentModel(){ Id=2, TaskId = 6, ResourceId = 2},
+            new AssignmentModel(){ Id=3, TaskId = 8, ResourceId = 4},
+            new AssignmentModel(){ Id=4, TaskId = 10, ResourceId = 1},
+            new AssignmentModel(){ Id=5, TaskId = 11, ResourceId = 6},
+            new AssignmentModel(){ Id=6, TaskId = 12, ResourceId = 1},
+            new AssignmentModel(){ Id=7, TaskId = 13, ResourceId = 4},
+            new AssignmentModel(){ Id=8, TaskId = 14, ResourceId = 1},
+            new AssignmentModel(){ Id=9, TaskId = 15, ResourceId = 4},
+            new AssignmentModel(){ Id=10, TaskId = 25, ResourceId = 1},
+        };
+        return assignments;
+    }
+    public static List<SegmentModel> GetSegmentCollection()
+    {
+        List<SegmentModel> segments = new List<SegmentModel>();
+        segments.Add(new SegmentModel() { id = 1, TaskId = 4, StartDate = new DateTime(2025, 04, 10), Duration = "2" });
+        segments.Add(new SegmentModel() { id = 2, TaskId = 4, StartDate = new DateTime(2025, 04, 13), Duration = "3" });
+        segments.Add(new SegmentModel() { id = 3, TaskId = 7, StartDate = new DateTime(2025, 04, 15), Duration = "3" });
+        segments.Add(new SegmentModel() { id = 4, TaskId = 7, StartDate = new DateTime(2025, 04, 18), Duration = "3" });
+        segments.Add(new SegmentModel() { id = 5, TaskId = 7, StartDate = new DateTime(2025, 04, 21), Duration = "2" });
+        segments.Add(new SegmentModel() { id = 6, TaskId = 11, StartDate = new DateTime(2025, 04, 24), Duration = "1" });
+        segments.Add(new SegmentModel() { id = 7, TaskId = 11, StartDate = new DateTime(2025, 04, 25), Duration = "1" });
+        return segments;
+    }
+    public static List<TaskInfoModel> EditingData()
+    {
+        List<TaskInfoModel> Tasks = new List<TaskInfoModel>() {
+            new TaskInfoModel() { TaskId = 1, TaskName = "Planning and Permits",Assignee = "Sarah Lee", StartDate = new DateTime(2025, 04, 02), EndDate = new DateTime(2025, 04, 10), Duration = "7 days", Progress = 100, BaselineStartDate = new DateTime(2025, 04, 02), BaselineEndDate = new DateTime(2025, 04, 11),Status="Open", WorkersCount = 1 , Priority= "Critical", WorkingDate = new DateTime(2025, 04, 10) },
+            new TaskInfoModel() { TaskId = 2, TaskName = "Site Evaluation",Assignee = "John Smith", StartDate = new DateTime(2025, 04, 02), EndDate = new DateTime(2025, 04, 04), Duration = "2 days", Progress = 80, ParentId = 1, BaselineStartDate = new DateTime(2025, 04, 02), BaselineEndDate = new DateTime(2025, 04, 05),IsManual = true,Status="Validated", WorkersCount = 1 , Priority= "Normal", WorkingDate = new DateTime(2025, 04, 10) },
+            new TaskInfoModel() { TaskId = 3, TaskName = "Obtain Permits", Assignee = "John Smith",StartDate = new DateTime(2025, 04, 07), EndDate = new DateTime(2025, 04, 09), Duration = "3 days", Progress = 100, ParentId = 1, Predecessor = "2",Indicators = new List<GanttIndicator> { new GanttIndicator { Name = "Design phase", IconClass = "e-btn-icon e-notes-info e-icons e-icon-left e-gantt e-notes-info::after", Date = new DateTime(2025, 4, 13) } },Status="Completed",WorkersCount = 1, Priority= "Critical", WorkingDate = new DateTime(2025, 04, 10) },
+            new TaskInfoModel() { TaskId = 4, TaskName = "Finalize Planning",Assignee = "Emily Chen", StartDate = new DateTime(2025, 04, 10), EndDate = new DateTime(2025, 04, 11), Duration = "5 days", Progress = 50, ParentId = 1, Predecessor = "3",IsManual = true,Status="Open", WorkersCount = 1, Priority= "High", WorkingDate = new DateTime(2025, 04, 10) },
+            new TaskInfoModel() { TaskId = 5, TaskName = "Site Preparation", Assignee = "John Smith",StartDate = new DateTime(2025, 04, 14), EndDate = new DateTime(2025, 04, 18), Duration = "5 days", Progress = 100 , IsManual=true,Status="Validated", WorkersCount = 1, Priority= "Normal", WorkingDate = new DateTime(2025, 04, 10)},
+            new TaskInfoModel() { TaskId = 6, TaskName = "Site Clearing", Assignee = "Emily Chen",StartDate = new DateTime(2025, 04, 14), Duration = "0", Progress = 100, ParentId = 5, Predecessor = "4", BaselineStartDate = new DateTime(2025, 04, 25,08,00,00), BaselineEndDate = new DateTime(2025, 04, 25,08,00,00),Status="In Progress", WorkersCount = 1, Priority= "Critical", WorkingDate = new DateTime(2025, 04, 10) },
+            new TaskInfoModel() { TaskId = 7, TaskName = "Grading and Excavation",Assignee = "Emily Chen", StartDate = new DateTime(2025, 04, 15), EndDate = new DateTime(2025, 04, 17), Duration = "8 days", Progress = 100, ParentId = 5, Predecessor = "6",Status="Completed" , WorkersCount = 1, Priority= "High", WorkingDate = new DateTime(2025, 04, 10) },
+            new TaskInfoModel() { TaskId = 8, TaskName = "Foundation Work",Assignee = "Alex Johnson", StartDate = new DateTime(2025, 04, 18), EndDate = new DateTime(2025, 04, 21), Duration = "4 days", Progress = 100, ParentId = 5, Predecessor = "7",Status="Validated" , WorkersCount = 1, Priority= "Normal", WorkingDate = new DateTime(2025, 04, 10)  },
+            new TaskInfoModel() { TaskId = 9, TaskName = "Foundation and Basement",Assignee = "Emily Chen", StartDate = new DateTime(2025, 04, 22), EndDate = new DateTime(2025, 04, 28), Duration = "5 days", Progress = 100, ParentId = 5 ,Status="Open" , WorkersCount = 2, Priority= "High", WorkingDate = new DateTime(2025, 04, 10) },
+            new TaskInfoModel() { TaskId = 10, TaskName = "Pour Foundation",Assignee = "Michael Wong", StartDate = new DateTime(2025, 04, 22), EndDate = new DateTime(2025, 04, 23), Duration = "2 days", Progress = 100, ParentId = 9, Predecessor = "8",IsManual = true,Status="In Progress" , WorkersCount = 1, Priority= "Critical", WorkingDate = new DateTime(2025, 04, 10)  },
+            new TaskInfoModel() { TaskId = 11, TaskName = "Cure Foundation",Assignee = "Lisa Park", StartDate = new DateTime(2025, 04, 24), EndDate = new DateTime(2025, 04, 25), Duration = "2 days", Progress = 100, ParentId = 9, Predecessor = "10",Status="Completed" , WorkersCount = 1, Priority= "High", WorkingDate = new DateTime(2025, 04, 10)  },
+            new TaskInfoModel() { TaskId = 12, TaskName = "Basement Walls",Assignee = "David Lee", StartDate = new DateTime(2025, 04, 28), EndDate = new DateTime(2025, 04, 30), Duration = "3 days", Progress = 100, ParentId = 9, Predecessor = "11",Status="Open" , WorkersCount = 1, Priority= "Normal", WorkingDate = new DateTime(2025, 04, 10)  },
+            new TaskInfoModel() { TaskId = 13, TaskName = "Framing",Assignee = "Michael Wong", StartDate = new DateTime(2025, 05, 01), EndDate = new DateTime(2025, 05, 07), Duration = "5 days", Progress = 100 ,Status="Validated" , WorkersCount = 1, Priority= "Critical", WorkingDate = new DateTime(2025, 04, 10) },
+            new TaskInfoModel() { TaskId = 14, TaskName = "Frame Floors",Assignee = "Alex Johnson", StartDate = new DateTime(2025, 05, 01), EndDate = new DateTime(2025, 05, 02), Duration = "2 days", Progress = 100, ParentId = 13, Predecessor = "12",Status="In Progress" , WorkersCount = 1, Priority= "High", WorkingDate = new DateTime(2025, 04, 10)  },
+            new TaskInfoModel() { TaskId = 15, TaskName = "Frame Walls",Assignee = "Rachel Green", StartDate = new DateTime(2025, 05, 05), EndDate = new DateTime(2025, 05, 06), Duration = "2 days", Progress = 100, ParentId = 13, Predecessor = "14",Status="Completed" , WorkersCount = 1, Priority= "High", WorkingDate = new DateTime(2025, 04, 10)  },
+            new TaskInfoModel() { TaskId = 16, TaskName = "Install Trusses",Assignee = "Sarah Lee", StartDate = new DateTime(2025, 05, 07), EndDate = new DateTime(2025, 05, 08), Duration = "2 days", Progress = 100, ParentId = 13, Predecessor = "15",Status="Open" , WorkersCount = 1, Priority= "Normal", WorkingDate = new DateTime(2025, 04, 10)  },
+            new TaskInfoModel() { TaskId = 17, TaskName = "Roofing",Assignee = "Sarah Lee", StartDate = new DateTime(2025, 05, 09), EndDate = new DateTime(2025, 05, 13), Duration = "3 days", Progress = 100, Predecessor = "16",Status="Completed" , WorkersCount = 1, Priority= "High", WorkingDate = new DateTime(2025, 04, 10)  },
+            new TaskInfoModel() { TaskId = 18, TaskName = "Mechanical, Electrical, Plumbing",Assignee = "Rachel Green", StartDate = new DateTime(2025, 05, 14), EndDate = new DateTime(2025, 05, 24), Duration = "9 days", Progress = 50 ,Status="Completed" , WorkersCount = 1, Priority= "High", WorkingDate = new DateTime(2025, 04, 10) },
+            new TaskInfoModel() { TaskId = 19, TaskName = "HVAC Installation",Assignee = "Michael Wong", StartDate = new DateTime(2025, 05, 14), EndDate = new DateTime(2025, 05, 16), Duration = "3 days", Progress = 100, ParentId = 18, Predecessor = "17",Status="Completed" , WorkersCount = 1, Priority= "High", WorkingDate = new DateTime(2025, 04, 10)  },
+            new TaskInfoModel() { TaskId = 20, TaskName = "Plumbing Installation",Assignee = "Sarah Lee", StartDate = new DateTime(2025, 05, 19), EndDate = new DateTime(2025, 05, 21), Duration = "3 days", Progress = 50, ParentId = 18, Predecessor = "19",Status="Open" , WorkersCount = 1, Priority= "High", WorkingDate = new DateTime(2025, 04, 10)  },
+            new TaskInfoModel() { TaskId = 21, TaskName = "Electrical Installation",Assignee = "Sarah Lee", StartDate = new DateTime(2025, 05, 22), EndDate = new DateTime(2025, 05, 24), Duration = "3 days", Progress = 0, ParentId = 18, Predecessor = "20",Status="Validated" , WorkersCount = 1, Priority= "Critical", WorkingDate = new DateTime(2025, 04, 10)  },
+            new TaskInfoModel() { TaskId = 22, TaskName = "Interior Finishing",Assignee = "Michael Wong", StartDate = new DateTime(2025, 05, 26), EndDate = new DateTime(2025, 06, 17), Duration = "15 days", Progress = 0, Predecessor = "21",Status="Completed" , WorkersCount = 1, Priority= "High", WorkingDate = new DateTime(2025, 04, 10)  },
+            new TaskInfoModel() { TaskId = 23, TaskName = "Insulation and Drywall",Assignee = "Sarah Lee", StartDate = new DateTime(2025, 05, 26), EndDate = new DateTime(2025, 05, 30), Duration = "5 days", Progress = 0, ParentId = 22, Predecessor = "21",Status="In Progress" , WorkersCount = 1, Priority= "Normal", WorkingDate = new DateTime(2025, 04, 10)  },
+            new TaskInfoModel() { TaskId = 24, TaskName = "Interior Painting",Assignee = "Alex Johnson", StartDate = new DateTime(2025, 06, 02), EndDate = new DateTime(2025, 06, 05), Duration = "4 days", Progress = 0, ParentId = 22, Predecessor = "23",Status="Completed" , WorkersCount = 1, Priority= "High", WorkingDate = new DateTime(2025, 04, 10)  },
+            new TaskInfoModel() { TaskId = 25, TaskName = "Flooring Installation",Assignee = "Rachel Green", StartDate = new DateTime(2025, 06, 06), EndDate = new DateTime(2025, 06, 09), Duration = "4 days", Progress = 0, ParentId = 22, Predecessor = "24",Status="Validated" , WorkersCount = 1, Priority= "Normal", WorkingDate = new DateTime(2025, 04, 10)  }
+        };
+        return Tasks;
+    }
+}

@@ -1,0 +1,910 @@
+@page "/Event_Validation"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.TreeGrid
+@using Syncfusion.Blazor.Layouts
+@using Syncfusion.PdfExport
+<div>@messsage</div>
+<button @onclick="Clear">Clear</button>
+<SfGantt @ref="GanttRef" DataSource="@TaskCollection" TValue="TaskData" AllowPdfExport="true" EnableUndoRedo="true" UndoRedoActions="@undoRedoActions" AllowSearching="true" Height="300px" Width="100%" RenderBaseline="true" ConnectorLineBackground="#ab6060fc" ConnectorLineWidth="2" ID="Gantt" AllowFiltering="true" AllowSorting="true" AllowRowDragAndDrop="true" EnableContextMenu="true" Toolbar="Toolbaritems" AllowResizing="true" ShowColumnMenu="true" AllowReordering="true">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" BaselineStartDate="BaselineStartDate" BaselineEndDate="BaselineEndDate" Dependency="Predecessor" ParentID="ParentId"></GanttTaskFields>
+    <GanttEditSettings AllowTaskbarEditing="true" AllowDeleting="true" AllowEditing="true" AllowAdding="true"></GanttEditSettings>
+    <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+     <GanttSelectionSettings  Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple" AllowDragSelection="true"></GanttSelectionSettings>
+    <GanttTemplates TValue="TaskData">
+        <TaskbarTemplate>
+            @{
+                var task = context as TaskData;
+                <div class="e-gantt-child-taskbar e-gantt-child-taskbar-inner-div" style="background-color: @(task.Predecessor != null ? "#6d619b" : "#d3d3d3");height: 16px;">
+                    <span>@((context as TaskData).TaskName)</span>
+                </div>
+            }
+        </TaskbarTemplate>
+    </GanttTemplates>
+    <GanttTooltipSettings ShowTooltip="true" TValue="TaskData">
+        <ConnectorLineTemplate>
+            <div>Predecessor: @((context as TaskData).Predecessor)</div>
+        </ConnectorLineTemplate>
+    </GanttTooltipSettings>
+    <GanttEvents OnActionFailure="ActionFailureHandler"
+                 Created="CreatedHandler"
+                 OnLoad="LoadHandler"
+                 DataBound="DataBoundHandler"
+                 Destroyed="DestroyHandler"
+                 RowDragStarting="RowDragStartHandler"
+                 RowDataBound="RowDataBoundHandler"
+                 Sorting="SortingHandler"
+                 Sorted="SortedHandler"
+                 Searching="SearchingHandler"
+                 Searched="SearchedHandler"
+                 RowCreating="RowAddingHandler"
+                 RowCreated="RowCreatedHandler"
+                 RowUpdating="RowUpdatingHandler"
+                 RowUpdated="RowUpdatedHandler"
+                 RowDeleting="RowDeletingHandler"
+                 RowDeleted="RowDeletedHandler"
+                 Filtering="FilteringHandler"
+                 Filtered="FilteredHandler"
+                 QueryChartRowInfo="QueryChartRowInfo"
+                 EndEdit="EndEdit"
+                 QueryCellInfo="QueryCellInfoHandler"
+                 BeforeTooltipRender="BeforeTooltipRender"
+                 OnCellEdit="CellEditHandler"
+                 OnToolbarClick="ToolbarClickHandler"
+                 OnCellSave="@SaveHandler"
+                 FilterDialogOpening="FilterDialogOpeningHandler"
+                 BeforeCopy="BeforeCopyHandler"
+                 FilterDialogOpened="FilterDialogOpenedHandler"
+                 ColumnReordering="ColumnReorderingHandler"
+                 ColumnReordered="ColumnReorderedHandler"
+                 GanttDialogOpening="GanttDialogOpeningHandler"
+                 GanttDialogOpened="GanttDialogOpenedHandler"
+                 GanttDialogClosing="GanttDialogClosingHandler"
+                 PdfExporting=" PdfExportingHandler"
+                 PdfExported=" PdfExportedHandler"
+                 RowDragSelectionStarting="RowDragSelectionStartingHandler"
+                 RowDragSelectionCompleted="RowDragSelectionCompletedHandler"
+                 OnUndoRedo="UndoRedoHandler"
+                 RowDragSelectionCompleting="RowDragSelectionCompletingHandler"
+                 TaskbarEditing="TaskbarEditingHandler"
+                 TaskConnectorChanging="ConnectorLineDrawHandler"
+                 TaskConnectorChanged="ConnectorLineDrawCompletedHandler"
+                 IndentationChanging="IndentationChangingHandler"
+                 IndentationChanged="IndentationChangedHandler"
+                 Zooming="ZoomBeginHandler"
+                 Zoomed="ZoomCompleteHandler"
+                 TaskbarEdited="TaskbarEdited"
+                 RowDropping="RowDropping"
+                 RowDropped="RowDropped"
+                 CellSelecting="CellSelecting"
+                 CellSelected="CellSelectedHandler"
+                 SplitterResizeStart="Resizestart"
+                 RowSelecting="RowSelectingHandler"
+                 RowSelected="rowSelect"
+                 RowDeselecting="RowDeselectingHandler"
+                 RowDeselected="RowDeselectHandler"
+                 CellDeselecting="CellDeselectingHandler"
+                 CellDeselected="CellDeselectedHandler"
+                 ColumnMenuClicked="ColumnMenuClickedHandler"
+                 ContextMenuItemClicked="ContextMenuItemClickedHandler"
+                 ContextMenuOpen="ContextMenuOpenHandler"
+                 Collapsed="Collapsed"
+                 Collapsing="Collapsed"
+                 Expanding="Expanding"
+                 Expanded="ExpandedHandler"
+                 TValue="TaskData">
+    </GanttEvents>
+    <GanttLabelSettings LeftLabel="TaskName" TValue="TaskData"></GanttLabelSettings>
+</SfGantt>
+<div>
+    @if (PropertyItems?.Any() == true)
+    {
+        
+        @foreach (var data in PropertyItems)
+        {
+            <span style="font-weight:400; color: red;font-size: 8px;line-height: 12px;">EventName : @data.Key ,</span>
+            @foreach (var item in data.Value)
+            {
+                <span style="color: Blue; font-weight:400; font-size: 8px;line-height: 12px;">@item.Name :</span>
+                <span style="color: darkgreen;font-size: 8px;line-height: 12px;">@item.Value</span>
+
+                <span style="padding-right:15px">,</span>
+            }
+        }
+    }
+</div>
+<style>
+    .e-connector-line {
+        stroke: #ab6060fc !important;
+        stroke-width: 2px;
+    }
+
+    .e-connector-line-arrow {
+        fill: #ab6060fc !important;
+    }
+</style>
+
+@code {
+    private DateTime ProjectStart = new DateTime(2025, 01, 01);
+    private DateTime ProjectEnd = new DateTime(2025, 06, 30);
+    private List<TaskData> TaskCollection { get; set; }
+    private string SelectEvent { get; set; }
+    private string SelectedEvent { get; set; }
+    private string EventName { get; set; }
+    public string messsage{ get; set; }
+    private List<GanttUndoRedoAction> undoRedoActions = new List<GanttUndoRedoAction> {
+        GanttUndoRedoAction.Sort, GanttUndoRedoAction.Add, GanttUndoRedoAction.ColumnReorder, GanttUndoRedoAction.TaskbarEdit,
+        GanttUndoRedoAction.ColumnState, GanttUndoRedoAction.Edit, GanttUndoRedoAction.Filter, GanttUndoRedoAction.NextTimeSpan, GanttUndoRedoAction.PreviousTimeSpan, GanttUndoRedoAction.Search,GanttUndoRedoAction.Delete,
+        GanttUndoRedoAction.ZoomIn, GanttUndoRedoAction.ZoomOut, GanttUndoRedoAction.ZoomToFit,GanttUndoRedoAction.Collapse,GanttUndoRedoAction.Expand,GanttUndoRedoAction.SplitterResize
+    };
+    // Toolbar items: include full typical Gantt toolbar (add, edit, navigation, indent/outdent, undo/redo, export, zoom)
+    public List<Object> Toolbaritems = new List<Object>()
+    {
+        "Add",
+        "Edit",
+        "Update",
+        "Delete",
+        "Cancel",
+        "Search",
+        "ExpandAll",
+        "CollapseAll",
+        "PrevTimeSpan",
+        "NextTimeSpan",
+        "Indent",
+        "Outdent",
+        "Undo",
+        "Redo",
+        "ZoomIn",
+        "ZoomOut",
+        "ZoomToFit",
+        new ToolbarItem { Id = "Gantt_PdfExport", Text = "PDF Export", PrefixIcon = "e-pdfexport" }
+    };
+    private Dictionary<string, List<PropertyDisplayItem>> PropertyItems = new();
+    private SfGantt<TaskData> GanttRef;
+    private int count = 1;
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    private void Clear()
+    {
+        PropertyItems = new();
+    }
+    public async void CopyClip(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        ExtractProperties(args);
+        StateHasChanged();
+
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public DateTime BaselineStartDate { get; set; }
+        public DateTime BaselineEndDate { get; set; }
+        public string Duration { get; set; }
+        public string Predecessor { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+    }
+
+    public class PropertyDisplayItem
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
+
+    
+
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+    public void QueryChartRowInfo(QueryChartRowInfoEventArgs<TaskData> args)
+    {
+
+    }
+    public void QueryCellInfoHandler(QueryCellInfoEventArgs<TaskData> args)
+    {
+
+    }
+    public void CreatedHandler(object args)
+    {
+        EventName = count++ + " Created";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void LoadHandler(object args)
+    {
+        EventName = count++ + " Load";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void DataBoundHandler(object args)
+    {
+        EventName = count++ + " DataBound";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void DestroyHandler(object args)
+    {
+        EventName = count++ + " Destroy"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void SaveHandler(CellSaveArgs<TaskData> args)
+    {
+        EventName = count++ + " OnCellSave"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    private void CellSavedHandler(CellSavedArgs<TaskData> args)
+    {
+        EventName = count++ + " CellSaved"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void SortingHandler(SortingEventArgs args)
+    {
+        EventName = count++ + " Sorting"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void SortedHandler(SortedEventArgs args)
+    {
+        EventName = count++ + " Sorted"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void FilteringHandler(FilteringEventArgs args)
+    {
+        EventName = count++ + " Filtering"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void FilteredHandler(FilteredEventArgs args)
+    {
+        EventName = count++ + " Filtered"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void SearchingHandler(SearchingEventArgs args)
+    {
+        EventName = count++ + " Searching"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void SearchedHandler(SearchedEventArgs args)
+    {
+        EventName = count++ + "  Searched"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void EndEdit(TaskbarEditedEventArgs<TaskData> args)
+    {
+        EventName = count++ + " EndEdit"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void FilterDialogOpeningHandler(FilterDialogOpeningEventArgs args)
+    {
+        EventName = count++ + " FilterDialogOpening"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void FilterDialogOpenedHandler(FilterDialogOpenedEventArgs args)
+    {
+        EventName = count++ + " FilterDialogOpened"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void BeforeTooltipRender(BeforeTooltipRenderEventArgs<TaskData> args)
+    {
+
+    }
+    <!-- public void Resized(Syncfusion.Blazor.Layouts.ResizingEventArgs args)
+    {
+        EventName=" SplitterResizing";
+        ExtractProperties(args);
+           StateHasChanged();
+    } -->
+    public void RowUpdatingHandler(GanttRowUpdatingEventArgs<TaskData> args)
+    {
+        EventName = count++ + " RowUpdating"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void RowUpdatedHandler(GanttRowUpdatedEventArgs<TaskData> args)
+    {
+        EventName = count++ + " RowUpdated"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void GanttDialogOpeningHandler(GanttDialogOpenEventArgs<TaskData> args)
+    {
+        EventName = count++ + " GanttDialogOpening"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void GanttDialogOpenedHandler(GanttDialogOpenedEventArgs<TaskData> args)
+    {
+        EventName = count++ + " GanttDialogOpened"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void GanttDialogClosingHandler(GanttDialogCloseEventArgs<TaskData> args)
+    {
+        EventName = count++ + " GanttDialogClosing";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void ZoomBeginHandler(ZoomEventArgs args)
+    {
+        EventName = count++ + " Zooming";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void ZoomCompleteHandler(ZoomedEventArgs args)
+    {
+        EventName = count++ + " Zoomed";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void ConnectorLineDrawHandler(TaskConnectorChangeEventArgs<TaskData> args)
+    {
+        EventName = count++ + " TaskConnectorChanging";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void ConnectorLineDrawCompletedHandler(TaskConnectorChangedEventArgs<TaskData> args)
+    {
+        EventName = count++ + " TaskConnectorChanged";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void IndentationChangingHandler(IndentationChangingEventArgs<TaskData> args)
+    {
+        EventName = count++ + " IndentationChanging";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void IndentationChangedHandler(IndentationChangedEventArgs<TaskData> args)
+    {
+        EventName = count++ + " IndentationChanged";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void PdfExportingHandler(PdfExportEventArgs args)
+    {
+        EventName = count++ + " PDFExporting";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void PdfExportedHandler(PdfExportedEventArgs args)
+    {
+        EventName = count++ + " PDFExported";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+
+        // Remove any grid-generated column UID values (e.g. "Columns[2].Uid : grid-columne36cf8c7-...")
+        try
+        {
+            var lastList = PropertyItems.Last().Value;
+            lastList.RemoveAll(p => p.Name != null && p.Name.Contains("Columns[") && p.Name.EndsWith(".Uid") && !string.IsNullOrEmpty(p.Value) && p.Value.StartsWith("grid-"));
+        }
+        catch
+        {
+            // ignore
+        }
+
+        StateHasChanged();
+    }
+    private void UndoRedoHandler(GanttUndoRedoEventArgs<TaskData> args)
+    {
+        EventName = count++ + " UndoRedo";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void RowDragSelectionStartingHandler(RowDragSelectionEventArgs<TaskData> args)
+    {
+        EventName = count++ + " RowDragSelectionStarting";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void RowDragSelectionCompletedHandler(RowDragSelectedEventArgs<TaskData> args)
+    {
+        EventName = count++ + " RowDragSelectionCompleted";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void RowDragSelectionCompletingHandler(RowDragSelectedEventArgs<TaskData> args)
+    {
+        EventName = count++ + " RowDragSelectionCompleting";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void ColumnReorderingHandler(ColumnReorderingEventArgs args)
+    {
+        EventName = count++ + " ColumnReordering";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+
+        // Remove grid-generated Uid values from ReorderingColumns
+        try
+        {
+            var lastList = PropertyItems.Last().Value;
+            lastList.RemoveAll(p => p.Name != null && p.Name.Contains("ReorderingColumns[") && p.Name.EndsWith(".Uid") && !string.IsNullOrEmpty(p.Value) && p.Value.StartsWith("grid-column"));
+        }
+        catch
+        {
+            // ignore
+        }
+
+        StateHasChanged();
+    }
+    public void ColumnReorderedHandler(ColumnReorderedEventArgs args)
+    {
+        EventName = count++ + " ColumnReordered";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+
+        // Remove grid-generated Uid values from ReorderingColumns
+        try
+        {
+            var lastList = PropertyItems.Last().Value;
+            lastList.RemoveAll(p => p.Name != null && p.Name.Contains("ReorderingColumns[") && p.Name.EndsWith(".Uid") && !string.IsNullOrEmpty(p.Value) && p.Value.StartsWith("grid-column"));
+        }
+        catch
+        {
+            // ignore
+        }
+
+        StateHasChanged();
+    }
+    private async Task TaskbarEditingHandler(TaskbarEditingEventArgs<TaskData> args)
+    {
+        EventName = count++ + " TaskbarEditing";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+
+    }
+    public void TaskbarEdited(TaskbarEditedEventArgs<TaskData> args)
+    {
+        EventName = count++ + " TaskbarEdited";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void RowDeletingHandler(GanttRowDeletingEventArgs<TaskData> args)
+    {
+        EventName = count++ + " RowDeleting";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void RowDeletedHandler(GanttRowDeletedEventArgs<TaskData> args)
+    {
+        EventName = count++ + " RowDeleted";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+
+    public void RowDragStartHandler(RowDragStartingEventArgs<TaskData> args)
+    {
+        EventName = count++ + " RowDragStarting";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void RowDropping(RowDroppingEventArgs<TaskData> args)
+    {
+        EventName = count++ + " RowDropping";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void RowDropped(RowDroppedEventArgs<TaskData> args)
+    {
+        EventName = count++ + " RowDropped";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void RowDataBoundHandler(RowDataBoundEventArgs<TaskData> args)
+    {
+       // EventName = count++ + " RowDataBound";
+        //PropertyItems.Add(EventName, new());
+        //ExtractProperties(args);
+        //StateHasChanged();
+    }
+    <!-- public void OnRowDragStart(RowDragEventArgs<TaskData> args)
+    {
+        EventName="OnRowDragStart";
+           ExtractProperties(args);
+           StateHasChanged();
+    } -->
+    public void RowAddingHandler(GanttRowCreatingEventArgs<TaskData> args)
+    {
+        EventName = count++ + " RowCreating";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void RowCreatedHandler(GanttRowCreatedEventArgs<TaskData> args)
+    {
+        EventName = count++ + " RowCreated"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void CellSelecting(Syncfusion.Blazor.Grids.CellSelectingEventArgs<TaskData> args)
+    {
+        EventName = count++ + " CellSelecting"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+
+    public void CellSelectedHandler(CellSelectEventArgs<TaskData> args)
+    {
+        EventName = count++ + " CellSelected"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public async Task ToolbarClickHandler(ClickEventArgs args)
+    {
+        EventName = count++ + " OnToolbarClick"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+
+        try
+        {
+            var itemText = args?.Item?.Text ?? string.Empty;
+            var itemId = args?.Item?.Id ?? string.Empty;
+            if (itemId == "Gantt_PdfExport" || itemText.Equals("PDF Export", StringComparison.OrdinalIgnoreCase) || itemText.Equals("PdfExport", StringComparison.OrdinalIgnoreCase) || (!string.IsNullOrEmpty(itemId) && itemId.IndexOf("PdfExport", StringComparison.OrdinalIgnoreCase) >= 0))
+            {
+                if (GanttRef != null)
+                {
+                    await GanttRef.ExportToPdfAsync();
+                    PropertyItems.Last().Value.Add(new PropertyDisplayItem { Name = "PdfExport", Value = "Triggered" });
+                }
+                else
+                {
+                    PropertyItems.Last().Value.Add(new PropertyDisplayItem { Name = "PdfExport", Value = "GanttRef is null" });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            PropertyItems.Last().Value.Add(new PropertyDisplayItem { Name = "PdfExportError", Value = ex.GetType().Name + ": " + ex.Message });
+        }
+
+        StateHasChanged();
+    }
+    public void Resizestart(Syncfusion.Blazor.Layouts.ResizeEventArgs args)
+    {
+        EventName = count++ + " SplitterResizeStart"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void CellEditHandler(CellEditArgs<TaskData> args)
+    {
+        EventName = count++ + " OnCellEdit"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    <!-- public void Resized(Syncfusion.Blazor.Layouts.ResizingEventArgs args)
+    {
+         EventName="SplitterResized";
+           ExtractProperties(args);
+           StateHasChanged();
+    } -->
+    public void RowSelectingHandler(RowSelectingEventArgs<TaskData> args)
+    {
+        EventName = count++ + " RowSelecting"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+
+    public void rowSelect(RowSelectEventArgs<TaskData> args)
+    {
+        EventName = count++ + " RowSelected"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+
+    public void RowDeselectingHandler(RowDeselectEventArgs<TaskData> args)
+    {
+        EventName =  count++ + " RowDeselecting"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+
+    public void RowDeselectHandler(RowDeselectEventArgs<TaskData> args)
+    {
+        EventName = count++ + "RowDeselected"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+
+    public void CellDeselectingHandler(CellDeselectEventArgs<TaskData> args)
+    {
+        PropertyItems.Add(count++ + " CellDeSelecting", new());
+        ExtractProperties(args); 
+        StateHasChanged();
+    }
+    public void CellDeselectedHandler(CellDeselectEventArgs<TaskData> args)
+    {
+        PropertyItems.Add(count++ + " CellDeSelected", new());
+        ExtractProperties(args); 
+        StateHasChanged();
+    }
+
+    public void ColumnMenuClickedHandler(ColumnMenuClickEventArgs args)
+    {
+        EventName = count++ + " ColumnMenuClicked"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+
+        // Remove grid-generated/random Column.Uid values (e.g. "grid-columnd168c01e-5b44-4dab-9e7a-e136576c5066")
+        try
+        {
+            var lastList = PropertyItems.Last().Value;
+            lastList.RemoveAll(p => p.Name != null && p.Name.EndsWith("Column.Uid") && !string.IsNullOrEmpty(p.Value) && p.Value.StartsWith("grid-column"));
+        }
+        catch
+        {
+            // ignore unexpected state
+        }
+
+        StateHasChanged();
+    }
+    public void ContextMenuItemClickedHandler(ContextMenuClickEventArgs<TaskData> args)
+    {
+        EventName = count++ + " ColumnMenuItemClicked"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void ContextMenuOpenHandler(ContextMenuOpenEventArgs<TaskData> args)
+    {
+        EventName = count++ + " ContextMenuOpen"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+
+    }
+
+    public void Collapsed(RowCollapsedEventArgs<TaskData> args)
+    {
+        EventName = count++ + " Collapsed";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void Collapsed(RowCollapsingEventArgs<TaskData> args)
+    {
+        EventName = count++ + " Collapsing"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void Expanding(Syncfusion.Blazor.TreeGrid.RowExpandingEventArgs<TaskData> args)
+    {
+        EventName = count++ + " Expanding"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    public void ExpandedHandler(RowExpandedEventArgs<TaskData> args)
+    {
+        EventName = count++ + " Expanded"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    <!-- public void ColumnResizedHandler(Syncfusion.Blazor.Grids.ResizeArgs args)
+    {
+        EventName="ColumnResized";
+          ExtractProperties(args);
+          StateHasChanged();
+    }    -->
+    public void ColumnResizeStartHandler(Syncfusion.Blazor.Grids.ResizeArgs args)
+    {
+        EventName = count++ + " ColumnResizeStart"; PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    private async void BeforeCopyHandler(Syncfusion.Blazor.Gantt.BeforeCopyEventArgs args)
+    {
+        EventName = count++ + " BeforeCopy";
+        PropertyItems.Add(EventName, new());
+        ExtractProperties(args);
+        StateHasChanged();
+    }
+    // Tracking helpers to avoid infinite recursion when reflecting complex event args
+    private HashSet<object> __extractedObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
+    private int __extractDepth = 0;
+    private const int __MAX_EXTRACT_DEPTH = 12;
+
+    private void ExtractProperties(object obj, string prefix = "")
+    {
+        // Initialize/clear tracking on top-level calls
+        if (string.IsNullOrEmpty(prefix))
+        {
+            __extractedObjects.Clear();
+            __extractDepth = 0;
+        }
+
+        if (obj == null) return;
+        if (__extractDepth > __MAX_EXTRACT_DEPTH)
+        {
+            PropertyItems.Last().Value.Add(new PropertyDisplayItem { Name = prefix + "_Error", Value = "Max recursion depth reached" });
+            return;
+        }
+
+        // Prevent infinite recursion on circular references
+        if (!obj.GetType().IsValueType)
+        {
+            if (__extractedObjects.Contains(obj))
+            {
+                PropertyItems.Last().Value.Add(new PropertyDisplayItem { Name = prefix + "_CircularReference", Value = obj.GetType().Name });
+                return;
+            }
+            __extractedObjects.Add(obj);
+        }
+
+        __extractDepth++;
+
+        var type = obj.GetType();
+        if (type == null) { __extractDepth--; return; }
+        var properties = type.GetProperties();
+
+        foreach (var prop in properties)
+        {
+            // Skip indexer properties (they require parameters)
+            if (prop.GetIndexParameters()?.Length > 0) continue;
+
+            // Avoid reflecting into types that may trigger JSInterop, disposed DotNetObjectReference, or heavy internal frameworks
+            if (IsSkippableType(prop.PropertyType))
+            {
+                // Previously we recorded a "<skipped type: ...>" entry; remove that to avoid clutter.
+                continue;
+            }
+
+            object value = null;
+            try
+            {
+                value = prop.GetValue(obj);
+            }
+            catch (System.Reflection.TargetParameterCountException)
+            {
+                PropertyItems.Last().Value.Add(new PropertyDisplayItem { Name = $"{prefix}{prop.Name}", Value = "<indexed property - skipped>" });
+                continue;
+            }
+            catch (ObjectDisposedException)
+            {
+                PropertyItems.Last().Value.Add(new PropertyDisplayItem { Name = $"{prefix}{prop.Name}", Value = "<disposed>" });
+                continue;
+            }
+            catch (System.Exception ex)
+            {
+                PropertyItems.Last().Value.Add(new PropertyDisplayItem { Name = $"{prefix}{prop.Name}", Value = $"<error: {ex.GetType().Name}>" });
+                continue;
+            }
+
+            if (value == null)
+            {
+                PropertyItems.Last().Value.Add(new PropertyDisplayItem { Name = $"{prefix}{prop.Name}", Value = "null" });
+            }
+            else if (IsSimpleType(prop.PropertyType))
+            {
+                PropertyItems.Last().Value.Add(new PropertyDisplayItem { Name = $"{prefix}{prop.Name}", Value = value.ToString() });
+            }
+            else if (typeof(System.Collections.IEnumerable).IsAssignableFrom(prop.PropertyType) && prop.PropertyType != typeof(string))
+            {
+                int index = 0;
+                foreach (var item in (System.Collections.IEnumerable)value)
+                {
+                    ExtractProperties(item, $"{prefix}{prop.Name}[{index}].");
+                    index++;
+                }
+            }
+            else
+            {
+                ExtractProperties(value, $"{prefix}{prop.Name}.");
+            }
+        }
+
+        __extractDepth--;
+        if (!obj.GetType().IsValueType)
+        {
+            __extractedObjects.Remove(obj);
+        }
+    }
+
+    // Skip types that are likely to trigger JS interop, framework internals or unsafe reflection
+    private bool IsSkippableType(Type type)
+    {
+        if (type == null) return true;
+        var fullname = type.FullName ?? string.Empty;
+        var ns = type.Namespace ?? string.Empty;
+
+        if (fullname.Contains("DotNetObjectReference") || ns.StartsWith("Microsoft.JSInterop") || ns.StartsWith("Microsoft.AspNetCore") || ns.StartsWith("Syncfusion") || ns.StartsWith("Microsoft.Extensions") || ns.StartsWith("System.Threading"))
+            return true;
+
+        if (typeof(Delegate).IsAssignableFrom(type)) return true;
+
+        return false;
+    }
+
+    // Helper comparer to use reference equality in HashSet
+    private class ReferenceEqualityComparer : IEqualityComparer<object>
+    {
+        public static ReferenceEqualityComparer Instance { get; } = new ReferenceEqualityComparer();
+        public new bool Equals(object x, object y) => ReferenceEquals(x, y);
+        public int GetHashCode(object obj) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
+    }
+
+    private bool IsSimpleType(Type type)
+    {
+        return
+            type.IsPrimitive ||
+            type.IsEnum ||
+            type == typeof(string) ||
+            type == typeof(decimal) ||
+            type == typeof(DateTime) ||
+            type == typeof(Guid) ||
+            Nullable.GetUnderlyingType(type)?.IsPrimitive == true ||
+            Nullable.GetUnderlyingType(type) == typeof(decimal) ||
+            Nullable.GetUnderlyingType(type) == typeof(DateTime) ||
+            Nullable.GetUnderlyingType(type) == typeof(Guid);
+    }
+
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        return new List<TaskData>
+    {
+        // Phase 1: Site Preparation
+        new TaskData { TaskId = 1, TaskName = "Site Preparation", StartDate = new DateTime(2025, 01, 01), BaselineStartDate = new DateTime(2025, 01, 01), BaselineEndDate = new DateTime(2025, 01, 01) },
+        new TaskData { TaskId = 2, TaskName = "Survey Land", StartDate = new DateTime(2025, 01, 01), Duration = "2", Progress = 100, ParentId = 1, Predecessor = "", BaselineStartDate = new DateTime(2025, 01, 01), BaselineEndDate = new DateTime(2025, 01, 03) },
+        new TaskData { TaskId = 3, TaskName = "Excavation", StartDate = new DateTime(2025, 01, 03), Duration = "3", Progress = 60, ParentId = 1, Predecessor = "2FS+2days", BaselineStartDate = new DateTime(2025, 01, 03), BaselineEndDate = new DateTime(2025, 01, 06) },
+
+        // Phase 2: Foundation
+        new TaskData { TaskId = 4, TaskName = "Foundation", StartDate = new DateTime(2025, 01, 06), Predecessor = "3FS+1d", BaselineStartDate = new DateTime(2025, 01, 06), BaselineEndDate = new DateTime(2025, 01, 06) },
+        new TaskData { TaskId = 5, TaskName = "Pour Footings", StartDate = new DateTime(2025, 01, 07), Duration = "4", Progress = 50, ParentId = 4, Predecessor = "4FS", BaselineStartDate = new DateTime(2025, 01, 07), BaselineEndDate = new DateTime(2025, 01, 11) },
+        new TaskData { TaskId = 6, TaskName = "Cure Footings", StartDate = new DateTime(2025, 01, 11), Duration = "3", Progress = 20, ParentId = 4, Predecessor = "5FS", BaselineStartDate = new DateTime(2025, 01, 11), BaselineEndDate = new DateTime(2025, 01, 14) },
+
+        // Phase 3: Structure
+        new TaskData { TaskId = 7, TaskName = "Framing", StartDate = new DateTime(2025, 01, 14), Predecessor = "", BaselineStartDate = new DateTime(2025, 01, 14), BaselineEndDate = new DateTime(2025, 01, 14) },
+        new TaskData { TaskId = 8, TaskName = "Install Steel Frame", StartDate = new DateTime(2025, 01, 14), Duration = "6", Progress = 40, ParentId = 7, Predecessor = "", BaselineStartDate = new DateTime(2025, 01, 14), BaselineEndDate = new DateTime(2025, 01, 20) },
+        new TaskData { TaskId = 9, TaskName = "Install Roof", StartDate = new DateTime(2025, 01, 20), Duration = "4", Progress = 30, ParentId = 7, Predecessor = "8SS-1d", BaselineStartDate = new DateTime(2025, 01, 20), BaselineEndDate = new DateTime(2025, 01, 24) },
+
+        // Phase 4: Interior
+        new TaskData { TaskId = 10, TaskName = "Interior Work", StartDate = new DateTime(2025, 01, 24), BaselineStartDate = new DateTime(2025, 01, 24), BaselineEndDate = new DateTime(2025, 01, 24) },
+        new TaskData { TaskId = 11, TaskName = "Electrical Wiring", StartDate = new DateTime(2025, 01, 24), Duration = "5", Progress = 50, ParentId = 10, Predecessor = "", BaselineStartDate = new DateTime(2025, 01, 24), BaselineEndDate = new DateTime(2025, 01, 29) },
+        new TaskData { TaskId = 12, TaskName = "Plumbing", StartDate = new DateTime(2025, 01, 24), Duration = "5", Progress = 50, ParentId = 10, Predecessor = "11SS", BaselineStartDate = new DateTime(2025, 01, 24), BaselineEndDate = new DateTime(2025, 01, 29) },
+        new TaskData { TaskId = 13, TaskName = "HVAC Installation", StartDate = new DateTime(2025, 01, 25), Duration = "4", Progress = 30, ParentId = 10, Predecessor = "12SF", BaselineStartDate = new DateTime(2025, 01, 25), BaselineEndDate = new DateTime(2025, 01, 29) },
+
+        // Final Phase
+        new TaskData { TaskId = 14, TaskName = "Final Inspection", StartDate = new DateTime(2025, 02, 01), Duration = "2", Progress = 0, Predecessor = "13FF+2d", BaselineStartDate = new DateTime(2025, 02, 01), BaselineEndDate = new DateTime(2025, 02, 03) },
+        new TaskData { TaskId = 15, TaskName = "Landscaping", StartDate = new DateTime(2025, 02, 04), Duration = "3", Progress = 0, Predecessor = "14FS", BaselineStartDate = new DateTime(2025, 02, 04), BaselineEndDate = new DateTime(2025, 02, 07) },
+        new TaskData { TaskId = 16, TaskName = "Cleanup", StartDate = new DateTime(2025, 02, 06), Duration = "2", Progress = 0, Predecessor = "15SS", BaselineStartDate = new DateTime(2025, 02, 06), BaselineEndDate = new DateTime(2025, 02, 08) },
+        new TaskData { TaskId = 17, TaskName = "Security System Setup", StartDate = new DateTime(2025, 02, 07), Duration = "2", Progress = 0, Predecessor = "16SF", BaselineStartDate = new DateTime(2025, 02, 07), BaselineEndDate = new DateTime(2025, 02, 09) },
+        new TaskData { TaskId = 18, TaskName = "Handover", StartDate = new DateTime(2025, 02, 10), Duration = "1", Progress = 0, Predecessor = "17FF", BaselineStartDate = new DateTime(2025, 02, 10), BaselineEndDate = new DateTime(2025, 02, 11) }
+    };
+    }
+}

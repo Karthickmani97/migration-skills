@@ -1,0 +1,169 @@
+@page "/BLAZ-936801"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt DataSource="@TaskCollection" DurationUnit="DurationUnit.Minute" @ref="@ganttChartRef" Height="450px" Width="100%" ValidateManualTasksOnLinking="false" EnableContextMenu="true" HighlightWeekends="true" TreeColumnIndex="1" AllowSorting="true">
+                <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Dependency="Predecessor" Duration="Duration" Progress="Progress" Child="Subtasks">
+                </GanttTaskFields>
+                <GanttEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" AllowTaskbarEditing="true"></GanttEditSettings>
+                <GanttColumns>
+                    <GanttColumn Field="TaskID"></GanttColumn>
+                    <GanttColumn Field="TaskName" ></GanttColumn>
+                    <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+                    <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+                    <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+                    <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+                    <GanttColumn Field="Predecessor" HeaderText="Predecessor"></GanttColumn>
+                </GanttColumns>
+                <GanttTimelineSettings TimelineUnitSize="99" TimelineViewMode="TimelineViewMode.Minutes" UpdateTimescaleView="false" WeekStartDay=1>
+                    <GanttTopTierSettings Unit="TimelineViewMode.Hour" Count="1" Format="hh:mm"></GanttTopTierSettings>
+                    <GanttBottomTierSettings Unit="TimelineViewMode.Minutes" Format="mm" Count="15"></GanttBottomTierSettings>
+                </GanttTimelineSettings>
+                <GanttLabelSettings LeftLabel="TaskName" TValue="TaskData"></GanttLabelSettings>
+                <GanttSplitterSettings ColumnIndex="2"></GanttSplitterSettings>
+                @* <GanttEvents TaskbarEdited="TaskbarEdited" TaskbarEditing="TaskbarEditing" TValue="ScheduleData.TaskData"></GanttEvents> *@
+            </SfGantt>
+        </div>
+    </div>
+</div>
+@code{
+    private DateTime ProjectStartDate { get; set; } = new DateTime(2017, 2, 20);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2017, 3, 30);
+    private List<TaskData> TaskCollection { get; set; }
+    private SfGantt<TaskData> ganttChartRef;
+    protected override void OnInitialized()
+    {
+        TaskCollection = EditingData;
+    }
+    public void TaskbarEdited(TaskbarEditedEventArgs<TaskData> args)
+    {
+        
+    }
+    public void TaskbarEditing(TaskbarEditingEventArgs<TaskData> args)
+    {
+        if (args.ValidationMode != null)
+        {
+            args.ValidationMode.PreserveLinkWithEditing = true;
+        }
+    }
+    public class TaskData
+    {
+        public int TaskID { get; set; }
+        public string TaskName { get; set; }
+        public int Duration { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public int? Progress { get; set; }
+        public string Predecessor { get; set; }
+        public List<TaskData> Subtasks { get; set; }
+    }
+
+    public List<TaskData> EditingData = new List<TaskData>
+{
+    new TaskData
+    {
+        TaskID = 1,
+        TaskName = "Task 1",
+        Duration = 1000,
+        Subtasks = new List<TaskData>
+        {
+            new TaskData { TaskID = 2, TaskName = "Step 1", Duration = 43, Progress = 50 },
+            new TaskData { TaskID = 3, TaskName = "Step 2", Duration = 5, Progress = 50, Predecessor = "2FS" },
+            new TaskData { TaskID = 4, TaskName = "Step 3", Duration = 32, Progress = 50, Predecessor = "3FS" },
+            new TaskData { TaskID = 10, TaskName = "Step 5 - Should start after Id53 is done", Duration = 45, Progress = 20, Predecessor = "53FS" },
+            new TaskData { TaskID = 11, TaskName = "Step 6", Duration = 4, Progress = 50, Predecessor = "10FS" },
+            new TaskData { TaskID = 12, TaskName = "Step 7", Duration = 34, Progress = 50, Predecessor = "11FS" }
+        }
+    },
+    new TaskData
+    {
+        TaskID = 5,
+        TaskName = "Task 2",
+        Duration = 400,
+        Subtasks = new List<TaskData>
+        {
+            new TaskData { TaskID = 51, TaskName = "Step 1", Duration = 20, Predecessor = "4SS", Progress = 50 },
+            new TaskData { TaskID = 52, TaskName = "Step 2", Duration = 34, Progress = 50, Predecessor = "51FS" },
+            new TaskData { TaskID = 53, TaskName = "Step 3", Duration = 55, Progress = 50, Predecessor = "52FS" },
+            new TaskData { TaskID = 54, TaskName = "Step 5", Duration = 34, Progress = 20, Predecessor = "12SS" },
+            new TaskData { TaskID = 55, TaskName = "Step 6", Duration = 54, Progress = 50, Predecessor = "54FS" },
+            new TaskData { TaskID = 56, TaskName = "Step 7", Duration = 10, Progress = 50, Predecessor = "55FS" }
+        }
+    }
+};
+
+}
+@* <SfGantt DataSource="@taskModeData" AllowSorting="true"
+         EnableContextMenu="true" TaskMode="ScheduleMode.Custom" ValidateManualTasksOnLinking="true" TreeColumnIndex="1"
+  Height= "450px"
+  AllowSelection="true"
+  HighlightWeekends="true" >
+    <TaskDataFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" 
+                     Duration="Duration" Progress="Progress" Dependency="Predecessor" 
+                     Child="Children" Manual="isManual" />
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Visible="false" />
+        <GanttColumn Field="TaskName" HeaderText="Task Name" Width="150" />
+        <GanttColumn Field="isManual" HeaderText="Is Manual" Width="100" />
+    </GanttColumns>
+    <GanttLabelSettings LeftLabel="TaskName" T/>
+    <GanttEditSettings AllowEditing="true" AllowDeleting="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true" />
+    <GanttSplitterSettings Position="35%" />
+</SfGantt>
+
+@code {
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public int Duration { get; set; }
+        public string Hours { get; set; }
+        public string Custom { get; set; }
+        public decimal Progress { get; set; }
+        public List<TaskData> SubTasks { get; set; }
+        public string Predecessor { get; set; }
+        public string Info { get; set; }
+    }
+    private List<TaskData> taskModeData = new List<TaskData>{
+        new TaskData {
+            TaskId = 1,
+            TaskName = "Parent Task 1",
+            StartDate = new DateTime(2017, 2, 27),
+            EndDate = new DateTime(2017, 3, 3),
+            Progress = "40",
+            isManual = true,
+            Children = new List<TaskData> {
+                new TaskData {
+                    TaskId = 2,
+                    TaskName = "Child Task 1",
+                    StartDate = new DateTime(2017, 2, 27),
+                    EndDate = new DateTime(2017, 3, 3),
+                    Progress = "40"
+                },
+                new TaskData {
+                    TaskId = 3,
+                    TaskName = "Child Task 2",
+                    StartDate = new DateTime(2017, 2, 26),
+                    EndDate = new DateTime(2017, 3, 3),
+                    Predecessor = "2",
+                    Progress = "40",
+                    isManual = true
+                },
+                new TaskData {
+                    TaskId = 4,
+                    TaskName = "Child Task 3",
+                    StartDate = new DateTime(2017, 2, 27),
+                    EndDate = new DateTime(2017, 3, 3),
+                    Duration = 5,
+                    Progress = "40"
+                }
+            }
+        },
+        // Add additional task data here
+    };
+}
+ *@

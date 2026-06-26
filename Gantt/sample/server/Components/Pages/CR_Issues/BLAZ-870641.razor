@@ -1,0 +1,119 @@
+@page "/BLAZ-870641"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+ <span class="text-primary">@message</span>
+
+@if(isLoaded)
+{
+    <SfGantt @bind-DataSource="@TaskCollection"
+             Height="100%"
+             Width="100%">
+        <GanttTaskFields Id="TaskId" 
+                         Name="TaskName" 
+                         StartDate="StartDate" 
+                         EndDate="EndDate"
+                         ParentID="ParentId"
+                         Dependency="DependentId">
+        </GanttTaskFields>
+        <GanttEditSettings Mode="Syncfusion.Blazor.Gantt.EditMode.Dialog" AllowAdding="false" AllowDeleting="false" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttEvents TaskbarEdited="TaskbarEdited" TValue="TaskData"OnActionFailure="ActionFailureHandler"></GanttEvents>
+    </SfGantt>
+}
+
+
+
+@code {
+    public string message { get; set; } = string.Empty;
+    public SfGantt<TaskData> Gantt;
+    private IEnumerable<TaskData> TaskCollection { get; set; }
+    public List<DependencyType> types = new List<DependencyType>() { DependencyType.FF };
+    DateTime startDate;
+    DateTime endDate;
+    bool isLoaded = false;
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+
+        isLoaded = true;
+    }
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+    public void TaskbarEdited(TaskbarEditedEventArgs<TaskData> args)
+    {
+        var previousData = args.PreviousData;
+        var data = args.Data;
+
+        Console.WriteLine("//////////////previousData == null: " + (previousData == null));
+        Console.WriteLine("//////////////data == null: " + (data == null));
+
+        message += "Previous Startdate: " + previousData.StartDate + "\n" + "Previous Enddate: " +
+        previousData.EndDate + "\n" +
+        "Current Startdate:" + data.StartDate + "\n" + "Current Enddate:" + data.EndDate + "\n";
+
+        if (data == null || previousData == null)
+        {
+            throw new Exception("It is null");
+            message += "It is null";
+        }
+        else
+        {
+            message += "It is not null";
+            
+        }
+    }
+
+    public interface IGantt
+    {
+        public int TaskId { get; set; }
+        public string? TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string? Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string? DependentId { get; set; }
+    }
+
+    public class TaskData : IGantt
+    {
+        public int TaskId { get; set; }
+        public string? TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string? Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string? DependentId { get; set; }
+
+        public TaskData(IGantt obj)
+        {
+            TaskId = obj.TaskId;
+            TaskName = obj.TaskName;
+            StartDate = obj.StartDate;
+            EndDate = obj.EndDate;
+            ParentId = obj.ParentId;
+            DependentId = obj.DependentId;
+        }
+        public TaskData()
+        {
+        }
+    }
+
+    private static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>()
+        {
+            new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 01, 04), EndDate = new DateTime(2022, 01, 23), },
+            new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 01, 04), EndDate = new DateTime(2022, 01, 04), Duration = "0", Progress = 30, ParentId = 1, },
+            new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 01, 04), EndDate = new DateTime(2022, 01, 08), Duration = "4", Progress = 40, ParentId = 1, },
+            new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 01, 04), EndDate = new DateTime(2022, 01, 04), Duration = "0", Progress = 30, ParentId = 1, },
+            new TaskData() { TaskId = 5, TaskName = "Project estimation", StartDate = new DateTime(2022, 01, 04), EndDate = new DateTime(2022, 01, 23), },
+            new TaskData() { TaskId = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 01, 06), EndDate = new DateTime(2022, 01, 09), Duration = "3", Progress = 30, ParentId = 5, },
+            new TaskData() { TaskId = 7, TaskName = "List materials", StartDate = new DateTime(2022, 01, 06), EndDate = new DateTime(2022, 01, 09), Duration = "3", Progress = 40, ParentId = 5, },
+            new TaskData() { TaskId = 8, TaskName = "Estimation approval", StartDate = new DateTime(2022, 01, 06), EndDate = new DateTime(2022, 01, 06), Duration = "0", Progress = 30, ParentId = 5, }
+        };
+        return Tasks;
+    }
+}

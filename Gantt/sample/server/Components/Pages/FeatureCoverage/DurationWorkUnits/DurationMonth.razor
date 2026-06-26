@@ -1,0 +1,226 @@
+﻿@page "/DurationMonth"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Gantt
+<SfButton OnClick="IncludeWeekEnd">IncludeWeekEnd</SfButton>
+<SfButton OnClick="ChangeWorkWeek">ChangeWorkWeek</SfButton>
+<div class="control-section e-gantt-editing-sample">
+    <SfGantt @ref="GanttInstance" DataSource="@TaskCollection" Height="550px" Width="100%" HighlightWeekends="true" WorkWeek="@workWeek"
+             Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll", "Indent", "Outdent" })"
+             AllowSelection="true" GridLines="GridLine.Both" TreeColumnIndex="1" ScrollToTaskbarOnClick="true" DurationUnit="DurationUnit.Month" IncludeWeekend="@includeWeenEnd">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                         Dependency="Predecessor" ParentID="ParentId"></GanttTaskFields>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+        <GanttColumns>
+            <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+            <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+        </GanttColumns>
+        <GanttLabelSettings LeftLabel="TaskName" TaskLabel="Progress" TValue="GanttData.TaskData"></GanttLabelSettings>
+        <GanttHolidays>
+            <GanttHoliday From="new DateTime(2025, 01, 16)" To="new DateTime(2025, 01, 16)" Label="Public holidays"></GanttHoliday>
+            <GanttHoliday From="new DateTime(2025, 01, 26)" To="new DateTime(2025, 01, 26)" Label="Public holiday"></GanttHoliday>
+        </GanttHolidays>
+    </SfGantt>
+    <tr>    
+        <td style="width:30%;"><div>Duration Unit</div></td>
+        <td style="width: 70%">
+            <div>
+                <SfDropDownList Enabled="true" TValue="string" TItem="CustomDurationUnit" Placeholder="Day" DataSource="@DurationUnits">
+                    <DropDownListFieldSettings Text="Unit" Value="Id"></DropDownListFieldSettings>
+                    <DropDownListEvents TValue="string" TItem="CustomDurationUnit" ValueChange="@DurationUnitChanged"></DropDownListEvents>
+                </SfDropDownList>
+            </div>
+        </td>
+    </tr>
+</div>
+@code {
+    private DurationUnit durationUnit { get; set; } = DurationUnit.Day;
+    public string[] workWeek { get; set; } = new string[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+    private List<CustomDurationUnit> DurationUnits = new List<CustomDurationUnit>()
+    {
+        new CustomDurationUnit {Id="Day",Unit="Day"},
+        new CustomDurationUnit {Id="Hour",Unit="Hour"},
+        new CustomDurationUnit {Id="Minute",Unit="Minute"},
+        new CustomDurationUnit {Id="Week",Unit="Week"},
+        new CustomDurationUnit {Id="Month",Unit="Month"}
+    };
+    public void ChangeWorkWeek()
+    {
+        workWeek = new string[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+    }
+    public void IncludeWeekEnd()
+    {
+        includeWeenEnd = true;
+
+    }
+    public class CustomDurationUnit
+    {
+        public string? Id { get; set; }
+        public string? Unit { get; set; }
+    }
+    public void DurationUnitChanged(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, CustomDurationUnit> args)
+    {
+        switch (args.Value)
+        {
+            case "Day":
+                durationUnit = DurationUnit.Day;
+                break;
+            case "Hour":
+                durationUnit = DurationUnit.Hour;
+                break;
+            case "Minute":
+                durationUnit = DurationUnit.Minute;
+                break;
+            case "Week":
+                durationUnit = DurationUnit.Week;
+                break;
+            case "Month":
+                durationUnit = DurationUnit.Month;
+                break;
+            default:
+                durationUnit = DurationUnit.Day;
+                break;
+        }
+
+        GanttInstance?.RefreshAsync();
+
+    }
+    public bool includeWeenEnd { get; set; }
+    public SfGantt<GanttData.TaskData>? GanttInstance { get; set; }
+    public List<GanttData.TaskData> TaskCollection { get; set; } = new List<GanttData.TaskData>();
+    /// <summary>
+    /// Initializes the Gantt chart with Editing task data.
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        TaskCollection = GanttData.EditingData().ToList();
+    }
+    public class GanttData
+    {
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string? TaskName { get; set; }
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public string? Duration { get; set; }
+            public int Progress { get; set; }
+            public string? Predecessor { get; set; }
+            public string? Notes { get; set; }
+            public int? ParentId { get; set; }
+        }
+        /// <summary>
+        /// Generates and returns a collection of Gantt task data.
+        /// </summary>
+        public static List<TaskData> EditingData()
+        {
+            return new List<TaskData>()
+    {
+        new TaskData
+        {
+            TaskId = 1,
+            TaskName = "April Month (30 Days)",
+            StartDate = new DateTime(2025, 04, 02),
+            Duration = "1",
+            Progress = 40
+        },
+
+        new TaskData
+        {
+            TaskId = 2,
+            TaskName = "January Month (31 Days)",
+            StartDate = new DateTime(2025, 01, 01),
+            Duration = "1",
+            Progress = 40
+        },
+
+        new TaskData
+        {
+            TaskId = 3,
+            TaskName = "February (Non-Leap Year)",
+            StartDate = new DateTime(2025, 02, 01),
+            Duration = "1",
+            Progress = 40
+        },
+
+        new TaskData
+        {
+            TaskId = 4,
+            TaskName = "February (Leap Year)",
+            StartDate = new DateTime(2024, 02, 01),
+            Duration = "1",
+            Progress = 40
+        },
+
+        new TaskData
+        {
+            TaskId = 5,
+            TaskName = "End of Boundary",
+            StartDate = new DateTime(2025, 01, 31),
+            Duration = "1",
+            Progress = 50
+        },
+
+        new TaskData
+        {
+            TaskId = 6,
+            TaskName = "Fraction (1.5)",
+            StartDate = new DateTime(2025, 03, 10),
+            Duration = "1.5",
+            Progress = 30
+        },
+
+        new TaskData
+        {
+            TaskId = 7,
+            TaskName = "Quarter",
+            StartDate = new DateTime(2025, 04, 15),
+            Duration = "0.25",
+            Progress = 20
+        },
+
+        new TaskData
+        {
+            TaskId = 8,
+            TaskName = "Quarter Year",
+            StartDate = new DateTime(2025, 01, 01),
+            Duration = "3s",
+            Progress = 20
+        },
+
+        new TaskData
+        {
+            TaskId = 9,
+            TaskName = "One Year Duration",
+            StartDate = new DateTime(2025, 01, 01),
+            Duration = "12s",
+            Progress = 10
+        }
+    };
+        }
+    }
+}
+<style>
+    .container-fluid {
+        padding: 0px !important;
+    }
+
+    .e-gantt-editing-sample {
+        padding: 20px;
+    }
+
+    .e-gantt-editing-reference-link {
+        text-decoration: none !important;
+    }
+
+        .e-gantt-editing-reference-link:hover,
+        .e-gantt-editing-reference-link:focus {
+            text-decoration: underline !important;
+        }
+</style>

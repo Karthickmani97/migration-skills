@@ -1,0 +1,135 @@
+@page "/BLAZ-969877"
+@rendermode InteractiveServer
+<div>@messsage</div>
+<div class="Event">
+<span style="display: block;
+             padding: 15px;
+             margin-top: 10px;
+             line-height: 1.6;
+             background-color: #f8f9fa;
+             border: 1px solid #dee2e6;
+             border-radius: 5px;
+             color: #212529; width: 900px;">
+    @message
+</span>
+@using Syncfusion.Blazor.Gantt
+<SfGantt ID="Gantt" DataSource="@TaskCollection" Height="450px" Width="1400px" Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Cancel", "Update" })">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate"
+                     Duration="Duration" Progress="Progress" ParentID="ParentId">
+    </GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true"></GanttEditSettings>
+       <GanttSplitterSettings Position="50%"> </GanttSplitterSettings>
+    <GanttEvents RowUpdated="RowUpdatedHandler" EndEdit="EndEdit" TValue="TaskData"OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+</div>
+
+@code {
+
+    private List<TaskData>? TaskCollection { get; set; }
+    public string messsage{ get; set; }
+    public MarkupString message { get; set; } = new MarkupString("No updates yet.");
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+    public void RowUpdatedHandler(GanttRowUpdatedEventArgs<TaskData> args)
+    {
+        var oldTask = args.PreviousData;
+        var newTask = args.Data;
+        var changes = new System.Text.StringBuilder();
+
+        changes.AppendLine($"Task '{oldTask.TaskName}' (ID: {newTask.TaskId}) was updated:");
+
+        if (oldTask.TaskName != newTask.TaskName)
+        {
+            changes.AppendLine($"  - Name changed from '{oldTask.TaskName}' to '<b>{newTask.TaskName}</b>'.");
+        }
+
+        if (oldTask.StartDate.Date != newTask.StartDate.Date)
+        {
+            changes.AppendLine($"  - Start Date changed from '{oldTask.StartDate:d}' to '<b>{newTask.StartDate:d}</b>'.");
+        }
+
+        if (oldTask.EndDate.Date != newTask.EndDate.Date)
+        {
+            changes.AppendLine($"  - End Date changed from '{oldTask.EndDate:d}' to '<b>{newTask.EndDate:d}</b>'.");
+        }
+
+        if (oldTask.Duration != newTask.Duration)
+        {
+            changes.AppendLine($"  - Duration changed from '{oldTask.Duration}' to '<b>{newTask.Duration}</b>'.");
+        }
+
+        if (oldTask.Progress != newTask.Progress)
+        {
+            changes.AppendLine($"  - Progress changed from {oldTask.Progress}% to <b>{newTask.Progress}%</b>.");
+        }
+        message = new MarkupString(changes.ToString().Replace(System.Environment.NewLine, "<br/>"));
+    }
+
+    public void EndEdit(TaskbarEditedEventArgs<TaskData> args)
+    {
+        var oldTask = args.PreviousData;
+        var newTask = args.Data;
+        var changes = new System.Text.StringBuilder();
+
+        changes.AppendLine($"Task '{oldTask.TaskName}' (ID: {newTask.TaskId}) was updated:");
+
+        if (oldTask.TaskName != newTask.TaskName)
+        {
+            changes.AppendLine($"  - Name changed from '{oldTask.TaskName}' to '<b>{newTask.TaskName}</b>'.");
+        }
+
+        if (oldTask.StartDate.Date != newTask.StartDate.Date)
+        {
+            changes.AppendLine($"  - Start Date changed from '{oldTask.StartDate:d}' to '<b>{newTask.StartDate:d}</b>'.");
+        }
+
+        if (oldTask.EndDate.Date != newTask.EndDate.Date)
+        {
+            changes.AppendLine($"  - End Date changed from '{oldTask.EndDate:d}' to '<b>{newTask.EndDate:d}</b>'.");
+        }
+
+        if (oldTask.Duration != newTask.Duration)
+        {
+            changes.AppendLine($"  - Duration changed from '{oldTask.Duration}' to '<b>{newTask.Duration}</b>'.");
+        }
+
+        if (oldTask.Progress != newTask.Progress)
+        {
+            changes.AppendLine($"  - Progress changed from {oldTask.Progress}% to <b>{newTask.Progress}%</b>.");
+        }
+        message = new MarkupString(changes.ToString().Replace(System.Environment.NewLine, "<br/>"));
+    }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string? TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string? Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+    }
+
+    private static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>()
+        {
+            new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2023, 01, 04), EndDate = new DateTime(2023, 01, 23), },
+            new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2023, 01, 04), Duration = "0", Progress = 30, ParentId = 1, },
+            new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2023, 01, 04), Duration = "4", Progress = 40, ParentId = 1, },
+            new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2023, 01, 04), Duration = "0", Progress = 30, ParentId = 1, },
+            new TaskData() { TaskId = 5, TaskName = "Project estimation", StartDate = new DateTime(2023, 01, 04), EndDate = new DateTime(2023, 01, 23), },
+            new TaskData() { TaskId = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2023, 01, 06), Duration = "3", Progress = 30, ParentId = 5, },
+            new TaskData() { TaskId = 7, TaskName = "List materials", StartDate = new DateTime(2023, 01, 06), Duration = "3", Progress = 40, ParentId = 5, },
+            new TaskData() { TaskId = 8, TaskName = "Estimation approval", StartDate = new DateTime(2023, 01, 06), Duration = "0", Progress = 30, ParentId = 5, }
+        };
+        return Tasks;
+    }
+}

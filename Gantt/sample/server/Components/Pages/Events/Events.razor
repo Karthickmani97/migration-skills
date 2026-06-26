@@ -1,0 +1,746 @@
+@page "/Events"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.TreeGrid
+@using Syncfusion.Blazor.Layouts
+<div>@message</div>
+<section class="container-fluid">
+    <div class="row">
+        <div class="col-lg-9">
+            <SfGantt DataSource="@TaskCollection" @ref="Gantt" ID="Gantt" AllowFiltering="true" AllowSorting="true" AllowRowDragAndDrop="true" EnableContextMenu="true" Height="550px" Width="100%"
+          Toolbar="Toolbaritems" AllowResizing="true" ShowColumnMenu="true" AllowReordering="true">
+
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                                 Dependency="Predecessor" ParentID="ParentId" Notes="Notes"></GanttTaskFields>
+
+    <GanttEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Auto" AllowTaskbarEditing="true">
+    </GanttEditSettings>
+
+    <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+
+     <GanttColumns>
+                    <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+                    <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+                    <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+                    <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+                    <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+                    <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+                    <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+                </GanttColumns>
+                 <SfToolbar ID="Gantt_Gantt_Toolbar">
+                    <ToolbarItems>
+                        <ToolbarItem Id="copyHeader" Text="Copy With Header" OnClick="CopyClip" PrefixIcon="e-copy"></ToolbarItem>
+                        <ToolbarItem Id="copy" Text="Copy" OnClick="CopyClip" PrefixIcon="e-copy"></ToolbarItem>
+                    </ToolbarItems>
+                </SfToolbar>
+               
+                <GanttLabelSettings LeftLabel="TaskName" TValue="TaskData">
+                </GanttLabelSettings>
+
+     <GanttSelectionSettings Mode="SelectionMode.Row" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple"></GanttSelectionSettings>
+
+    <GanttEvents TValue="TaskData"
+        BeforeCopy="BeforeCopyHandler"
+         OnActionBegin="actionBegin" 
+         OnActionComplete="OnActionComplete" 
+         Created="CreatedHandler"
+         OnLoad="LoadHandler" 
+         TaskbarEdited="TaskbarEdited" 
+         TaskbarEditing="TaskbarEditing" 
+         RowDropping="RowDropping"
+         RowDropped="RowDropped"   
+         QueryChartRowInfo ="QueryChartRowInfo" 
+         EndEdit="EndEdit" 
+         BeforeTooltipRender="BeforeTooltipRender"
+         SplitterResizeStart="Resizestart" 
+         SplitterResized="Resized" 
+         RowSelecting="RowSelectingHandler" 
+         RowSelected="rowSelect"
+         RowDeselecting="RowDeselectingHandler" 
+         RowDeselected="RowDeselectHandler" 
+         CellSelecting="CellSelecting"
+         CellSelected="CellSelectedHandler" 
+         CellDeselecting="CellDeselectingHandler" 
+         CellDeselected="CellDeselectedHandler"
+         OnToolbarClick="ToolbarClickHandler" 
+         ColumnMenuClicked="ColumnMenuClickedHandler" 
+         ContextMenuItemClicked="ContextMenuItemClickedHandler"
+         ContextMenuOpen="ContextMenuOpenHandler" 
+         Collapsed="Collapsed" 
+         Collapsing="Collapsed" 
+         Expanding="Expanding" 
+         Expanded="ExpandedHandler" 
+         ColumnResized="ColumnResizedHandler" 
+         SplitterCreated="SplitterCreatedHandler"
+         OnActionFailure="ActionFailureHandler">
+     </GanttEvents>
+
+
+</SfGantt>
+            </div>
+            <div class="col-lg-3">
+                
+                <table class="table table-bordered" style="border: 1px solid black">
+                    <tr><th>Event</th><th>Count</th><th>Event args</th></tr>
+                    <tr><td>Create</td><td>@CreateCount</td></tr>
+                    <tr><td>QueryRowInfoEvent</td><td>@QueryCount</td></tr>
+                    <tr><td>BeforeCopy</td><td>@CopyCount</td></tr>
+                    <tr><td>LoadEvent</td><td>@LoadCount</td></tr>
+                    <tr><td>TaskbarEditEvent</td><td>@TaskbarEditedCount</td><td>Taskbar Edit Dates: @taskbarEvent</td></tr>
+                    <tr><td>TaskbarEditingEvent</td><td>@TaskbarEditingCount</td></tr>     
+                    <tr><td>RowDrappingEvent</td><td>@RowDroppingCount</td></tr>   
+                    <tr><td>RowDropped</td><td>@RowDroppedCount</td></tr>
+                    <tr><td>EndEdit</td><td>@EndEditCount</td></tr>
+                    <tr><td>BeforeTooltipRender</td><td>@BeforeTooltipCount</td></tr>
+                    <tr><td>Resizestart</td><td>@ResizestartCount</td></tr>
+                    <tr><td>Resized</td><td>@ResizedCount</td></tr>      
+                    <tr><td>RowSelecting</td><td>@RowSelectingCount</td><td>Row selecting: @SelectEvent</td></tr> 
+                    <tr><td>RowSelect</td><td>@RowSelectCount</td><td>Row selected: @SelectedEvent</td</tr>      
+                    <tr><td>RowDeselecting</td><td>@RowDeselectingCount</td></tr> 
+                    <tr><td>RowDeselect</td><td>@RowDeselectCount</td></tr>
+                    <tr><td>CellSelecting</td><td>@CellSelectingCount</td></tr>
+                    <tr><td>CellSelected</td><td>@CellSelectedCount</td></tr>
+                    <tr><td>CellDeselecting</td><td>@CellDeselectingCount</td></tr>
+                    <tr><td>CellDeselected</td><td>@CellDeselectedCount</td></tr>      
+                    <tr><td>ToolbarClick</td><td>@ToolbarClickCount</td></tr> 
+                    <tr><td>ColumnMenuClick</td><td>@ColumnMenuClickCount</td></tr> 
+                    <tr><td>ContextMenuItem</td><td>@ContextMenuItemCount</td></tr>      
+                    <tr><td>ContextMenuOpen</td><td>@ContextMenuOpenCount</td><td>ContextMenu: @ContextEvent</td></tr> 
+                    <tr><td>Collapsed</td><td>@CollapsedCount</td></tr>
+                    <tr><td>Collapsing</td><td>@CollapsingCount</td></tr>
+                    <tr><td>Expanding</td><td>@ExpandingCount</td></tr>
+                    <tr><td>Expanded</td><td>@ExpandedCount</td></tr>
+                    <tr><td>ColumnResized</td><td>@ColumnResizedCount</td></tr>      
+                    <tr><td>SplitterCreated</td><td>@SplitterCreatedCount </td></tr> 
+                    <tr><td>actionBegin</td><td>@actionBeginCount</td></tr>      
+                    <tr><td>ActionComplete </td><td>@ActionCompleteCount </td></tr>      
+                </table>
+            </div>
+    </div>
+</section>
+
+
+@code{
+
+    private List<TaskData> TaskCollection { get; set; }
+    private string taskbarEvent{get;set;}
+    private string SelectEvent{get;set;}
+    private string SelectedEvent{get;set;}
+    private string CollapseAllEvent{get;set;}
+    private string ContextEvent{get;set;}
+    private int QueryCount{get;set;}
+    private int CopyCount{get;set;}
+    private int CreateCount{get;set;}
+    private int LoadCount{get;set;}
+    private int TaskbarEditedCount{get;set;}
+    private int TaskbarEditingCount{get;set;}
+    private int RowDroppingCount{get;set;}
+    private int RowDroppedCount{get;set;}
+    private int EndEditCount{get;set;}
+    private int BeforeTooltipCount{get;set;}
+    private int ResizestartCount{get;set;}
+    private int ResizedCount{get;set;}
+    private int RowSelectingCount{get;set;}
+    private int RowSelectCount{get;set;}
+    private int RowDeselectingCount{get;set;}
+    private int RowDeselectCount{get;set;}
+    private int CellSelectingCount{get;set;}
+    private int CellSelectedCount{get;set;}
+    private int CellDeselectingCount{get;set;}
+    private int CellDeselectedCount{get;set;}
+    private int ToolbarClickCount{get;set;}
+    private int ColumnMenuClickCount{get;set;}
+    private int ContextMenuItemCount{get;set;}
+    private int ContextMenuOpenCount{get;set;}
+    private int CollapsedCount{get;set;}
+    private int CollapsingCount{get;set;}
+    private int ExpandingCount{get;set;}
+    private int ExpandedCount{get;set;}
+    private int ColumnResizedCount{get;set;}
+    private int SplitterCreatedCount{get;set;}
+    private int actionBeginCount{get;set;}
+    private int ActionCompleteCount{get;set;}
+    public string message{ get; set; }
+    public SfGantt<TaskData> Gantt;
+    public List<Object> Toolbaritems = new List<Object>() { "Add", "Cancel", "CollapseAll", "Delete", "Edit", "ExpandAll", "NextTimeSpan", "PrevTimeSpan", "Search", "Update", "Indent", "Outdent"};    
+    
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    public async void CopyClip(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        var SelectedRecords = await this.Gantt.GetSelectedRecordsAsync();
+        if (SelectedRecords.Count() > 0)
+        {
+            var WithHeader = false;
+            if (args.Item.Id == "copyHeader")
+            {
+                WithHeader = true;
+            }
+            await this.Gantt.CopyAsync(WithHeader);
+        }
+    }
+    private async void BeforeCopyHandler(Syncfusion.Blazor.Gantt.BeforeCopyEventArgs args)
+    {
+        CopyCount +=1;
+    }
+    public void actionBegin(GanttActionEventArgs<TaskData> args)
+    {
+        if(args.Action != null && args.Action=="CellEditing")
+        { 
+        args.Cancel= true;
+         } 
+        else
+        actionBeginCount +=1;
+    }
+    public void OnActionComplete(GanttActionEventArgs<TaskData> args)
+    {
+       ActionCompleteCount +=1;
+    }
+    public void CreatedHandler(object args)
+    {
+            CreateCount +=1;
+    }
+    public void LoadHandler(object args)
+    {
+             LoadCount +=1;
+    }
+    public void TaskbarEdited(TaskbarEditedEventArgs<TaskData> args)
+    {
+       TaskbarEditedCount +=1;
+       var previousData = args.PreviousData;
+       var data = args.Data;
+
+       if(previousData.StartDate != data.StartDate || 
+           previousData.EndDate != data.EndDate )
+       {
+        taskbarEvent = "updated"; 
+       }
+    }
+    public void TaskbarEditing(TaskbarEditingEventArgs<TaskData> args)
+    {
+            TaskbarEditingCount +=1;
+    }
+    public void RowDropping(RowDroppingEventArgs<TaskData> args)
+    {
+            RowDroppingCount +=1;
+    }
+    public void RowDropped(RowDroppedEventArgs<TaskData> args)
+    {
+            RowDroppedCount +=1;
+    }
+
+    public void QueryChartRowInfo(QueryChartRowInfoEventArgs<TaskData> args)
+    {
+             QueryCount +=1;
+    }
+    public void EndEdit(TaskbarEditedEventArgs<TaskData> args)
+    {
+           EndEditCount +=1;
+    }
+    public void BeforeTooltipRender(BeforeTooltipRenderEventArgs<TaskData> args)
+    {
+           BeforeTooltipCount +=1;
+    }
+    public void Resizestart(Syncfusion.Blazor.Layouts.ResizeEventArgs args)
+    {
+          ResizestartCount +=1;
+    }
+    public void Resized(Syncfusion.Blazor.Layouts.ResizingEventArgs args)
+    {
+           ResizedCount +=1;
+    }
+    public void RowSelectingHandler(RowSelectingEventArgs<TaskData> args)
+    {
+        RowSelectingCount +=1;
+
+       var data = args.Data;
+
+       if(data.ParentId == 6)
+       {
+        SelectEvent = "updated"; 
+       }
+    }
+    public void rowSelect(RowSelectEventArgs<TaskData> args)
+    {
+        RowSelectCount +=1;
+
+        var data = args.Data;
+
+        if(args.RowIndex == 6 && data.TaskId == 7 && data.ParentId ==6)
+        {
+        SelectedEvent = "updated"; 
+        }
+    }
+    public void RowDeselectingHandler(RowDeselectEventArgs<TaskData> args)
+    {
+          RowDeselectingCount +=1;
+    }
+    public void RowDeselectHandler(RowDeselectEventArgs<TaskData> args)
+    {
+           RowDeselectCount +=1;
+    }
+    public void CellSelecting(Syncfusion.Blazor.Grids.CellSelectingEventArgs<TaskData> args)
+    {
+          CellSelectingCount +=1;
+    }
+    public void CellSelectedHandler(CellSelectEventArgs<TaskData> args)
+    {
+         CellSelectedCount +=1;
+    }
+    public void CellDeselectingHandler(CellDeselectEventArgs<TaskData> args)
+    {
+           CellDeselectingCount +=1;
+    }
+    public void CellDeselectedHandler(CellDeselectEventArgs<TaskData> args)
+    {
+          CellDeselectedCount +=1;
+    }
+    public void ToolbarClickHandler(ClickEventArgs args)
+    {
+          ToolbarClickCount +=1;
+    }
+    public void ColumnMenuClickedHandler(ColumnMenuClickEventArgs args)
+    {
+          ColumnMenuClickCount +=1;
+    }
+    public void ContextMenuItemClickedHandler(ContextMenuClickEventArgs<TaskData> args)
+    {
+           ContextMenuItemCount +=1;
+    }
+    public void ContextMenuOpenHandler(ContextMenuOpenEventArgs<TaskData> args)
+    {
+        ContextMenuOpenCount +=1;
+
+        var data = args.Column;  
+
+        @* if(data.AllowAdding == true && data.AllowEditing == true && data.AllowFiltering ==true && 
+        data.AllowGrouping == true && data.AllowReordering == true && data.AllowResizing == true &&
+        data.AllowSearching == true && data.AllowSorting == true && data.AutoFit ==false)
+        {
+        ContextEvent = "updated"; 
+        } *@
+
+    }
+    public void Collapsed(RowCollapsedEventArgs<TaskData> args)
+    {
+          CollapsedCount +=1;
+    }
+    public void Collapsed(RowCollapsingEventArgs<TaskData> args)
+    {
+          CollapsingCount +=1;
+    }
+    public void Expanding(Syncfusion.Blazor.TreeGrid.RowExpandingEventArgs<TaskData> args)
+    {
+        ExpandingCount +=1;
+    }
+    public void ExpandedHandler(RowExpandedEventArgs<TaskData> args)
+    {
+          ExpandedCount +=1;
+    }
+    public void ColumnResizedHandler(Syncfusion.Blazor.Grids.ResizeArgs args)
+    {
+          ColumnResizedCount +=1;
+    }   
+
+    public void SplitterCreatedHandler(object args)
+    {
+           SplitterCreatedCount +=1;
+    } 
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+            public string TaskName { get; set; }
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public string Duration { get; set; }
+            public int Progress { get; set; }
+            public string Predecessor { get; set; }
+            public string Notes { get; set; }
+            public int? ParentId { get; set; }
+    }
+
+    private static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>()
+       {
+        new TaskData() {
+            TaskId = 1,
+            TaskName = "Product concept",
+            StartDate = new DateTime(2021, 04, 02),
+            EndDate = new DateTime(2021, 04, 08),
+            Duration = "5 days"
+        },
+        new TaskData() {
+            TaskId = 2,
+            TaskName = "Defining the product usage",
+            StartDate = new DateTime(2021, 04, 02),
+            EndDate = new DateTime(2021, 04, 08),
+            Duration = "3",
+            Progress = 30,
+            ParentId = 1
+        },
+        new TaskData() {
+            TaskId = 3,
+            TaskName = "Defining the target audience",
+            StartDate = new DateTime(2021, 04, 02),
+            EndDate = new DateTime(2021, 04, 04),
+            Duration = "3",
+            Progress = 40,
+            ParentId = 1
+        },
+        new TaskData() {
+            TaskId = 4,
+            TaskName = "Prepare product sketch and notes",
+            StartDate = new DateTime(2021, 04, 05),
+            EndDate = new DateTime(2021, 04, 08),
+            Duration = "2",
+            Progress = 30,
+            ParentId = 1,
+            Predecessor="2"
+        },
+        new TaskData() {
+            TaskId = 5,
+            TaskName = "Concept approval",
+            StartDate = new DateTime(2021, 04, 08),
+            EndDate = new DateTime(2021, 04, 08),
+            Duration="0",
+            Predecessor="3,4"
+        },
+        new TaskData() {
+            TaskId = 6,
+            TaskName = "Market research",
+            StartDate = new DateTime(2021, 04, 09),
+            EndDate = new DateTime(2021, 04, 18),
+            Predecessor="2",
+            Duration = "4",
+            Progress = 30
+        },
+        new TaskData() {
+            TaskId = 7,
+            TaskName = "Demand analysis",
+            StartDate = new DateTime(2021, 04, 09),
+            EndDate = new DateTime(2021, 04, 12),
+            Duration = "4",
+            Progress = 40,
+            ParentId = 6
+        },
+        new TaskData() {
+            TaskId = 8,
+            TaskName = "Customer strength",
+            StartDate = new DateTime(2021, 04, 09),
+            EndDate = new DateTime(2021, 04, 12),
+            Duration = "4",
+            Progress = 30,
+            ParentId = 7,
+            Predecessor="5"
+        }, new TaskData() {
+            TaskId = 9,
+            TaskName = "Market opportunity analysis",
+            StartDate = new DateTime(2021, 04, 09),
+            EndDate = new DateTime(2021, 04, 012),
+            Duration="4",
+            ParentId= 7,
+            Predecessor="5"
+        },
+        new TaskData() {
+            TaskId = 10,
+            TaskName = "Competitor analysis",
+            StartDate = new DateTime(2021, 04, 15),
+            EndDate = new DateTime(2021, 04, 18),
+            Duration = "4",
+            Progress = 30,
+            ParentId= 6,
+            Predecessor="7,8"
+        },
+        new TaskData() {
+            TaskId = 11,
+            TaskName = "Product strength analysis",
+            StartDate = new DateTime(2021, 04, 15),
+            EndDate = new DateTime(2021, 04, 18),
+            Duration = "4",
+            Progress = 40,
+            ParentId = 6,
+            Predecessor="9"
+        },
+        new TaskData() {
+            TaskId = 12,
+            TaskName = "Research completed",
+            StartDate = new DateTime(2021, 04, 18),
+            EndDate = new DateTime(2021, 04, 18),
+            Duration = "0",
+            Progress = 30,
+            ParentId = 6,
+            Predecessor="10"
+        },
+         new TaskData() {
+            TaskId = 13,
+            TaskName = "Product design and development",
+            StartDate = new DateTime(2021, 04, 19),
+            EndDate = new DateTime(2021, 05, 16),
+            Duration="20",
+            Predecessor="6"
+         },
+        new TaskData() {
+            TaskId = 14,
+            TaskName = "Functionality design",
+            StartDate = new DateTime(2021, 04, 19),
+            EndDate = new DateTime(2021, 04, 23),
+            Duration = "3",
+            Progress = 30,
+            ParentId = 13,
+            Predecessor="12"
+        },
+        new TaskData() {
+            TaskId = 15,
+            TaskName = "Quality design",
+            StartDate = new DateTime(2021, 04, 19),
+            EndDate = new DateTime(2021, 04, 23),
+            Duration = "3",
+            Progress = 40,
+            ParentId = 13,
+            Predecessor="12"
+        },
+        new TaskData() {
+            TaskId = 16,
+            TaskName = "Define reliability",
+            StartDate = new DateTime(2021, 04, 24),
+            EndDate = new DateTime(2021, 04, 25),
+            Duration = "2",
+            Progress = 30,
+            ParentId = 13,
+            Predecessor="15"
+        },
+         new TaskData() {
+            TaskId = 17,
+            TaskName = "Identifying raw materials",
+            StartDate = new DateTime(2021, 04, 24),
+            EndDate = new DateTime(2021, 04, 25),
+            Duration="2",
+            ParentId=13,
+            Predecessor="15"
+        },
+        new TaskData() {
+            TaskId = 18,
+            TaskName = "Define cost plan",
+            StartDate = new DateTime(2021, 04, 26),
+            EndDate = new DateTime(2021, 04, 29),
+            Duration = "2",
+            Progress = 30,
+            ParentId=13,
+            Predecessor="17"
+        },
+        new TaskData() {
+            TaskId = 19,
+            TaskName = "Manufacturing cost",
+            StartDate = new DateTime(2021, 04, 26),
+            EndDate = new DateTime(2021, 04, 29),
+            Duration = "2",
+            Progress = 40,
+            ParentId = 18,
+            Predecessor="17"
+        },
+        new TaskData() {
+            TaskId = 20,
+            TaskName = "Selling cost",
+            StartDate = new DateTime(2021, 04, 26),
+            EndDate = new DateTime(2021, 04, 29),
+            Duration = "2",
+            Progress = 30,
+            ParentId = 18,
+            Predecessor="17"
+        },
+         new TaskData() {
+            TaskId = 21,
+            TaskName = "Development of final design",
+            StartDate = new DateTime(2021, 04, 30),
+            EndDate = new DateTime(2021, 05, 08),
+            Duration="7",
+            ParentId=13
+        },
+        new TaskData() {
+            TaskId = 22,
+            TaskName = "Develop dimensions and design",
+            StartDate = new DateTime(2021, 04, 30),
+            EndDate = new DateTime(2021, 05, 01),
+            Duration = "2",
+            Progress = 30,
+            ParentId=21,
+            Predecessor="19,20"
+        },
+        new TaskData() {
+            TaskId = 23,
+            TaskName = "Develop designs to meet industry",
+            StartDate = new DateTime(2021, 05, 02),
+            EndDate = new DateTime(2021, 05, 03),
+            Duration = "2",
+            Progress = 40,
+            ParentId = 21,
+            Predecessor="22"
+        },
+        new TaskData() {
+            TaskId = 24,
+            TaskName = "Include all the details",
+            StartDate = new DateTime(2021, 05, 06),
+            EndDate = new DateTime(2021, 05, 08),
+            Duration = "3",
+            Progress = 30,
+            ParentId = 21,
+            Predecessor="23"
+        },
+         new TaskData() {
+            TaskId = 25,
+            TaskName = "CAD - Computer Aided Design",
+            StartDate = new DateTime(2021, 05, 09),
+            EndDate = new DateTime(2021, 05, 13),
+            Duration="3",
+            Predecessor="24"
+        },
+        new TaskData() {
+            TaskId = 26,
+            TaskName = "CAM - Computer Aided Manufacturing",
+            StartDate = new DateTime(2021, 05, 14),
+            EndDate = new DateTime(2021, 05, 16),
+            Duration = "3",
+            Progress = 30,
+            Predecessor="25"
+        },
+        new TaskData() {
+            TaskId = 27,
+            TaskName = "Finalize the design",
+            StartDate = new DateTime(2021, 04, 16),
+            EndDate = new DateTime(2021, 04, 16),
+            Duration = "0",
+            Progress = 40,
+            Predecessor="26"
+        },
+        new TaskData() {
+            TaskId = 28,
+            TaskName = "Prototype testing",
+            StartDate = new DateTime(2021, 05, 17),
+            EndDate = new DateTime(2021, 05, 22),
+            Duration = "4",
+            Progress = 30,
+            Predecessor="27"
+        }, 
+        new TaskData() {
+            TaskId = 29,
+            TaskName = "Include feedback",
+            StartDate = new DateTime(2021, 05, 17),
+            EndDate = new DateTime(2021, 05, 22),
+            Duration="4",
+            Predecessor="28ss"
+        },
+        new TaskData() {
+            TaskId = 30,
+            TaskName = "Manufacturing",
+            StartDate = new DateTime(2021, 05, 23),
+            EndDate = new DateTime(2021, 05, 29),
+            Duration = "5",
+            Progress = 30,
+            Predecessor="28,29"
+        },
+        new TaskData() {
+            TaskId = 31,
+            TaskName = "Assembling material to finished goods",
+            StartDate = new DateTime(2021, 05, 30),
+            EndDate = new DateTime(2021, 06, 05),
+            Duration = "5",
+            Progress = 40,
+            Predecessor="30"
+        },
+        new TaskData() {
+            TaskId = 32,
+            TaskName = "Final product development",
+            StartDate = new DateTime(2021, 06, 06),
+            EndDate = new DateTime(2021, 06, 13),
+            Duration = "6",
+            Progress = 30
+        }, new TaskData() {
+            TaskId =33,
+            TaskName = "Important improvement",
+            StartDate = new DateTime(2021, 06, 06),
+            EndDate = new DateTime(2021, 06, 10),
+            Duration="3",
+            ParentId=32,
+            Predecessor="31"
+        },
+        new TaskData() {
+            TaskId = 34,
+            TaskName = "Customer testing and feedback",
+            StartDate = new DateTime(2021, 06, 11),
+            EndDate = new DateTime(2021, 06, 13),
+            Duration = "3",
+            Progress = 30,
+            ParentId=32,
+            Predecessor="33"
+        },
+        new TaskData() {
+            TaskId = 35,
+            TaskName = "Final product development",
+            StartDate = new DateTime(2021, 06, 14),
+            EndDate = new DateTime(2021, 06, 19),
+            Duration = "4",
+            Progress = 40
+        },
+        new TaskData() {
+            TaskId = 36,
+            TaskName = "Important improvement",
+            StartDate = new DateTime(2021, 06, 14),
+            EndDate = new DateTime(2021, 06, 19),
+            Duration = "4",
+            Progress = 30,
+            ParentId = 35,
+            Predecessor="34"
+        },
+         new TaskData() {
+            TaskId = 37,
+            TaskName = "Address any unforeseen issue",
+            StartDate = new DateTime(2021, 06, 14),
+            EndDate = new DateTime(2021, 06, 19),
+            Duration = "4",
+            Progress = 30,
+            Predecessor="36ss",
+            ParentId=35
+        },
+        new TaskData() {
+            TaskId = 38,
+            TaskName = "Final product",
+            StartDate = new DateTime(2021, 06, 20),
+            EndDate = new DateTime(2021, 07, 01),
+            Duration = "8",
+            Progress = 40
+        },
+        new TaskData() {
+            TaskId = 39,
+            TaskName = "Branding product",
+            StartDate = new DateTime(2021, 06, 20),
+            EndDate = new DateTime(2021, 06, 25),
+            Duration = "4",
+            Progress = 30,
+            ParentId = 38,
+            Predecessor="37"
+        },
+        new TaskData()
+        {
+            TaskId=40,
+            TaskName="Marketing and Presales",
+            StartDate=new DateTime(2021,06,26),
+            EndDate=new DateTime(2021,07,01),
+            ParentId=38,
+            Duration="4",
+            Predecessor="39"
+        }
+    };
+            return Tasks;
+        }
+}

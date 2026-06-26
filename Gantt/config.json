@@ -1,0 +1,10 @@
+{
+    "Mail": {
+        "components": "Gantt Chart",
+        "productOwner": "Jayakumar Duraisamy",
+        "browsers": ["chrome"],
+        "branchName": "development",
+        "to": "hemamalini.panneerselvam@syncfusion.com, jeffjamesa@syncfusion.com,vigneswaran.r@syncfusion.com, rathika.sankar@syncfusion.com",
+        "cc": "jayakumar.duraisamy@syncfusion.com,rajesh.babu@syncfusion.com,satheeskumars@syncfusion.com"
+    }
+}

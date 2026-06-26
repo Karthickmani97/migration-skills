@@ -1,0 +1,162 @@
+@page "/SegmentDynamic"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using System.Dynamic
+
+<SfGantt DataSource="@GanttDynamicData" GridLines="Syncfusion.Blazor.Gantt.GridLine.Both" EnableContextMenu Height="500px" Width="100%" HighlightWeekends="true">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" Progress="Progress" Duration="Duration" ParentID="ParentId"></GanttTaskFields>
+     <GanttSegmentFields PrimaryKey="Id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="DynamicDictionary" TSegments="DynamicSegmentDictionary" DataSource="segments" SegmentChanging="SegmentSaveHanlder"></GanttSegmentFields>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" HeaderText="Task ID" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right" Width="100"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Task Name" Width="250"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date" Width="250"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration" Width="250"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress" Format="@NumberFormat" Width="250"></GanttColumn>
+    </GanttColumns>
+    <GanttEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+</SfGantt>
+
+ @code {
+    SfGantt<DynamicDictionary> GanttChart;
+    private string NumberFormat = "C";
+    private static List<DynamicDictionary> Data = new List<DynamicDictionary>();
+    private List<DynamicDictionary> GanttDynamicData { get; set; }
+    private static List<DynamicSegmentDictionary> segments = new List<DynamicSegmentDictionary>();
+    private static int ParentRecordID { get; set; }
+    private static int ChildRecordID { get; set; }
+
+    protected override void OnInitialized()
+    {
+        GetSegmentData();
+        this.GanttDynamicData = GetData().ToList();
+    }
+
+    public static List<DynamicDictionary> GetData()
+    {
+        Data.Clear();
+        ParentRecordID = 0;
+        ChildRecordID = 0;
+        for (var i = 1; i <= 10; i++)
+        {
+            Random ran = new Random();
+            DateTime start = new DateTime(2022, 01, 07);
+            int range = (DateTime.Today - start).Days;
+            DateTime startingDate = start.AddDays(ran.Next(range));
+            dynamic ParentRecord = new DynamicDictionary();
+            ParentRecord.TaskId = ++ParentRecordID;
+            ParentRecord.TaskName = "Parent Task " + i;
+            ParentRecord.StartDate = start;
+            ParentRecord.Progress = ran.Next(10, 100);
+            ParentRecord.Duration = 5;
+            ParentRecord.ParentId = null;
+            Data.Add(ParentRecord);
+            AddChildRecords(ParentRecordID);
+        }
+        return Data;
+    }
+
+    public static void AddChildRecords(int ParentId)
+    {
+        for (var i = 1; i < 4; i++)
+        {
+            Random ran = new Random();
+            DateTime start = new DateTime(2022, 01, 07);
+            int range = (DateTime.Today - start).Days;
+            DateTime startingDate = start.AddDays(ran.Next(range));
+            dynamic ChildRecord = new DynamicDictionary();
+            ChildRecord.TaskId = ++ParentRecordID;
+            ChildRecord.TaskName = "Child Task " + ++ChildRecordID;
+            ChildRecord.StartDate = start;
+            ChildRecord.Progress = ran.Next(10, 100);
+            ChildRecord.Duration = 7;
+            ChildRecord.ParentId = ParentId;
+            Data.Add(ChildRecord);
+        }
+    }
+    public void GetSegmentData()
+    {
+        segments = new List<DynamicSegmentDictionary>();
+        dynamic ChildRecord = new DynamicSegmentDictionary();
+        ChildRecord.Id = 1;
+        ChildRecord.TaskId = "2";
+        ChildRecord.StartDate = new DateTime(2022, 01, 07);
+        ChildRecord.Duration = "2";
+        segments.Add(ChildRecord);
+        ChildRecord = new DynamicSegmentDictionary();
+        ChildRecord.Id = 2;
+        ChildRecord.TaskId = "2";
+        ChildRecord.StartDate = new DateTime(2022, 01, 09);
+        ChildRecord.EndDate = new DateTime(2022, 03, 31);
+        segments.Add(ChildRecord);
+        ChildRecord = new DynamicSegmentDictionary();
+        ChildRecord.Id = 3;
+        ChildRecord.TaskId = "3";
+        ChildRecord.StartDate = new DateTime(2022, 01, 07);
+        ChildRecord.Duration = "1";
+        segments.Add(ChildRecord);
+        ChildRecord = new DynamicSegmentDictionary();
+        ChildRecord.Id = 4;
+        ChildRecord.TaskId = "3";
+        ChildRecord.StartDate = new DateTime(2022, 01, 08);
+        ChildRecord.Duration = "2";
+        segments.Add(ChildRecord);
+    }
+    public class DynamicDictionary : DynamicObject
+    {
+        Dictionary<string, object> dictionary = new Dictionary<string, object>();
+        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        {
+            string name = binder.Name;
+            return dictionary.TryGetValue(name, out result);
+        }
+
+        public override bool TrySetMember(SetMemberBinder binder, object value)
+        {
+            dictionary[binder.Name] = value;
+            return true;
+        }
+
+        public override System.Collections.Generic.IEnumerable<string> GetDynamicMemberNames()
+        {
+            return this.dictionary?.Keys;
+        }
+    }
+
+
+    public class DynamicSegmentDictionary : DynamicObject
+    {
+        Dictionary<string, object> dictionary = new Dictionary<string, object>();
+        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        {
+            string name = binder.Name;
+            return dictionary.TryGetValue(name, out result);
+        }
+
+        public override bool TrySetMember(SetMemberBinder binder, object value)
+        {
+            dictionary[binder.Name] = value;
+            return true;
+        }
+
+        public override System.Collections.Generic.IEnumerable<string> GetDynamicMemberNames()
+        {
+            return this.dictionary?.Keys;
+        }
+    }
+    private void SegmentSaveHanlder(SegmentEventArgs<DynamicSegmentDictionary> args)
+    {
+        // if (args.ChangedRecords != null)
+        // {
+
+        // }
+        // if (args.DeletedRecords != null)
+        // {
+
+        // }
+        // if (args.AddedRecords != null)
+        // {
+
+        // }
+    }
+}
+

@@ -1,0 +1,183 @@
+﻿@page "/zoom-settings"
+@rendermode InteractiveServer
+
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.DropDowns
+@using System.Dynamic
+<div>
+    <div>
+        <table>
+            <tr>
+                <td>
+                    <div class="e-switch-control">
+                        <label class="showhide"> Enable/Disable single tier timeline</label>
+                        <SfSwitch ValueChange="ToggleUpdate" @bind-Checked="@isSingleTier" TChecked="bool"></SfSwitch>
+                    </div>
+                </td>
+                <td>
+                    <div class="e-switch-control">
+                        <SfButton @onclick="OnButtonZoomIn" Content="ZoomIn"></SfButton>
+                    </div>
+                </td>
+                <td>
+                    <div class="e-switch-control">
+                        <SfButton @onclick="OnButtonZoomOut" Content="ZoomOut"></SfButton>
+                    </div>
+                </td>
+                <td>
+                    <div class="e-switch-control">
+                        <SfButton @onclick="OnButtonZoomToFit" Content="ZoomToFit"></SfButton>
+                    </div>
+                </td>
+                <td>
+                    <div class="e-switch-control">
+                        <SfButton @onclick="OnButtonResetZoom" Content="Reset Zoom"></SfButton>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="e-switch-control">
+                        <label class="showhide"> Enable/Disable timeline virtualization</label>
+                        <SfSwitch ValueChange="ToggleUpdate"  @bind-Checked="@isVirtual" TChecked="bool"></SfSwitch>
+                    </div>
+                </td>
+                <td>
+                    <div class="e-switch-control">
+                        <label class="showhide"> Enable/Disable resource view</label>
+                        <SfSwitch ValueChange="ToggleUpdate" @bind-Checked="@isResourceView" TChecked="bool"></SfSwitch>
+                    </div>
+                </td>
+                <td>
+                    <div class="e-switch-control">
+                        <label class="showhide"> Enable/Disable gridline</label>
+                        <SfSwitch ValueChange="ToggleUpdate" @bind-Checked="@isGridLine" TChecked="bool"></SfSwitch>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div>
+        @if (!isVirtual)
+        {
+            <SfGantt @ref="Gantt" TValue="TaskDataModel" DataSource="@TaskCollection" Height="450px" Width="100%" ViewType="@viewType" ShowOverallocation="@isResourceView" GridLines="@gridLine" TreeColumnIndex="1" Toolbar="@(new List<Object>() { "ZoomIn", "ZoomOut", "ZoomToFit", "NextTimeSpan", "PrevTimeSpan" })"   RowHeight="37" ProjectStartDate="ProjectStartDate" ProjectEndDate="ProjectEndDate" ScrollToTaskbarOnClick="true">
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor"></GanttTaskFields>
+                <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+                <GanttLabelSettings LeftLabel="TaskName" TValue="TaskDataModel"></GanttLabelSettings>
+                <GanttColumns>
+                    <GanttColumn Field="TaskId" Width="100" Visible="false"></GanttColumn>
+                    <GanttColumn Field="TaskName" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+                    <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+                    <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+                    <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+                    <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+                    <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+                </GanttColumns>
+                @if (isSingleTier)
+                {
+                    <GanttTimelineSettings>
+                        <GanttTopTierSettings Unit="@TopTierUnit"></GanttTopTierSettings>
+                    </GanttTimelineSettings>
+                }
+                else
+                {
+                    <GanttTimelineSettings TimelineUnitSize="@DefaultUnitWidth">
+                        <GanttTopTierSettings Unit="@TopTierUnit" Count="@TopTierCount"></GanttTopTierSettings>
+                        <GanttBottomTierSettings Count="@BottomTierCount" Unit="@BottomTierUnit"></GanttBottomTierSettings>
+                    </GanttTimelineSettings>
+                }
+                <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" MaxUnits="MaxUnit" Group="Group" TValue="TaskDataModel" TResources="ResourceInfoModel"></GanttResource>
+                <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="Id" TaskID="TaskId" ResourceID="ResourceId" TValue="TaskDataModel" TAssignment="AssignmentModel"></GanttAssignmentFields>
+                <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="TaskDataModel" TSegments="SegmentModel" DataSource="SegmentCollection"></GanttSegmentFields>
+                <GanttSplitterSettings Position="28%"></GanttSplitterSettings>
+            </SfGantt>
+        }
+        else
+        {
+            <SfGantt @ref="Gantt" TValue="TaskDataModel" DataSource="@VirtualTaskCollection" Height="450px" Width="100%" ViewType="@viewType" ShowOverallocation="@isResourceView" GridLines="@gridLine" EnableTimelineVirtualization="true" EnableRowVirtualization="true" TreeColumnIndex="1" Toolbar="@(new List<Object>() { "Add", "Cancel", "Update", "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit" })" RowHeight="37" ScrollToTaskbarOnClick="true">
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor"></GanttTaskFields>
+                <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+                <GanttLabelSettings LeftLabel="TaskName" TValue="TaskDataModel"></GanttLabelSettings>
+                <GanttColumns>
+                    <GanttColumn Field="TaskId" Width="100" Visible="false"></GanttColumn>
+                    <GanttColumn Field="TaskName" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+                    <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+                    <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+                    <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+                    <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+                    <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+                </GanttColumns>
+                @if (isSingleTier)
+                {
+                    <GanttTimelineSettings>
+                        <GanttTopTierSettings Unit="@TopTierUnit"></GanttTopTierSettings>
+                    </GanttTimelineSettings>
+                }
+                else
+                {
+                    <GanttTimelineSettings TimelineUnitSize="@DefaultUnitWidth">
+                        <GanttTopTierSettings Unit="@TopTierUnit" Count="@TopTierCount"></GanttTopTierSettings>
+                        <GanttBottomTierSettings Count="@BottomTierCount" Unit="@BottomTierUnit"></GanttBottomTierSettings>
+                    </GanttTimelineSettings>
+                }
+                <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" MaxUnits="MaxUnit" Group="Group" TValue="TaskDataModel" TResources="ResourceInfoModel"></GanttResource>
+                <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="Id" TaskID="TaskId" ResourceID="ResourceId" TValue="TaskDataModel" TAssignment="AssignmentModel"></GanttAssignmentFields>
+                <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="TaskDataModel" TSegments="SegmentModel" DataSource="SegmentCollection"></GanttSegmentFields>
+                <GanttSplitterSettings Position="28%"></GanttSplitterSettings>
+            </SfGantt>
+        }
+    </div>
+
+    <div>
+        <table id="property" title="Properties" class="property-panel-table">
+            <tbody>
+                <tr>
+                    <td style="font:bold"><b>Timeline Settings</b></td>
+                </tr>
+                <tr>
+                    <td style="width:30%;"><div><b>Top tier</b></div></td>
+                </tr>
+                <tr>
+                    <td style="width:30%;"><div>Unit</div></td>
+                    <td style="width: 70%">
+                        <div>
+                            <SfDropDownList Enabled="@EnableTopUnitDropDown" TValue="string" TItem="TimelineUnit" Placeholder="Week" DataSource="@TimelineUnits">
+                                <DropDownListFieldSettings Text="Unit" Value="Id"></DropDownListFieldSettings>
+                                <DropDownListEvents TValue="string" TItem="TimelineUnit" ValueChange="@TopUnitChange"></DropDownListEvents>
+                            </SfDropDownList>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:30%;"><div><b>Bottom tier</b></div></td>
+                </tr>
+                <tr>
+                    <td style="width:30%;"><div>Unit</div></td>
+                    <td style="width: 70%">
+                        <div>
+                            <SfDropDownList Enabled="@EnableBottomUnitDropDown" TValue="string" TItem="TimelineUnit" Placeholder="Day" DataSource="@TimelineUnits">
+                                <DropDownListFieldSettings Text="Unit" Value="Id"></DropDownListFieldSettings>
+                                <DropDownListEvents TValue="string" TItem="TimelineUnit" ValueChange="@BottomUnitChange"></DropDownListEvents>
+                            </SfDropDownList>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<style>
+    .showhide {
+        font-size: 15px;
+        font-weight: 400;
+        margin-bottom: 1px;
+        padding: 10px;
+    }
+
+    .e-switch-control {
+        display: flex;
+        align-items: center;
+    }
+</style>

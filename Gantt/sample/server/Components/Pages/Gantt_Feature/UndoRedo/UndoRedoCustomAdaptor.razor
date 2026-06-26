@@ -1,0 +1,507 @@
+﻿@page "/undo-redo/customadaptor"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Gantt;
+@using Syncfusion.Blazor.Data;
+@using Syncfusion.Blazor;
+@using Syncfusion.Blazor.Grids;
+
+<button @onclick="UndoMethod">UndoMethod</button>
+<button @onclick="RedoMethod">RedoMethod</button>
+<SfGantt @ref="Gantt" ID="CustomAdaptor" TValue="TaskData" Height="550px" Width="1000px" AllowFiltering="true" AllowResizing="true" AllowReordering="true" AllowMultiSorting="true" AllowRowDragAndDrop="true" AllowSelection="true" AllowSorting="true" EnableContextMenu="true" LoadChildOnDemand="true" EnableUndoRedo="true" UndoRedoActions="@undoRedoAction"
+            Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Cancel", "Indent", "Outdent","Undo","Redo","NextTimeSpan","Search","ZoomIn","ZoomOut","ZoomToFit","PrevTimeSpan"})">
+    <SfDataManager AdaptorInstance="@typeof(CustomAdaptor)" Adaptor="Adaptors.CustomAdaptor"></SfDataManager>
+    <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Progress="Progress" Duration="Duration" ParentID="ParentID">
+    </GanttTaskFields>
+    <GanttColumns>
+        <GanttColumn Field="TaskID" HeaderText="ID"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Event Name">
+        </GanttColumn>
+        <GanttResourceColumn HeaderText="Event Resources">
+        </GanttResourceColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress" ></GanttColumn>
+    </GanttColumns>
+    <GanttEditSettings AllowEditing="true" AllowAdding="true" AllowDeleting="true" AllowTaskbarEditing="true"></GanttEditSettings>
+    <GanttFilterSettings HierarchyMode="FilterHierarchyMode.Both"></GanttFilterSettings>
+    <GanttSearchSettings HierarchyMode="FilterHierarchyMode.Both"></GanttSearchSettings>
+    <GanttResource DataSource="@ResourceCollection" Id="ResourceId" Name="ResourceName" MaxUnits="Unit" TResources="ResourceAlloacteData" TValue="TaskData"></GanttResource>
+    <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="@nameof(AssignmentModel.PrimaryId)" TaskID="@nameof(AssignmentModel.TaskId)" ResourceID="@nameof(AssignmentModel.ResourceId)" Units="@nameof(AssignmentModel.Unit)" TValue="TaskData" TAssignment="AssignmentModel">
+    </GanttAssignmentFields>
+    <GanttLabelSettings TValue="TaskData"></GanttLabelSettings>
+    <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+    <GanttEvents RowDropping="RowDroppingHandler" TValue="TaskData"></GanttEvents>
+</SfGantt>
+@code {
+    public static SfGantt<TaskData>? Gantt { get; set; }
+    public static List<TaskData> GanttData { get; set; }
+    public static List<TaskData> gantt = new List<TaskData>();
+    private static List<AssignmentModel> AssignmentCollection { get; set; } = new();
+    private List<ResourceAlloacteData> ResourceCollection { get; set; } // To store the resource collections
+    public static List<TaskData> DisplayedData = new List<TaskData>(); //  To store the displayed records
+    public static int? DisplayCount; //  Get the displayed records count
+    public static string ResourceName { get; set; } // Get the resource name on dropdown list
+    List<GanttUndoRedoAction> undoRedoAction = new List<GanttUndoRedoAction> {
+     GanttUndoRedoAction.Sort, GanttUndoRedoAction.Add, GanttUndoRedoAction.ColumnReorder, GanttUndoRedoAction.ColumnResize,
+     GanttUndoRedoAction.ColumnState, GanttUndoRedoAction.Delete, GanttUndoRedoAction.Edit, GanttUndoRedoAction.Filter,
+     GanttUndoRedoAction.Indent, GanttUndoRedoAction.Outdent, GanttUndoRedoAction.NextTimeSpan, GanttUndoRedoAction.PreviousTimeSpan,
+     GanttUndoRedoAction.RowDragAndDrop, GanttUndoRedoAction.Search,
+     GanttUndoRedoAction.ZoomIn, GanttUndoRedoAction.ZoomOut, GanttUndoRedoAction.ZoomToFit,GanttUndoRedoAction.Collapse,GanttUndoRedoAction.Expand,GanttUndoRedoAction.SplitterResize
+    };
+    private async Task UndoMethod()
+    {
+        await Gantt.UndoAsync();
+    }
+    private async Task RedoMethod()
+    {
+        await Gantt.RedoAsync();
+    }
+
+    public class TaskData
+    {
+        public int TaskID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public int Progress { get; set; }
+        public string Duration { get; set; }
+        public string Predecessor { get; set; }
+        public int? ParentID { get; set; }
+        public TaskData() { }
+    }
+
+    public class ResourceAlloacteData
+    {
+        public int ResourceId { get; set; }
+        public string ResourceName { get; set; }
+        public double? Unit { get; set; }
+    }
+
+    // Assigning the datasource collection on SfGantt
+    protected override void OnInitialized()
+    {
+        GanttData = GetGantt().ToList();
+        this.ResourceCollection = GetResources;
+    }
+
+    // Resource collection
+    private static List<ResourceAlloacteData> GetResources = new List<ResourceAlloacteData>()
+    {
+        new ResourceAlloacteData() { ResourceId= 1, ResourceName= "Martin Tamer"},
+        new ResourceAlloacteData() { ResourceId= 2, ResourceName= "Rose Fuller" },
+        new ResourceAlloacteData() { ResourceId= 3, ResourceName= "Margaret Buchanan" },
+        new ResourceAlloacteData() { ResourceId= 4, ResourceName= "Fuller King" },
+        new ResourceAlloacteData() { ResourceId= 5, ResourceName= "Davolio Fuller" },
+        new ResourceAlloacteData() { ResourceId= 7, ResourceName= "Fuller Buchanan" },
+        new ResourceAlloacteData() { ResourceId= 8, ResourceName= "Jack Davolio" },
+        new ResourceAlloacteData() { ResourceId= 9, ResourceName= "Tamer Vinet" },
+        new ResourceAlloacteData() { ResourceId= 10, ResourceName= "Vinet Fuller" },
+        new ResourceAlloacteData() { ResourceId= 11, ResourceName= "Bergs Anton" },
+        new ResourceAlloacteData() { ResourceId= 12, ResourceName= "Construction Supervisor" }
+    };
+
+    // Handles the change event of the resource dropdown and sets the selected resource name.
+    private void ChangeResource(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, ResourceAlloacteData> args)
+    {
+        ResourceName = args.Value;
+    }
+
+    // Gantt datasource collection
+    private static List<TaskData> GetGantt()
+    {
+        if (gantt.Count == 0)
+        {
+            int assignmentCount = 0;
+            for (var i = 1; i <= 8; i++)
+            {
+
+                int parentTaskId = gantt.Count + 1;
+                gantt.Add(new TaskData() { TaskID = parentTaskId, TaskName = "Parent Task " + parentTaskId.ToString(), StartDate = new DateTime(2022, 06, 07), EndDate = new DateTime(2022, 08, 25), Progress = 40, ParentID = null, Duration = "5" });
+                int parent = gantt.Count;
+                for (var j = 0; j < 3; j++)
+                {
+                    int childTaskId = gantt.Count + 1;
+                    if (j == 0)
+                    {
+                        gantt.Add(new TaskData() { TaskID = childTaskId, TaskName = "Child Task " + childTaskId.ToString(), StartDate = new DateTime(2022, 06, 07), EndDate = new DateTime(2022, 08, 25), Progress = 30, ParentID = parentTaskId, Duration = "3" });
+                        AssignmentCollection.Add(new AssignmentModel() { PrimaryId = assignmentCount++, TaskId = childTaskId, ResourceId = 1, Unit = 70 });
+                        AssignmentCollection.Add(new AssignmentModel() { PrimaryId = assignmentCount++, TaskId = childTaskId, ResourceId = 6 });
+                    }
+                    else if (j == 1)
+                    {
+                        gantt.Add(new TaskData() { TaskID = childTaskId, TaskName = "Child Task " + childTaskId.ToString(), StartDate = new DateTime(2022, 06, 07), EndDate = new DateTime(2022, 08, 25), Progress = 100, ParentID = parentTaskId, Duration = "4" });
+                        AssignmentCollection.Add(new AssignmentModel() { PrimaryId = assignmentCount++, TaskId = childTaskId, ResourceId = 5, Unit = 70 });
+                        AssignmentCollection.Add(new AssignmentModel() { PrimaryId = assignmentCount++, TaskId = childTaskId, ResourceId = 7 });
+                    }
+                    else
+                    {
+                        gantt.Add(new TaskData() { TaskID = childTaskId, TaskName = "Child Task " + childTaskId.ToString(), StartDate = new DateTime(2022, 06, 07), EndDate = new DateTime(2022, 08, 25), Progress = 23, ParentID = parentTaskId, Duration = "6" });
+                        AssignmentCollection.Add(new AssignmentModel() { PrimaryId = assignmentCount++, TaskId = childTaskId, ResourceId = 12, Unit = 70 });
+                        AssignmentCollection.Add(new AssignmentModel() { PrimaryId = assignmentCount++, TaskId = childTaskId, ResourceId = 4 });
+                    }
+                }
+            }
+        }
+        return gantt;
+    }
+
+    public class AssignmentModel
+    {
+        public int PrimaryId { get; set; }
+        public int TaskId { get; set; }
+        public int ResourceId { get; set; }
+        public double? Unit { get; set; }
+    }
+    // This method used to get the resource id and name collections based on GetCurrentViewRecords() method
+    private static List<ResourceAlloacteData> getResourceRecords()
+    {
+        // Use a dictionary to prevent duplicate entries
+        Dictionary<int, string> resourceMap = new Dictionary<int, string>();
+
+        foreach (var assignment in AssignmentCollection)
+        {
+            if (!resourceMap.ContainsKey(assignment.ResourceId))
+            {
+                // You may replace the below name logic with actual lookup if available
+                resourceMap[assignment.ResourceId] = "Resource " + assignment.ResourceId;
+            }
+        }
+
+        return resourceMap.Select(r => new ResourceAlloacteData
+        {
+            ResourceId = r.Key,
+            ResourceName = r.Value
+        }).ToList();
+    }
+
+
+    // returns the child records count
+    private int GetChildRecordsCount(int? id)
+    {
+        var count = 0;
+        for (var i = 0; i < GetGantt().Count; i++)
+        {
+            if (GetGantt()[i].ParentID == id)
+            {
+                count++;
+                count += GetChildRecordsCount(GetGantt()[i].TaskID);
+            }
+        }
+        return count;
+    }
+
+    // Implementing custom adaptor by extending the DataAdaptor class.
+    public class CustomAdaptor : DataAdaptor
+    {
+        // Performs data Read operation.
+        public override object Read(DataManagerRequest dm, string key = null)
+        {
+            IEnumerable<TaskData> DataSource = GanttData;
+            List<TaskData> sortedData = new();
+            List<TaskData> filteredData = new();
+
+            if (dm.Sorted != null && dm.Sorted.Count > 0)
+            {
+                // Sorting
+                if (dm.Sorted[0].Name == "Resources")
+                {
+                    IEnumerable<ResourceAlloacteData> datasource = getResourceRecords(); // Get unique resource list
+                    dm.Sorted[0].Name = "ResourceName"; // Sort based on ResourceName
+                    var sortedResources = DataOperations.PerformSorting(datasource, dm.Sorted); // Apply sorting
+
+                    // List<TaskData> sortedData = new List<TaskData>();
+                    List<TaskData> datas = new List<TaskData>();
+                    foreach (var resource in sortedResources)
+                    {
+                        // Get first task associated with the resource from AssignmentCollection
+                        var assignedTaskId = AssignmentCollection.FirstOrDefault(a => a.ResourceId == resource.ResourceId)?.TaskId;
+
+                        if (assignedTaskId != null)
+                        {
+                            var task = DataSource.FirstOrDefault(t => t.TaskID == assignedTaskId);
+                            if (task != null)
+                            {
+                                datas.Add(task);
+                            }
+                        }
+                    }
+
+                    // Replace original data source with sorted task data
+                    DataSource = datas;
+
+                }
+                else
+                {
+                    DataSource = DataOperations.PerformSorting(DataSource, dm.Sorted);
+                }
+                dm.Sorted = null;
+            }
+            if (dm.Where != null && dm.Where.Count > 0)
+            {
+                if (dm.Where[0].predicates == null)
+                {
+                    ResourceName = "";
+                }
+                // Filtering
+                if (dm.Where[0].Field != null && dm.Where[0].Field == "ParentID")
+                {
+
+                }
+                else if (dm.Where[0].predicates != null)
+                {
+                    List<WhereFilter> tempPredicates = new List<WhereFilter>();
+                    List<WhereFilter> resourcepredicates = new List<WhereFilter>();
+                    List<WhereFilter> columnPredicates = new List<WhereFilter>();
+                    tempPredicates = dm.Where[0].predicates;
+                    dm.Where[0].predicates = new List<WhereFilter>();
+                    foreach (var field in tempPredicates)
+                    {
+                        if (field.Field == "Resources") { resourcepredicates.Add(field); }
+                        else { columnPredicates.Add(field); }
+                    }
+
+                    if (resourcepredicates.Count > 0)
+                    {
+                        dm.Where[0].predicates.Add(resourcepredicates[0]);
+                        // Get list of resources from assignment collection
+                        IEnumerable<ResourceAlloacteData> datasource = getResourceRecords();
+
+                        // Set filter field to ResourceName and fallback to default value if needed
+                        resourcepredicates[0].Field = "ResourceName";
+                        resourcepredicates[0].value ??= ResourceName;
+
+                        // Perform filtering based on resource name
+                        var filteredResources = DataOperations.PerformFiltering(datasource, dm.Where, dm.Where[0].Operator);
+
+                        // Prepare filtered task list
+                        List<TaskData> datas = new List<TaskData>();
+
+                        foreach (var resource in filteredResources)
+                        {
+                            // Get the task ID assigned to the resource
+                            var taskId = AssignmentCollection.FirstOrDefault(a => a.ResourceId == resource.ResourceId)?.TaskId;
+                            if (taskId != null)
+                            {
+                                var task = DataSource.FirstOrDefault(t => t.TaskID == taskId);
+                                if (task != null)
+                                {
+                                    datas.Add(task);
+                                }
+                            }
+                        }
+
+                        // Replace the original DataSource with filtered task list
+                        DataSource = datas;
+
+                        // Remove the processed predicate
+                        dm.Where[0].predicates.Remove(resourcepredicates[0]);
+
+                    }
+                    else
+                    {
+                        ResourceName = "";
+                    }
+                    if (columnPredicates.Count > 0)
+                    {
+                        dm.Where[0].predicates.AddRange(columnPredicates);
+                        DataSource = DataOperations.PerformFiltering(DataSource, dm.Where, dm.Where[0].Operator);
+                    }
+                    dm.Where[0].predicates = tempPredicates;
+                }
+            }
+
+            if (dm.Skip != 0)
+            {
+                //Paging
+                DataSource = DataOperations.PerformSkip(DataSource, dm.Skip);
+            }
+            if (dm.Take != 0)
+            {
+                DataSource = DataOperations.PerformTake(DataSource, dm.Take);
+            }
+            if (dm.Where != null && dm.Where.Count > 0)
+            {
+                if (dm.Where[0].Field == null)
+                {
+                    DisplayedData.Clear();
+                    DataSource = GetHierarchyDataToDisplay(DataSource);
+                }
+            }
+            // Searching
+            if (dm.Search != null && dm.Search.Count > 0)
+            {
+                DataSource = DataOperations.PerformSearching(DataSource, dm.Search);
+                DisplayedData.Clear();
+                DataSource = GetHierarchyDataToDisplay(DataSource);
+            }
+            int count = DataSource.Cast<TaskData>().Count();
+            return dm.RequiresCounts ? new DataResult() { Result = DataSource, Count = count } : (object)DataSource;
+        }
+        public override object Insert(DataManager dm, object value, string key)
+        {
+            GanttData.Insert(0, value as TaskData);
+            return value;
+        }
+
+        // Performs Remove operation.
+        public override object Remove(DataManager dm, object value, string keyField, string key)
+        {
+            GanttData.Remove(GanttData.Where(or => or.TaskID == int.Parse(value.ToString())).FirstOrDefault());
+            return value;
+        }
+
+        // Performs Update operation.
+        public override object Update(DataManager dm, object value, string keyField, string key)
+        {
+            var data = GanttData.Where(or => or.TaskID == (value as TaskData).TaskID).FirstOrDefault();
+            if (data != null)
+            {
+                data.TaskID = (value as TaskData).TaskID;
+                data.TaskName = (value as TaskData).TaskName;
+                data.StartDate = (value as TaskData).StartDate;
+                data.EndDate = (value as TaskData).EndDate;
+                data.Duration = (value as TaskData).Duration;
+                data.Progress = (value as TaskData).Progress;
+            }
+            return value;
+        }
+
+        // This method used to get the records collection for every action (ex: fitering.,)
+        private List<TaskData> GetHierarchyDataToDisplay(IEnumerable<TaskData> records)
+        {
+            foreach (var record in records)
+            {
+                if (record.ParentID != null)
+                {
+                    //here append the child parent's child records
+                    var isParent = GanttData.Where(rec => rec.ParentID == record.TaskID).ToList();
+                    if (isParent.Any())
+                    {
+                        DisplayedData = GetDisplayData(record); // calling FilterData method to add parent to new list
+                        IEnumerable<TaskData> childRecords = GanttData.Where(p => p.ParentID == record.TaskID).ToList();
+                        AddDisplayedRecord(record);
+                        foreach (var data in childRecords)
+                        {
+                            AddDisplayedRecord(data); //binding child record to searched parent record
+                        }
+                    }
+                    else
+                    {
+                        DisplayedData = GetDisplayData(record); // calling FilterData method to add parent to new list
+                        AddDisplayedRecord(record);
+                    }
+                }
+                else
+                {
+                    var childRecords = GanttData.Where(p => p.ParentID == record.TaskID).ToList();
+                    foreach (var data in childRecords)
+                    {
+                        DisplayedData.Add(data); //binding child record to searched parent record
+                    }
+                    AddDisplayedRecord(record);
+                }
+            }
+            return DisplayedData;
+        }
+
+        // Adding the record for DisplayedData and avoid the duplicate records
+        private void AddDisplayedRecord(TaskData record)
+        {
+            if (DisplayedData.FindIndex(d => d.TaskID == record.TaskID) == -1)
+            {
+                DisplayedData.Add(record);//adding filtered data to list
+            }
+        }
+
+        // This method used to get the parent and child records based on actions (ex: fitering.,)
+        private List<TaskData> GetDisplayData(TaskData data)
+        {
+            var parentRecord = GanttData.Where(p => p.TaskID == data.ParentID).FirstOrDefault();
+            if (parentRecord.ParentID != null)
+            {
+                DisplayedData = GetDisplayData(parentRecord);
+                if (DisplayedData.FindIndex(d => d.TaskID == parentRecord.TaskID) == -1)
+                {
+                    DisplayedData.Add(parentRecord);
+                    DisplayCount++;
+                }
+            }
+            else
+            {
+                var alreadyPresent = DisplayedData.FindIndex(d => d.TaskID == parentRecord.TaskID);
+                if (alreadyPresent == -1)// if parent is not present already, then add parent to list
+                {
+                    DisplayedData.Add(parentRecord);
+                    DisplayCount++; //adding parent data to list
+                }
+            }
+            return DisplayedData;
+        }
+    }
+
+    // Event that is triggered when a row is being dropping
+    private void RowDroppingHandler(Syncfusion.Blazor.Grids.RowDroppingEventArgs<TaskData> args)
+    {
+        var position = args.Target.ID; // drop position
+        var dropIndex = Convert.ToInt32(args.DropIndex); // drop index
+        var targetDataID = Gantt.GetCurrentViewRecords()[dropIndex].TaskID; // drop index data's TaskId
+        var targetData = GanttData.Where(ds => ds.TaskID == targetDataID).FirstOrDefault();
+        var index = Convert.ToInt32(args.DropIndex);  // drop index
+        if (position == " e-droptop" || position == " e-dropbottom") // if a record is dropped below/above another record
+        {
+            if (args.Data[0].ParentID != null) // if dragged record has parent
+            {
+                var childCount = 0;
+                int parent1 = (int)args.Data[0].ParentID;
+                childCount += GetChildRecordsCount(parent1); // finding the number of child for dragged record's parent
+                if (childCount == 1) // if the dragged record is the only child for a particular record
+                {
+                    var i = 0;
+                    for (; i < GanttData.Count; i++)
+                    {
+                        if (GanttData[i].TaskID == parent1)
+                        {
+                            break;
+                        }
+                        if (GanttData[i].TaskID == args.Data[0].TaskID)
+                        {
+                            //set parentItem of dragged record to null
+                            GanttData[i].ParentID = null;
+                            break;
+                        }
+                    }
+                }
+            }
+            var data = GanttData.Where(ds => ds.TaskID == args.Data[0].TaskID).FirstOrDefault();
+            //removing dragged record from list
+            GanttData.Remove(GanttData.Where(ds => ds.TaskID == args.Data[0].TaskID).FirstOrDefault());
+            data.ParentID = targetData.ParentID; //setting the dropIndex data's parent as parent of dragged record
+
+            if (position == " e-dropbottom") // if a record is dropped below another record
+            {
+                index = GanttData.IndexOf(targetData);
+                index = index + 1;
+                GanttData.Insert(index, data);
+            }
+            else if (position == " e-droptop") // if a record is dropped above another record
+            {
+                index = GanttData.IndexOf(targetData);
+                index = index + GetChildRecordsCount(targetDataID); // find the target record's children count to find drop index
+                GanttData.Insert(index, data);
+            }
+        }
+
+        else if (position == " e-dropchild") // if a record is dropped as child to another record(middle segment)
+        {
+            var data = GanttData.Where(ds => ds.TaskID == args.Data[0].TaskID).FirstOrDefault();
+            var dropData = GanttData.Where(ds => ds.TaskID == targetDataID).FirstOrDefault();
+            // removing dragged record from list
+            GanttData.Remove(GanttData.Where(ds => ds.TaskID == args.Data[0].TaskID).FirstOrDefault());
+            data.ParentID = targetDataID; //setting the dropIndex data's ID as parent of dragged record
+            index = index + 1;
+            GanttData.Insert(index, data);
+        }
+        GanttData = GanttData.ToList();
+    }
+}

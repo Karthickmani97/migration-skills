@@ -1,0 +1,253 @@
+﻿
+@page "/GuidVirtual"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.DropDowns;
+<div>@message</div>
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-lg-9">
+                <SfGantt @ref="Gantt" ID="Gantt" DataSource="@TaskCollection" ShowColumnChooser="true" TreeColumnIndex="1" AllowMultiSorting="true" EnableContextMenu="true" AllowFiltering="true" Height="550px" Width="100%" EnableRowVirtualization="true" ProjectStartDate="ProjectStartDate" ProjectEndDate="ProjectEndDate"
+                         Toolbar="@(new List<string>() { "Add", "Delete" , "Edit" , "ZoomIn" , "ZoomOut" , "ZoomToFit" })">
+                    <GanttLabelSettings LeftLabel="TaskName" TValue="TaskData"></GanttLabelSettings>
+                    <GanttTaskFields ParentID="ParentId" Id="ID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress">
+                    </GanttTaskFields>
+                    <GanttColumns>
+                        <GanttColumn Field="ID" HeaderText="TaskId" Width="100" Visible="false"></GanttColumn>
+                        <GanttColumn Field="TaskName" HeaderText="TaskName"></GanttColumn>
+                        <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+                        <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+                        <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+                        <GanttColumn Field="Progress" HeaderText="Progress" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Center"></GanttColumn>
+                    </GanttColumns>
+                    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowTaskbarEditing="true" AllowEditing="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Auto" ShowDeleteConfirmDialog="true">
+                    </GanttEditSettings>
+                    <GanttSplitterSettings Position="40%"></GanttSplitterSettings>
+                    <GanttEvents TValue="TaskData" QueryChartRowInfo="QueryChartRowInfo"OnActionFailure="ActionFailureHandler"></GanttEvents>
+                </SfGantt>
+            </div>
+
+            <div class="col-lg-3">
+                <div class="e-switch-control" style="width: 750px;">
+                    <label class="showhide" style="padding: 10px 15px 10px 10px"> Methods: </label>
+                    <SfDropDownList Width="25%" @ref="@DropdownMode" TValue="string" TItem="DropDownData" DataSource="@Methods" @bind-Value="@Mode" AllowFiltering="true" Placeholder=" ">
+                        <DropDownListEvents TValue="string" ValueChange="MethodChange" TItem="DropDownData"></DropDownListEvents>
+                        <DropDownListFieldSettings Text="Mode" Value="ID"></DropDownListFieldSettings>
+                    </SfDropDownList>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    public string message{ get; set; } 
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+    private SfGantt<TaskData>
+    Gantt { get; set; }
+    private string DateFormat = "MM/dd/yyyy";
+    private DateTime ProjectStartDate = new DateTime(2000, 1, 1);
+    private DateTime ProjectEndDate = new DateTime(2000, 12, 31);
+    private bool autoCalculateDateScheduling = false;
+    public DateTime? StartAt { get; private set; }
+    public DateTime? EndAt { get; private set; }
+    public string runningTime = string.Empty;
+    public int Value { get; set; } = 1000;
+    private List<TaskData>
+        TaskCollection { get; set; }
+        private SfDropDownList<string, DropDownData>
+            DropdownMode { get; set; }
+            public TaskData addGuid = new TaskData() { ID = Guid.NewGuid(), TaskName = "New Added Record", StartDate = new DateTime(2000, 04, 05), Duration = "3", Progress = 50};
+            private List<DropDownData>
+                Methods { get; set; } = new List<DropDownData>
+                    ();
+                    public class DropDownData
+                    {
+                    public string ID { get; set; }
+                    public string Mode { get; set; }
+                    }
+                    private string Mode { get; set; }
+                    protected override void OnInitialized()
+                    {
+                    this.TaskCollection = VirtualData.GetTreeVirtualData(100);
+                    this.Methods.Add(new DropDownData() { ID = "AddGuid", Mode = "AddGuid" });
+                    this.Methods.Add(new DropDownData() { ID = "CollapseLevel", Mode = "CollapseLevel" });
+                    this.Methods.Add(new DropDownData() { ID = "CollapseAll", Mode = "CollapseAll" });
+                    this.Methods.Add(new DropDownData() { ID = "DeleteGuid", Mode = "DeleteGuid" });
+                    this.Methods.Add(new DropDownData() { ID = "ExpandAll", Mode = "ExpandAll" });
+                    this.Methods.Add(new DropDownData() { ID = "ExpandLevel", Mode = "ExpandLevel" });
+                    this.Methods.Add(new DropDownData() { ID = "HideSpinner", Mode = "HideSpinner" });
+                    this.Methods.Add(new DropDownData() { ID = "ShowSpinner", Mode = "ShowSpinner" });
+                    this.Methods.Add(new DropDownData() { ID = "NextTimeSpan", Mode = "NextTimeSpan" });
+                    this.Methods.Add(new DropDownData() { ID = "OpenAddDialog", Mode = "OpenAddDialog" });
+                    this.Methods.Add(new DropDownData() { ID = "OpenColumnChooser", Mode = "OpenColumnChooser" });
+                    this.Methods.Add(new DropDownData() { ID = "OpenEditDialog", Mode = "OpenEditDialog" });
+                    this.Methods.Add(new DropDownData() { ID = "PreviousTimeSpan", Mode = "PreviousTimeSpan" });
+                    this.Methods.Add(new DropDownData() { ID = "ReOrderColumn", Mode = "ReOrderColumn" });
+                    this.Methods.Add(new DropDownData() { ID = "ScrollToTaskbar", Mode = "ScrollToTaskbar" });
+                    this.Methods.Add(new DropDownData() { ID = "ScrollToTimeline", Mode = "ScrollToTimeline" });
+                    this.Methods.Add(new DropDownData() { ID = "SetSplitter", Mode = "SetSplitter" });
+                    this.Methods.Add(new DropDownData() { ID = "SingleSort", Mode = "SingleSort" });
+                    this.Methods.Add(new DropDownData() { ID = "MultiSort", Mode = "MultiSort" });
+                    this.Methods.Add(new DropDownData() { ID = "UpdateProjectDates", Mode = "UpdateProjectDates" });
+                    }
+                    public void MethodChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, DropDownData>
+                        args)
+                        {
+                        if (args.Value == "AddGuid")
+                        {
+                        this.Gantt.AddRecordAsync(addGuid, 2, RowPosition.Below);
+                        }
+                        if (args.Value == "CollapseLevel")
+                        {
+                        this.Gantt.CollapseAtLevelAsync(0);
+                        }
+                        if (args.Value == "CollapseAll")
+                        {
+                        this.Gantt.CollapseAllAsync();
+                        }
+                        if (args.Value == "DeleteGuid")
+                        {
+                        this.Gantt.DeleteRecordAsync(this.TaskCollection[3].ID);
+                        }
+                        if (args.Value == "ExpandAll")
+                        {
+                        this.Gantt.ExpandAllAsync();
+                        }
+                        if (args.Value == "ExpandLevel")
+                        {
+                        this.Gantt.ExpandAtLevelAsync(1);
+                        }
+                        if (args.Value == "HideSpinner")
+                        {
+                        this.Gantt.HideSpinnerAsync();
+                        }
+                        if (args.Value == "ShowSpinner")
+                        {
+                        this.Gantt.ShowSpinnerAsync();
+                        }
+                        if (args.Value == "NextTimeSpan")
+                        {
+                        this.Gantt.NextTimeSpan();
+                        }
+                        if (args.Value == "OpenAddDialog")
+                        {
+                        this.Gantt.OpenAddDialogAsync();
+                        }
+                        if (args.Value == "OpenColumnChooser")
+                        {
+                        this.Gantt.OpenColumnChooser(2,4);
+                        }
+                        if (args.Value == "OpenEditDialog")
+                        {
+                        this.Gantt.OpenEditDialogAsync(this.TaskCollection[2].ID);
+                        }
+                        if (args.Value == "PreviousTimeSpan")
+                        {
+                        this.Gantt.PreviousTimeSpan();
+                        }
+                        if (args.Value == "ReOrderColumn")
+                        {
+                        this.Gantt.ReorderColumnsAsync(new List<string>
+                            {"StartDate","TaskName"},"Duration");
+                            }
+                            if (args.Value == "ScrollToTaskbar")
+                            {
+                            this.Gantt.ScrollToTaskbarAsync(this.TaskCollection[42].ID);
+                            }
+                            if (args.Value == "ScrollToTimeline")
+                            {
+                            this.Gantt.ScrollToTimelineAsync(new DateTime(2000, 3, 7));
+                            }
+                            if (args.Value == "SetSplitter")
+                            {
+                            this.Gantt.SetSplitterPositionAsync(2);
+                            }
+                            if (args.Value == "MultiSort")
+                            {
+                            this.Gantt.SortByColumnAsync("TaskName", Syncfusion.Blazor.Grids.SortDirection.Ascending,true);
+                            }
+                            if (args.Value == "SingleSort")
+                            {
+                            this.Gantt.SortByColumnAsync("StartDate", Syncfusion.Blazor.Grids.SortDirection.Descending,false);
+                            }
+                            if (args.Value == "UpdateProjectDates")
+                            {
+                            this.Gantt.UpdateProjectDates(new DateTime(2000, 01, 03), new DateTime(2000, 02, 05));
+                            }
+                            }
+
+                            private int index { get; set; } = 0;
+                            private int? PreviousIndex { get; set; } = 0;
+                            private List<int>
+                                rowIndexCollection { get; set; } = new List<int>
+                                    ();
+                                    public void QueryChartRowInfo(QueryChartRowInfoEventArgs<TaskData>
+                                        args)
+                                        {
+                                        // Here, you can get the error details in the args.
+                                        rowIndexCollection.Add(index);
+                                        index++;
+                                        }
+                                        public class VirtualData
+                                        {
+                                        public static List<TaskData>
+                                            GetTreeVirtualData(int count)
+                                            {
+                                            List<TaskData>
+                                                DataCollection = new List<TaskData>
+                                                    ();
+                                                    var x = 0;
+                                                    int duration = 0;
+                                                    DateTime startDate = new DateTime(2000, 1, 5);
+                                                    DateTime endDate = new DateTime(2000, 1, 12);
+                                                    for (var i = 1; i <= count / 5; i++)
+                                                    {
+                                                    TaskData Parent = new TaskData()
+                                                    {
+
+                                                    ID = Guid.NewGuid(),
+                                                    TaskName = "Task " + x,
+                                                    StartDate = startDate,
+                                                    EndDate = startDate.AddDays(26),
+                                                    Duration = "20",
+                                                    Progress = 43,
+                                                    };
+
+                                                    DataCollection.Add(Parent);
+                                                    for (var j = 1; j <= 4; j++)
+                                                    {
+                                                    startDate = startDate.AddDays(j == 1 ? 0 : duration + 2);
+                                                    duration = 5;
+                                                    ++x;
+                                                    DataCollection.Add(new TaskData()
+                                                    {
+                                                    ID = Guid.NewGuid(),
+                                                    TaskName = "Task " + x,
+                                                    StartDate = startDate,
+                                                    EndDate = startDate.AddDays(5),
+                                                    Duration = duration.ToString(),
+                                                    Progress = 34,
+                                                    ParentId = Parent.ID,
+                                                    });
+                                                    }
+                                                    ++x;
+                                                    }
+                                                    return DataCollection;
+                                                    }
+                                                    }
+                                                    public class TaskData
+                                                    {
+                                                    public Guid ID { get; set; }
+                                                    public string TaskName { get; set; }
+                                                    public DateTime StartDate { get; set; }
+                                                    public DateTime EndDate { get; set; }
+                                                    public string Duration { get; set; }
+                                                    public int Progress { get; set; }
+                                                    public Guid? ParentId { get; set; }
+                                                    }
+                                                    }

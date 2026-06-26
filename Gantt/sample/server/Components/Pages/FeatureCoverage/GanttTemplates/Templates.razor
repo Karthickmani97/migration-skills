@@ -1,0 +1,948 @@
+﻿@page "/Template/template"
+@rendermode InteractiveServer
+
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Calendars
+@using System.Dynamic;
+@if (currentDataType == "self")
+{
+    <SfGantt DataSource="@TaskCollection" @ref="Gantt" Height="450px" Width="100%" HighlightWeekends="true" RenderBaseline="@IsBaseLine"
+             Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll", "Indent", "Outdent","NextTimeSpan","PrevTimeSpan","ZoomIn","ZoomOut","ZoomToFit","Search" })"
+             AllowSelection="true" GridLines="Syncfusion.Blazor.Gantt.GridLine.Both" TreeColumnIndex="1" AllowFiltering="true" AllowPdfExport="true" AllowReordering="true" AllowResizing="true"
+             ProjectStartDate="@ProjectStartDate" ProjectEndDate="@ProjectEndDate" ScrollToTaskbarOnClick="true">
+        @if (IsCustomSchedulingEnabled)
+        {
+            <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Manual="IsManual" Notes="Notes">
+            </GanttTaskFields>
+        }
+        else
+        {
+            <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                             Dependency="Predecessor" ParentID="ParentId" BaselineEndDate="BaselineEndDate" BaselineStartDate="BaselineStartDate" Indicators="Indicators"></GanttTaskFields>
+        }
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+        <GanttColumns>
+            <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip">
+                <HeaderTemplate>
+                    <div>
+                        <i class="app-icon-job_title"></i>
+                        Job Name
+                    </div>
+                </HeaderTemplate>
+                <Template>
+                    @{
+                        @if (context != null)
+                        {
+                            <SfButton Content="@((context as TaskInfoModel).TaskName)"></SfButton>
+                        }
+                    }
+                </Template>
+                <EditTemplate>
+                    @{
+                        var task = (context as TaskInfoModel);
+                    }
+                    <SfAutoComplete @ref="dropdown" @bind-Value="task.TaskName" ID="ProjectName" TValue="string" TItem="string" Placeholder="TaskName" FloatLabelType="FloatLabelType.Always" DataSource="@TaskNameDropDownData">
+                        <AutoCompleteFieldSettings Value="ProjectName" />
+                    </SfAutoComplete>
+                </EditTemplate>
+                <FilterTemplate>
+                    <SfDropDownList Placeholder="TaskName" ID="TaskName" @bind-Value="@((context as PredicateModel<string>).Value)" TItem="TaskInfoModel" TValue="string" DataSource="@(TaskCollection)">
+                        <DropDownListFieldSettings Value="TaskName" Text="TaskName"></DropDownListFieldSettings>
+                    </SfDropDownList>
+                </FilterTemplate>
+            </GanttColumn>
+            <GanttColumn Field="Assignee" HeaderText="Assigned Person" ClipMode="ClipMode.EllipsisWithTooltip">
+                <Template>
+                    @{
+                        var task = (context as TaskInfoModel);
+                    }
+                    <div class="assignee-column" style="display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                        <strong>@task.Assignee</strong>
+                    </div>
+                </Template>
+            </GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date">
+                <HeaderTemplate>
+                    <div>
+                        <i class="app-icon-calendar"></i>
+                        Start Date
+                    </div>
+                </HeaderTemplate>
+                <FilterTemplate>
+                    <SfDatePicker TValue="DateTime?" @bind-Value="@((context as PredicateModel<DateTime?>).Value)"></SfDatePicker>
+                </FilterTemplate>
+                <EditTemplate>
+                    @{
+                        var task = context as TaskInfoModel;
+                    }
+                    <SfDatePicker TValue="DateTime?" @bind-Value="task.StartDate" Placeholder="Start Date" FloatLabelType="FloatLabelType.Always"></SfDatePicker>
+                </EditTemplate>
+            </GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date">
+                <HeaderTemplate>
+                    <div>
+                        <i class="app-icon-calendar"></i>
+                        End Date
+                    </div>
+                </HeaderTemplate>
+            </GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration">
+                <HeaderTemplate>
+                    <div>
+                        <i class="app-icon-time"></i>
+                        Duration
+                    </div>
+                </HeaderTemplate>
+            </GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress">
+                <HeaderTemplate>
+                    <div>
+                        <i class="app-icon-progress"></i>
+                        Progress
+                    </div>
+                </HeaderTemplate>
+                <EditTemplate>
+                    @{
+                        var task = context as TaskInfoModel;
+                    }
+                    <SfNumericTextBox TValue="int" @bind-Value="task.Progress" Placeholder="Progress" FloatLabelType="FloatLabelType.Always">
+                    </SfNumericTextBox>
+                </EditTemplate>
+                <FilterTemplate>
+                    <SfNumericTextBox TValue="int" @bind-Value="@((context as PredicateModel<int>).Value)">
+                    </SfNumericTextBox>
+                </FilterTemplate>
+            </GanttColumn>
+            <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+            <GanttColumn Field="Status" HeaderText="Status" EditType="Syncfusion.Blazor.Grids.EditType.DropDownEdit">
+                <EditTemplate>
+                    @{
+                        var task = (context as TaskInfoModel);
+                    }
+                    <SfDropDownList ID="Status" @bind-Value="@task.Status" Placeholder="Status" FloatLabelType="FloatLabelType.Always" TItem="string" TValue="string" DataSource="@DropDownData">
+                    </SfDropDownList>
+                </EditTemplate>
+            </GanttColumn>
+            <GanttColumn Field="WorkingDate" HeaderText="Working Date" Type="Syncfusion.Blazor.Grids.ColumnType.DateTime" EditType="Syncfusion.Blazor.Grids.EditType.DatePickerEdit"></GanttColumn>
+            <GanttColumn Field="WorkersCount" HeaderText="WorkersCount" EditType="Syncfusion.Blazor.Grids.EditType.NumericEdit"></GanttColumn>
+            <GanttColumn Field="Priority" HeaderText="Priority" EditType="Syncfusion.Blazor.Grids.EditType.DropDownEdit" EditorSettings="@editorParams"></GanttColumn>
+        </GanttColumns>
+        <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" MaxUnits="MaxUnit" TValue="TaskInfoModel" TResources="ResourceInfoModel"></GanttResource>
+        <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="Id" TaskID="TaskId" ResourceID="ResourceId" Units="Unit" TValue="TaskInfoModel" TAssignment="AssignmentModel"></GanttAssignmentFields>
+        <GanttSegmentFields DataSource="SegmentCollection" PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="TaskInfoModel" TSegments="SegmentModel"></GanttSegmentFields>
+        <GanttLabelSettings TValue="TaskInfoModel">
+            <LeftLabelTemplate>
+                @{
+                    var TaskInfoModel = context as TaskInfoModel;
+                    <div class="e-left-label-inner-div" style="height:22px;margin-top:6px;">
+                        <span class="e-label">@TaskInfoModel.TaskName</span>
+                    </div>
+                }
+            </LeftLabelTemplate>
+            <TaskLabelTemplate>
+                <div class="e-task-label-inner-div" style="line-height:21px; height:22px;">
+                    <span class="e-label">@((context as TaskInfoModel).Progress)%</span>
+                </div>
+            </TaskLabelTemplate>
+            <RightLabelTemplate>
+                @{
+                    var TaskInfoModel = context as TaskInfoModel;
+                    if (TaskInfoModel.Assignee != null)
+                    {
+                        int randomIndex = 0;
+                        if (TaskInfoModel.TaskId % 2 == 0)
+                        {
+                            randomIndex = 0;
+                        }
+                        else if (TaskInfoModel.TaskId % 3 == 0)
+                        {
+                            randomIndex = 1;
+                        }
+                        else if (TaskInfoModel.TaskId % 2 != 0)
+                        {
+                            randomIndex = 2;
+                        }
+                        else if (TaskInfoModel.TaskId % 3 != 0)
+                        {
+                            randomIndex = 3;
+                        }
+                        var randomItem = GetResources[randomIndex];
+                        string resourceName = randomItem.Name.Trim().Replace(" ", "").ToLower();
+                        <div class="e-right-label-inner-div">
+                            <img class="e-label image" role="presentation"
+                                 src=@($"https://cdn.syncfusion.com/blazor/images/gantt/{resourceName}.png")
+                                 alt="@resourceName" />
+                        </div>
+                    }
+                }
+            </RightLabelTemplate>
+        </GanttLabelSettings>
+        <GanttTimelineSettings ShowTooltip="true">
+            <GanttTopTierSettings Unit="TimelineViewMode.Month">
+                <FormatterTemplate>
+                    @{
+                        @if (context.Tier == "top")
+                        {
+                            @this.Formatter((context.Date))
+                        }
+                    }
+                </FormatterTemplate>
+            </GanttTopTierSettings>
+            <GanttBottomTierSettings Unit="TimelineViewMode.Day" Format="dd"></GanttBottomTierSettings>
+        </GanttTimelineSettings>
+        <GanttEditDialogFields>
+            <GanttEditDialogField Type="GanttDialogFieldType.General" HeaderText="General"></GanttEditDialogField>
+            <GanttEditDialogField Type="GanttDialogFieldType.Dependency"></GanttEditDialogField>
+            <GanttEditDialogField Type="GanttDialogFieldType.Resources"></GanttEditDialogField>
+            <GanttEditDialogField Type="GanttDialogFieldType.Segments"></GanttEditDialogField>
+            <GanttEditDialogField Type="GanttDialogFieldType.Custom"></GanttEditDialogField>
+        </GanttEditDialogFields>
+        <GanttAddDialogFields>
+            <GanttAddDialogField Type="GanttDialogFieldType.General" HeaderText="General"></GanttAddDialogField>
+            <GanttAddDialogField Type="GanttDialogFieldType.Dependency"></GanttAddDialogField>
+            <GanttAddDialogField Type="GanttDialogFieldType.Resources"></GanttAddDialogField>
+            <GanttAddDialogField Type="GanttDialogFieldType.Segments"></GanttAddDialogField>
+            <GanttAddDialogField Type="GanttDialogFieldType.Custom"></GanttAddDialogField>
+        </GanttAddDialogFields>
+        <GanttSplitterSettings ColumnIndex="2"></GanttSplitterSettings>
+        <GanttTooltipSettings TValue="TaskInfoModel">
+            <EditingTemplate>
+                <table>
+                    @{
+                        text = string.Empty;
+                        var template = (context as TaskInfoModel);
+                        if (TaskbarEditAction == "LeftResizing")
+                        {
+                            text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Duration: {template.Duration}";
+                            <tr>
+                                <td style="padding:3px">@(template.StartDate?.ToString("MMM dd, yyyy"))</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:6px">@(template.Duration) days</td>
+                            </tr>
+                        }
+                        else if (TaskbarEditAction == "RightResizing")
+                        {
+                            text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Duration: {template.Duration}";
+                            <tr>
+                                <td style="padding:3px">@(template.EndDate?.ToString("MMM dd, yyyy"))</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:6px">@(template.Duration) days</td>
+                            </tr>
+                        }
+                        else if (TaskbarEditAction == "ChildDrag" || TaskbarEditAction == "ParentDrag")
+                        {
+                            text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Duration: {template.Duration}";
+                            <tr>
+                                <td style="padding:3px">@(template.StartDate?.ToString("MMM dd, yyyy"))</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:3px">@(template.EndDate?.ToString("MMM dd, yyyy"))</td>
+                            </tr>
+                        }
+                        else if (TaskbarEditAction == "ProgressResizing")
+                        {
+                            text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Progress: {template.Progress}";
+                            <tr>
+                                <td style="padding:3px">@(template.Progress) %</td>
+                            </tr>
+                        }
+                    }
+                </table>
+            </EditingTemplate>
+            <BaselineTemplate>
+                <table>
+                    @{
+                        text = string.Empty;
+                        var record = context as TaskInfoModel;
+                        text += $"BaseLine Template: TaskId: {record.TaskId} BaseLineStartDate: {record.BaselineStartDate} BaseLineEndDate: {record.BaselineEndDate}";
+                        <tr>
+                            <td style="padding:3px">BaselineStartDate:</td>
+                            <td style="padding:3px">@record.BaselineStartDate?.ToString("MM/dd/yyyy")</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:3px">BaselineEndDate:</td>
+                            <td style="padding:3px">@record.BaselineEndDate?.ToString("MM/dd/yyyy")</td>
+                        </tr>
+                    }
+                </table>
+            </BaselineTemplate>
+            <ConnectorLineTemplate>
+                @{
+                    text = string.Empty;
+                    var dependencyContext = context as TaskInfoModel;
+                    text += $"Connectorline Template: TaskId: {dependencyContext.TaskId} Predecessor: {dependencyContext.Predecessor}";
+                    <div>
+                        @dependencyContext.Predecessor
+                    </div>
+                }
+            </ConnectorLineTemplate>
+            <IndicatorTemplate>
+                @{
+                    text = string.Empty;
+                    GanttIndicator indicatorContext = context as GanttIndicator;
+                    text += $"Indicator Template: IndicatorName: {indicatorContext.Name}";
+                    <div>
+                        @indicatorContext.Name
+                    </div>
+                }
+            </IndicatorTemplate>
+            <ManualTaskbarTemplate>
+                @{
+                    text = string.Empty;
+                    var manualContext = context as TaskInfoModel;
+                    text += $"Manual Taskbar Template: TaskId: {manualContext.TaskId} Manual: {manualContext.IsManual}";
+                    <div>
+                        @manualContext.IsManual
+                    </div>
+                }
+            </ManualTaskbarTemplate>
+            <TaskbarTemplate>
+                <table>
+                    @{
+                        text = string.Empty;
+                        var taskbar = context as TaskInfoModel;
+                        text += $"Taskbar Template: TaskId: {taskbar.TaskId} StartDate: {taskbar.StartDate} EndDate: {taskbar.EndDate} Duration: {taskbar.Duration}";
+                        <tr>
+                            <td style="padding:3px">Starts On:</td>
+                            <td style="padding:3px">@taskbar.StartDate?.ToString("MM/dd/yyyy")</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:3px">Ends On:</td>
+                            <td style="padding:3px">@taskbar.EndDate?.ToString("MM/dd/yyyy")</td>
+                        </tr>
+                    }
+                </table>
+            </TaskbarTemplate>
+            <TimelineCellTemplate>
+                @{
+                    text = string.Empty;
+                    var timelineCell = context as string;
+                    text += $"Timeline Template: : Date: {timelineCell}";
+                    <div>
+                        <i class="app-icon-calendar"></i>
+                        @timelineCell
+                    </div>
+                }
+            </TimelineCellTemplate>
+        </GanttTooltipSettings>
+        <GanttTemplates TValue="TaskInfoModel">
+            <TaskbarTemplate>
+                @{
+                    var task = (context as TaskInfoModel);
+                    if (task == null)
+                    {
+                        return;
+                    }
+                    var taskModel = GetTaskInfoModel(task);
+                    List<GanttSegmentData> segments = taskModel.Segments;
+                    @if (segments != null && segments.Count() > 1)
+                    {
+                        foreach (var segment in segments)
+                        {
+                            <div class="e-gantt-child-taskbar-inner-div e-gantt-child-taskbar e-segmented-taskbar" style=@("height:24px;position: absolute;left:" + segment.Left + "px; width:" + segment.Width + "px;") tabindex=-1 data-segment-index="@(segment.SegmentIndex)">
+                                <div class="e-taskbar-left-resizer e-icon" style="margin-top: 5px; left:2px">
+                                </div>
+                                <div class="e-gantt-child-progressbar-inner-div e-gantt-child-progressbar" style="height:22px;width:@(segment.ProgressWidth + "px");border-radius: 0px;text-align: right;">
+                                </div>
+                                <div class="e-taskbar-right-resizer e-icon" style="margin-top: 5px;left:@((segment.Width) - 15)px">
+                                </div>
+                            </div>
+                        }
+                    }
+                    else if (IsCustomSchedulingEnabled && task.IsManual)
+                    {
+                        <div class="e-gantt-child-taskbar-inner-div e-gantt-child-taskbar e-gantt-child-manualtaskbar" style="height:22px;" tabindex=-1>
+                            <div class="e-taskbar-left-resizer e-icon" style="margin-top: 5px; left:2px">
+                            </div>
+                            <div class="e-gantt-child-progressbar-inner-div e-gantt-child-progressbar" style="height:22px;width:@(taskModel.ProgressWidth + "px");text-align: right;border-radius: 0px;">
+                                <span class="e-label">@((context as TaskInfoModel).Progress)%</span>
+                            </div>
+                            <div class="e-taskbar-right-resizer e-icon" style="margin-top: 5px;left:@(taskModel.Left)px">
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="e-gantt-child-taskbar e-gantt-child-taskbar-inner-div" style="height:22px;" tabindex=-1>
+                            <div class="e-taskbar-left-resizer e-icon" style="margin-top: 5px; left:2px">
+                            </div>
+                            <div class="e-gantt-child-progressbar-inner-div e-gantt-child-progressbar" style="height:22px;width:@(taskModel.ProgressWidth + "px");text-align: right;border-radius: 0px;">
+                                <span class="e-label">@((context as TaskInfoModel).Progress)%</span>
+                            </div>
+                            <div class="e-taskbar-right-resizer e-icon" style="margin-top: 5px;left:@(taskModel.Left)px">
+                            </div>
+                        </div>
+                    }
+                }
+            </TaskbarTemplate>
+            <ParentTaskbarTemplate>
+                @{
+                    var task = (context as TaskInfoModel);
+                    if (task == null)
+                    {
+                        return;
+                    }
+                    var taskModel = GetTaskInfoModel(task);
+                    <div class="e-gantt-parent-taskbar-inner-div e-row-expand e-gantt-parent-taskbar" style="height:22px;" tabindex=-1>
+                        <div class="e-gantt-parent-progressbar-inner-div e-row-expand e-gantt-parent-progressbar" style="height:22px;width:@(taskModel.ProgressWidth + "px");text-align: right;border-radius: 0px;">
+                            <span class="e-label">@((context as TaskInfoModel).Progress)%</span>
+                        </div>
+                    </div>
+                }
+            </ParentTaskbarTemplate>
+            <MilestoneTemplate>
+                <div class="e-gantt-milestone" style="width:12.7px;height:12.7px;transform: rotate(45deg);background-color: #ad7a66 !important;border:0px"></div>
+            </MilestoneTemplate>
+            <BaselineTemplate>
+                @{
+                    var task = (context as TaskInfoModel);
+                    if (task == null)
+                    {
+                        return;
+                    }
+                    var taskModel = GetTaskInfoModel(task);
+                    <div class="e-baseline-bar" style="width:@(taskModel.Width + "px");left:@(taskModel.Left + "px");margin-top:-6px;height:6px;"></div>
+                }
+            </BaselineTemplate>
+            <BaselineMilestoneTemplate>
+                @{
+                    var task = (context as TaskInfoModel);
+                    if (task == null)
+                    {
+                        return;
+                    }
+                    var taskModel = GetTaskInfoModel(task);
+                    <div class="e-baseline-gantt-milestone-container" style="width:@(taskModel.Width + "px");left:@(taskModel.Left + "px");height:12px;margin-top:-21.272077938642145px;"></div>
+                }
+            </BaselineMilestoneTemplate>
+            <ManualTaskbarTemplate>
+                @{
+                    var task = (context as TaskInfoModel);
+                    if (task == null)
+                    {
+                        return;
+                    }
+                    var taskModel = GetTaskInfoModel(task);
+                    <div class="e-manualparent-main-container" style="left:0px;width:253.75px;height:2.5px;cursor:auto;">
+                        <div class="e-gantt-manualparenttaskbar" style="width:253.75px;height:2.5px;border-left-width:2.5px; border-bottom:2.5px solid transparent;"></div>
+                        <div class="e-gantt-manualparenttaskbar-left" style="height:12.5px;border-left-width:2.5px; border-bottom:2.5px solid transparent;"></div>
+                        <div class="e-gantt-manualparenttaskbar-right" style="left:251.25px;height:12.5px;border-right-width:2.5px;border-bottom:2.5px solid transparent;cursor:auto;"></div>
+                    </div>
+                }
+            </ManualTaskbarTemplate>
+        </GanttTemplates>
+        <GanttEvents TValue="TaskInfoModel" BeforeTooltipRender="BeforeTooltipHandler" TaskbarEditing="TaskbarEditingHandler"></GanttEvents>
+    </SfGantt>
+}
+else if (currentDataType == "expando")
+{
+    <SfGantt TValue="ExpandoObject" DataSource="@TaskCollectionExpando" @ref="GanttExpando" EnableCriticalPath="true" Height="450px" Width="100%" TreeColumnIndex="1" Toolbar="@(new List<Object>() { "Add", "Cancel", "Update", "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit" })" EnableContextMenu="true">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor">
+        </GanttTaskFields>
+        <GanttColumns>
+            <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip">
+                <HeaderTemplate>
+                    <div>
+                        <i class="app-icon-job_title"></i>
+                        Job Name
+                    </div>
+                </HeaderTemplate>
+                <Template>
+                    @{
+                        dynamic task = context;
+                        @if (task != null)
+                        {
+                            <SfButton Content="@(task.TaskName)"></SfButton>
+                        }
+                    }
+                </Template>
+            </GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date">
+                <HeaderTemplate>
+                    <div>
+                        <i class="app-icon-calendar"></i>
+                        Start Date
+                    </div>
+                </HeaderTemplate>
+            </GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date">
+                <HeaderTemplate>
+                    <div>
+                        <i class="app-icon-calendar"></i>
+                        End Date
+                    </div>
+                </HeaderTemplate>
+            </GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration">
+                <HeaderTemplate>
+                    <div>
+                        <i class="app-icon-time"></i>
+                        Duration
+                    </div>
+                </HeaderTemplate>
+            </GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress">
+                <HeaderTemplate>
+                    <div>
+                        <i class="app-icon-progress"></i>
+                        Progress
+                    </div>
+                </HeaderTemplate>
+            </GanttColumn>
+            <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+        </GanttColumns>
+        <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="ExpandoObject" TSegments="SegmentModelInt" DataSource="SegmentCollectionInt"></GanttSegmentFields>
+        <GanttLabelSettings TValue="ExpandoObject">
+            <LeftLabelTemplate>
+                @{
+                    dynamic TaskInfoModel = context;
+                    <div class="e-left-label-inner-div" style="height:22px;margin-top:6px;">
+                        <span class="e-label">@TaskInfoModel.TaskName</span>
+                    </div>
+                }
+            </LeftLabelTemplate>
+            <TaskLabelTemplate>
+                @{
+                    dynamic TaskInfoModel = context;
+                    <div class="e-task-label-inner-div" style="line-height:21px; height:22px;">
+                        <span class="e-label">@(TaskInfoModel.Progress)%</span>
+                    </div>
+                }
+            </TaskLabelTemplate>
+        </GanttLabelSettings>
+        <GanttTimelineSettings ShowTooltip="true">
+            <GanttTopTierSettings Unit="TimelineViewMode.Month">
+                <FormatterTemplate>
+                    @{
+                        @if (context.Tier == "top")
+                        {
+                            @this.Formatter((context.Date))
+                        }
+                    }
+                </FormatterTemplate>
+            </GanttTopTierSettings>
+            <GanttBottomTierSettings Unit="TimelineViewMode.Day" Format="dd"></GanttBottomTierSettings>
+        </GanttTimelineSettings>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttSplitterSettings Position="28%"></GanttSplitterSettings>
+        <GanttTooltipSettings TValue="ExpandoObject">
+            <EditingTemplate>
+                <table>
+                    @{
+                        text = string.Empty;
+                        dynamic template = context;
+                        if (TaskbarEditAction == "LeftResizing")
+                        {
+                            text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Duration: {template.Duration}";
+                            <tr>
+                                <td style="padding:3px">@(template.StartDate?.ToString("MMM dd, yyyy"))</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:6px">@(template.Duration) days</td>
+                            </tr>
+                        }
+                        else if (TaskbarEditAction == "RightResizing")
+                        {
+                            text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Duration: {template.Duration}";
+                            <tr>
+                                <td style="padding:3px">@(template.EndDate?.ToString("MMM dd, yyyy"))</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:6px">@(template.Duration) days</td>
+                            </tr>
+                        }
+                        else if (TaskbarEditAction == "ChildDrag" || TaskbarEditAction == "ParentDrag")
+                        {
+                            text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Duration: {template.Duration}";
+                            <tr>
+                                <td style="padding:3px">@(template.StartDate?.ToString("MMM dd, yyyy"))</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:3px">@(template.EndDate?.ToString("MMM dd, yyyy"))</td>
+                            </tr>
+                        }
+                        else if (TaskbarEditAction == "ProgressResizing")
+                        {
+                            text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Progress: {template.Progress}";
+                            <tr>
+                                <td style="padding:3px">@(template.Progress) %</td>
+                            </tr>
+                        }
+                    }
+                </table>
+            </EditingTemplate>
+            <ConnectorLineTemplate>
+                @{
+                    text = string.Empty;
+                    dynamic dependencyContext = context;
+                    text += $"Connectorline Template: TaskId: {dependencyContext.TaskId} Predecessor: {dependencyContext.Predecessor}";
+                    <div>
+                        @dependencyContext.Predecessor
+                    </div>
+                }
+            </ConnectorLineTemplate>
+            <TaskbarTemplate>
+                <table>
+                    @{
+                        text = string.Empty;
+                        dynamic taskbar = context;
+                        text += $"Taskbar Template: TaskId: {taskbar.TaskId} StartDate: {taskbar.StartDate} EndDate: {taskbar.EndDate} Duration: {taskbar.Duration}";
+                        <tr>
+                            <td style="padding:3px">Starts On:</td>
+                            <td style="padding:3px">@taskbar.StartDate?.ToString("MM/dd/yyyy")</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:3px">Ends On:</td>
+                            <td style="padding:3px">@taskbar.EndDate?.ToString("MM/dd/yyyy")</td>
+                        </tr>
+                    }
+                </table>
+            </TaskbarTemplate>
+            <TimelineCellTemplate>
+                @{
+                    text = string.Empty;
+                    var timelineCell = context as string;
+                    text += $"Timeline Template: : Date: {timelineCell}";
+                    <div>
+                        <i class="app-icon-calendar"></i>
+                        @timelineCell
+                    </div>
+                }
+            </TimelineCellTemplate>
+        </GanttTooltipSettings>
+    </SfGantt>
+}
+else if (currentDataType == "dynamic object")
+{
+    <SfGantt TValue="DynamicDictionary" DataSource="@TaskCollectionDynamic" @ref="GanttDynamic" AllowFiltering="true" Height="450px" EnableCriticalPath="true" Width="100%" TreeColumnIndex="1" Toolbar="@(new List<Object>() { "Add", "Cancel", "Update", "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit" })" EnableContextMenu="true">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor">
+        </GanttTaskFields>
+        <GanttColumns>
+            <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip">
+                <HeaderTemplate>
+                    <div>
+                        <i class="app-icon-job_title"></i>
+                        Job Name
+                    </div>
+                </HeaderTemplate>
+                <Template>
+                    @{
+                        dynamic task = context;
+                        @if (task != null)
+                        {
+                            <SfButton Content="@(task.TaskName)"></SfButton>
+                        }
+                    }
+                </Template>
+            </GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date">
+                <HeaderTemplate>
+                    <div>
+                        <i class="app-icon-calendar"></i>
+                        Start Date
+                    </div>
+                </HeaderTemplate>
+            </GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date">
+                <HeaderTemplate>
+                    <div>
+                        <i class="app-icon-calendar"></i>
+                        End Date
+                    </div>
+                </HeaderTemplate>
+            </GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration">
+                <HeaderTemplate>
+                    <div>
+                        <i class="app-icon-time"></i>
+                        Duration
+                    </div>
+                </HeaderTemplate>
+            </GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress">
+                <HeaderTemplate>
+                    <div>
+                        <i class="app-icon-progress"></i>
+                        Progress
+                    </div>
+                </HeaderTemplate>
+            </GanttColumn>
+            <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+        </GanttColumns>
+        <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="DynamicDictionary" TSegments="SegmentModelInt" DataSource="SegmentCollectionInt"></GanttSegmentFields>
+        <GanttLabelSettings TValue="DynamicDictionary">
+            <LeftLabelTemplate>
+                @{
+                    dynamic TaskInfoModel = context;
+                    <div class="e-left-label-inner-div" style="height:22px;margin-top:6px;">
+                        <span class="e-label">@TaskInfoModel.TaskName</span>
+                    </div>
+                }
+            </LeftLabelTemplate>
+            <TaskLabelTemplate>
+                @{
+                    dynamic TaskInfoModel = context;
+                    <div class="e-task-label-inner-div" style="line-height:21px; height:22px;">
+                        <span class="e-label">@(TaskInfoModel.Progress)%</span>
+                    </div>
+                }
+            </TaskLabelTemplate>
+        </GanttLabelSettings>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttTimelineSettings ShowTooltip="true">
+            <GanttTopTierSettings Unit="TimelineViewMode.Month">
+                <FormatterTemplate>
+                    @{
+                        @if (context.Tier == "top")
+                        {
+                            @this.Formatter((context.Date))
+                        }
+                    }
+                </FormatterTemplate>
+            </GanttTopTierSettings>
+            <GanttBottomTierSettings Unit="TimelineViewMode.Day" Format="dd"></GanttBottomTierSettings>
+        </GanttTimelineSettings>
+        <GanttSplitterSettings Position="28%"></GanttSplitterSettings>
+        <GanttTooltipSettings TValue="DynamicDictionary">
+            <EditingTemplate>
+                <table>
+                    @{
+                        text = string.Empty;
+                        dynamic template = context;
+                        if (TaskbarEditAction == "LeftResizing")
+                        {
+                            text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Duration: {template.Duration}";
+                            <tr>
+                                <td style="padding:3px">@(template.StartDate?.ToString("MMM dd, yyyy"))</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:6px">@(template.Duration) days</td>
+                            </tr>
+                        }
+                        else if (TaskbarEditAction == "RightResizing")
+                        {
+                            text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Duration: {template.Duration}";
+                            <tr>
+                                <td style="padding:3px">@(template.EndDate?.ToString("MMM dd, yyyy"))</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:6px">@(template.Duration) days</td>
+                            </tr>
+                        }
+                        else if (TaskbarEditAction == "ChildDrag" || TaskbarEditAction == "ParentDrag")
+                        {
+                            text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Duration: {template.Duration}";
+                            <tr>
+                                <td style="padding:3px">@(template.StartDate?.ToString("MMM dd, yyyy"))</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:3px">@(template.EndDate?.ToString("MMM dd, yyyy"))</td>
+                            </tr>
+                        }
+                        else if (TaskbarEditAction == "ProgressResizing")
+                        {
+                            text += $"Editing Template: TaskId: {template.TaskId} StartDate: {template.StartDate} EndDate: {template.EndDate} Progress: {template.Progress}";
+                            <tr>
+                                <td style="padding:3px">@(template.Progress) %</td>
+                            </tr>
+                        }
+                    }
+                </table>
+            </EditingTemplate>
+            <ConnectorLineTemplate>
+                @{
+                    text = string.Empty;
+                    dynamic dependencyContext = context;
+                    text += $"Connectorline Template: TaskId: {dependencyContext.TaskId} Predecessor: {dependencyContext.Predecessor}";
+                    <div>
+                        @dependencyContext.Predecessor
+                    </div>
+                }
+            </ConnectorLineTemplate>
+            <TaskbarTemplate>
+                <table>
+                    @{
+                        text = string.Empty;
+                        dynamic taskbar = context;
+                        text += $"Taskbar Template: TaskId: {taskbar.TaskId} StartDate: {taskbar.StartDate} EndDate: {taskbar.EndDate} Duration: {taskbar.Duration}";
+                        <tr>
+                            <td style="padding:3px">Starts On:</td>
+                            <td style="padding:3px">@taskbar.StartDate?.ToString("MM/dd/yyyy")</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:3px">Ends On:</td>
+                            <td style="padding:3px">@taskbar.EndDate?.ToString("MM/dd/yyyy")</td>
+                        </tr>
+                    }
+                </table>
+            </TaskbarTemplate>
+            <TimelineCellTemplate>
+                @{
+                    text = string.Empty;
+                    var timelineCell = context as string;
+                    text += $"Timeline Template: : Date: {timelineCell}";
+                    <div>
+                        <i class="app-icon-calendar"></i>
+                        @timelineCell
+                    </div>
+                }
+            </TimelineCellTemplate>
+        </GanttTooltipSettings>
+    </SfGantt>
+}
+<div>
+    <label>@text</label>
+</div>
+<SfDropDownList @bind-Value="selectedIdType" DataSource="@IdTypes" TValue="string" TItem="string" Placeholder="Select ID Type">
+    <DropDownListFieldSettings Text="Text" Value="Value"></DropDownListFieldSettings>
+    <DropDownListEvents TValue="string" TItem="string" ValueChange="OnIdTypeChange"></DropDownListEvents>
+</SfDropDownList>
+<button @onclick="EnableBaseLine">Render BaseLine</button>
+<button @onclick="CustomScheduling">Custom Scheduling</button>
+<SfDropDownList @bind-Value="selectedMethod" DataSource="methods" Placeholder="Public Methods" Width="300px">
+    <DropDownListEvents TItem="DropdownData" TValue="string" ValueChange="HandleMethodChange"></DropDownListEvents>
+    <DropDownListFieldSettings Text="Text" Value="Value"></DropDownListFieldSettings>
+</SfDropDownList>
+<style>
+    @@font-face {
+        font-family: 'Gantt control icon';
+        src: url(data:application/x-font-ttf;charset=utf-8;base64,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) format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    i {
+        font-family: 'e-icons' !important;
+        speak: none;
+        vertical-align: sub;
+        font-size: 18px;
+        font-style: normal;
+        font-weight: normal;
+        font-variant: normal;
+        text-transform: none;
+        line-height: 1;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    .e-gantt-child-taskbar.e-gantt-child-manualtaskbar {
+        background-color: #1995AD !important;
+    }
+
+    .e-gantt-child-manualtaskbar .e-gantt-child-progressbar {
+        background-color: #90AFC5 !important;
+    }
+
+    .e-gantt-parent-taskbar-inner-div {
+        background-color: #7ab748 !important; /* Set parent taskbar color */
+    }
+
+    .e-manualparent-main-container .e-gantt-manualparenttaskbar {
+         margin-top: 4.5px !important;
+    }
+
+    .e-label {
+        color: #1e74ca !important; /* Set label text color */
+    }
+
+    .e-baseline-gantt-milestone-container {
+        background-color: #fdb9c9 !important; /* Set baseline milestone color */
+    }
+
+    .e-baseline-bar {
+        background-color: #fdb9c9 !important; /* Set baseline bar color */
+    }
+
+    .e-gantt-parent-progressbar-inner-div {
+        background-color: #4b732a !important; /* Set parent progress bar color */
+    }
+
+    .e-gantt-child-taskbar-inner-div {
+        background-color: #6d619b !important; /* Set child taskbar color */
+    }
+
+    .e-gantt-child-progressbar-inner-div {
+        background-color: #4e466e !important; /* Set child progress bar color */
+    }
+
+    .e-segmented-taskbar.e-gantt-clone-taskbar {
+        top: 0px !important;
+    }
+
+    .app-icon-calendar:before {
+        content: "\e700";
+    }
+
+    .e-segmented-taskbar .e-gantt-child-progressbar {
+        background-color: #0056B3 !important;
+    }
+
+    .e-segmented-taskbar {
+        background-color: #8553F1 !important;
+        border: 1px solid #3f51b5 !important;
+    }
+
+    .e-baseline-gantt-milestone-container {
+        background-color: #fdb9c9 !important; /* Set baseline milestone color */
+    }
+
+    .app-icon-calendar:before {
+        content: "\e700";
+    }
+
+    .app-icon-resource:before {
+        content: "\e701";
+    }
+
+    .app-icon-time:before {
+        content: "\e702";
+    }
+
+    .app-icon-job_title:before {
+        content: "\e703";
+    }
+
+    .app-icon-progress:before {
+        content: "\e704";
+    }
+
+    .image {
+        width: 100%;
+        height: 28px;
+    }
+
+    .e-right-label-inner-div {
+        margin-top: 4px;
+    }
+</style>
+@code {
+    public class DynamicDictionary : DynamicObject
+    {
+        Dictionary<string, object> dictionary = new Dictionary<string, object>();
+        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        {
+            string name = binder.Name;
+            return dictionary.TryGetValue(name, out result);
+        }
+
+        public override bool TrySetMember(SetMemberBinder binder, object value)
+        {
+            dictionary[binder.Name] = value;
+            return true;
+        }
+
+        public override System.Collections.Generic.IEnumerable<string> GetDynamicMemberNames()
+        {
+            return this.dictionary?.Keys;
+        }
+    }
+}

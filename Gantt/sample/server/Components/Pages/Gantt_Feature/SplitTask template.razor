@@ -1,0 +1,469 @@
+@page "/SplitTask-template"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.TreeGrid
+@using Syncfusion.Blazor.Navigations
+@using System.Collections.Generic;
+@using System.Globalization;
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt @ref="Gantt" ID="Gantt" DataSource="TaskCollection" Height="550px" Width="1200px"
+                     GridLines="@Syncfusion.Blazor.Gantt.GridLine.Both"
+                     AllowFiltering="true" AllowResizing="true" AllowSorting="true" ShowColumnMenu="true" ScrollToTaskbarOnClick="true">
+                <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="OverviewData.TaskData" TSegments="SegmentModel" DataSource="segmentCollection" SegmentChanging="SegmentSaveHanlder">
+                </GanttSegmentFields>
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Work="Work"
+                                 Duration="TimeLog" Dependency="Predecessor" Progress="Progress" ParentID="ParentId">
+                </GanttTaskFields>
+                <GanttEditSettings AllowEditing="true" AllowAdding AllowDeleting AllowTaskbarEditing></GanttEditSettings>
+                 <GanttEvents Created="CreatedHanlder" Destroyed="DestroyHandler" TValue="OverviewData.TaskData"></GanttEvents>
+                <GanttTemplates TValue="OverviewData.TaskData">
+                     <TaskbarTemplate>
+                         @{
+                            var task = (context as OverviewData.TaskData);
+                            var segments = GetSegmentsData(context as OverviewData.TaskData);
+                            @if (segments != null && segments.Count() > 1)
+                            {
+                                foreach (var segment in segments)
+                                {
+                                    @if (segment.SegmentIndex == 0)
+                                    {
+                                        <div class="e-gantt-child-taskbar e-gantt-child-taskbar-inner-div e-segmented-taskbar" style=@("height:24px;position: absolute;left:" + segment.Left + "px; width:" + segment.Width + "px;") tabindex=-1 data-segment-index="0">
+                                            <div class="e-taskbar-left-resizer e-icon" style="margin-top: 5px; left:5px">
+                                            </div>
+                                            <div class="e-gantt-child-progressbar-inner-div e-gantt-child-progressbar" style="color:@childProgressColor;height:24px;width:@(segment.ProgressWidth + "px");text-align: right;">
+                                            </div>
+                                           
+                                            <div class="e-taskbar-right-resizer e-icon" style="margin-top: 5px;left:@((segment.Left + segment.Width) - 15)px">
+                                            </div>
+                                        </div>
+                                    }
+                                    else if (segments.Count() == segment.SegmentIndex + 1)
+                                    {
+                                        <div class="e-gantt-child-taskbar e-gantt-child-taskbar-inner-div e-segmented-taskbar" style="@("height:24px;position: absolute;left:" + segment.Left + "px; width:" + segment.Width + "px")" tabindex=-1 data-segment-index="@segment.SegmentIndex">
+                                            <div class="e-taskbar-left-resizer e-icon" style="margin-top: 5px; left:5px">
+                                            </div>
+                                            <div class="e-gantt-child-progressbar-inner-div e-gantt-child-progressbar" style="color:@childProgressColor;height:24px;width:@(segment.ProgressWidth + "px");text-align: right;">
+                                            </div>
+                                           
+                                            <div class="e-taskbar-right-resizer e-icon" style="margin-top: 5px;left:@((segment.Left + segment.Width) - 15)px">
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="e-gantt-child-taskbar e-gantt-child-taskbar-inner-div e-segmented-taskbar" style="@("height:24px;position: absolute;left:" + segment.Left + "px; width:" + segments[segment.SegmentIndex].Width + "px")" tabindex=-1 data-segment-index="@segment.SegmentIndex">
+                                            <div class="e-taskbar-left-resizer e-icon" style="margin-top: 5px; left:5px">
+                                            </div>
+                                            <div class="e-gantt-child-progressbar-inner-div e-gantt-child-progressbar" style="color:@childProgressColor;height:24px;width:@(segment.ProgressWidth + "px");text-align: right;">
+                                            </div>
+                                           
+                                            <div class="e-taskbar-right-resizer e-icon" style="margin-top: 5px;left:@((segment.Left + segment.Width) - 15)px">
+                                            </div>
+                                        </div>
+                                    }
+                                }
+
+
+                            }
+                            else
+                            {
+                                //var task = (context as OverviewData.TaskData);
+                                if (task.Progress < 100 && task.Progress != 0)
+                                {
+                                    borderRadius = "0px";
+                                    <div class="e-gantt-child-taskbar-inner-div e-gantt-child-taskbar" style="border-radius:10px;color:@childTrackColor;height:24px;width:100%" tabindex="-1">
+                                        <div class="e-gantt-child-progressbar-inner-div e-gantt-child-progressbar" style="border-radius:@borderRadius;color:@childProgressColor;height:24px;width:@task.Progress%;text-align: right;box-sizing: border-box;">
+                                            <span style="color:white;font-size:12px;top:4px;position: relative;right:4px">@task.Progress%</span>
+                                        </div>
+                                    </div>
+                                }
+                                else if (task.Progress == 100)
+                                {
+                                    borderRadius = "10px";
+                                    <div class="e-gantt-child-taskbar-inner-div e-gantt-child-taskbar" style="border-radius:10px;color:@childTrackColor;height:24px;width:100%" tabindex="-1">
+                                        <div class="e-gantt-child-progressbar-inner-div e-gantt-child-progressbar" style="border-radius:@borderRadius;color:@childProgressColor;height:24px;width:@task.Progress%;text-align: right;box-sizing: border-box;">
+                                            <span style="color:white;font-size:12px;top:4px;position: relative;right:4px">@task.Progress%</span>
+                                        </div>
+                                    </div>
+                                }
+                                if (task.Progress == 0)
+                                {
+                                    borderRadius = "0px";
+                                    <div class="e-gantt-child-taskbar-inner-div e-gantt-child-taskbar" style="border-radius:10px;color:@childTrackColor;height:24px;width:100%" tabindex="-1">
+                                        <div class="e-gantt-child-progressbar-inner-div e-gantt-child-progressbar" style="border-radius:@borderRadius;color:@childProgressColor;height:24px;width:@task.Progress%;text-align: right;box-sizing: border-box;">
+                                            <span style="color:white;font-size:12px;top:4px;position: relative;left:4px;">@task.Progress%</span>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        }
+                    </TaskbarTemplate>
+                </GanttTemplates>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+<style>
+
+    .e-gantt-clone-taskbar {
+        opacity: 1 !important;
+    }
+    .e-gantt-chart-resize-indicator {
+        display: none !important;
+    }
+
+</style>
+@code {
+    private async Task CreatedHanlder(object args)
+    {
+      
+    }
+
+
+
+    private async Task DestroyHandler(object args)
+    {
+      
+    }
+    private SfGantt<OverviewData.TaskData> Gantt;
+    public List<OverviewData.TaskData> TaskCollection { get; set; }
+    private DateTime VolumeOneRelease = new DateTime(2022, 04, 04);
+    private DateTime VolumeTwoRelease = new DateTime(2022, 06, 30);
+    private DateTime VolumeThreeRelease = new DateTime(2022, 09, 29);
+    private DateTime Holiday1 = new DateTime(2021, 12, 25);
+    private DateTime Holiday2 = new DateTime(2021, 12, 26);
+    private DateTime Holiday3 = new DateTime(2022, 01, 01);
+    private DateTime Holiday4 = new DateTime(2022, 01, 01);
+    public Theme CurrentTheme { get; set; }
+    public string currentUri;
+    public string style;
+    public string childProgressColor;
+    public string parentProgressColor;
+    public string childTrackColor;
+    public string parentTrackColor;
+    public string progressValue { get; set; } = "white";
+    private List<OverviewData.ResourceAlloacteData> ResourceCollection { get; set; }
+    private List<string> Status = new List<string>() { "Open", "Inprogress", "On Hold", "Complete" };
+    private List<string> Priority = new List<string>() { "Low", "Normal", "High", "Critical" };
+    public string borderRadius = "10px";
+    public string statusStyleColor;
+    public string statusContentstyleColor;
+    public string priorityContentStyle;
+    public string priorityStyle;
+    private List<SegmentModel> segmentCollection { get; set; }
+    private List<Theme> ThemeCollection = new List<Theme>() { Theme.Fluent, Theme.Fabric, Theme.Bootstrap5, Theme.Bootstrap, Theme.Bootstrap4, Theme.Tailwind, Theme.Material };
+    public string progressLeft = "0px";
+    public class SplitterView
+    {
+        public string ID { get; set; }
+        public string Text { get; set; }
+    }
+    private void SegmentSaveHanlder(SegmentEventArgs<SegmentModel> args)
+    {
+    
+    }
+    public class Segments
+    {
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public double TimeLog { get; set; }
+    }
+    private int currentSegmentIndex = -1;
+    private List<GanttSegmentData> GetSegmentsData(OverviewData.TaskData data)
+    {
+        return Gantt.GetRowTaskModel(data).Segments;
+    }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = OverviewData.DataCollection();
+        this.ResourceCollection = OverviewData.GetResources;
+        this.segmentCollection = GetSegmentCollection();
+        currentUri = Navigation.Uri;
+    }
+    private String GetStatusStyle(string status)
+    {
+        switch (status)
+        {
+            case "In Progress":
+                statusStyleColor = ThemeCollection.Contains(this.CurrentTheme) ? "#DFECFF" : "#2D3E57";
+                style = "display: flex; padding: 1px 12px; gap: 10px; width: 96px; height: 24px; border-radius: 24px; background:" + statusStyleColor;
+                break;
+            case "Open":
+                style = "background-color: red; color: white; border-radius: 15px; padding:6px";
+                break;
+            case "On Hold":
+                statusStyleColor = ThemeCollection.Contains(this.CurrentTheme) ? "#E4E4E7" : "#3C3B43";
+                style = "display: flex; border-radius: 24px; padding: 1px 12px; gap: 10px; width: 78px; height: 24px; background:" + statusStyleColor;
+                break;
+            case "Completed":
+                statusStyleColor = ThemeCollection.Contains(this.CurrentTheme) ? "#DFFFE2" : "#16501C";
+                style = "display: flex; padding: 2px 12px; gap: 10px; width: 98px; height: 24px; border-radius: 24px;background:" + statusStyleColor;
+                break;
+            case "High":
+                statusStyleColor = ThemeCollection.Contains(this.CurrentTheme) ? "#FFEBE9" : "#48211D";
+                style = "display: flex; padding: 1px 12px; gap: 10px; width: 55px; height: 24px; border-radius: 24px; background:" + statusStyleColor;
+                break;
+        }
+        return style;
+    }
+    private String GetStatusContentStyle(string status)
+    {
+        switch (status)
+        {
+            case "In Progress":
+                statusContentstyleColor = ThemeCollection.Contains(this.CurrentTheme) ? "#006AA6" : "#34B6FF";
+                style = "width: 72px; height: 22px; font-style: normal; font-weight: 500; font-size: 14px; line-height: 20px; text-align: center; color: " + statusContentstyleColor;
+                break;
+            case "Open":
+                style = "background-color: red; color: white; border-radius: 15px; padding:6px";
+                break;
+            case "On Hold":
+                statusContentstyleColor = ThemeCollection.Contains(this.CurrentTheme) ? "#766B7C" : "#CDCBD7";
+                style = "width: 54px; height: 22px; font-style: normal; font-weight: 500; font-size: 14px; line-height: 20px; text-align: center; color: " + statusContentstyleColor;
+                break;
+            case "Completed":
+                statusContentstyleColor = ThemeCollection.Contains(this.CurrentTheme) ? "#00A653" : "#92FFC8";
+                style = "width: 74px; height: 22px; font-style: normal; font-weight: 500; font-size: 14px; line-height: 20px; text-align: center; color: " + statusContentstyleColor;
+                break;
+            case "High":
+                statusContentstyleColor = ThemeCollection.Contains(this.CurrentTheme) ? "#FF3740" : "#FFB5B8";
+                style = "width: 31px; height: 22px; font-style: normal; font-weight: 500; font-size: 14px; line-height: 20px; text-align: center; color: " + statusContentstyleColor;
+                break;
+        }
+        return style;
+    }
+    private String GetPriorityStyle(string status)
+    {
+        switch (status)
+        {
+            case "Low":
+                priorityStyle = ThemeCollection.Contains(this.CurrentTheme) ? "#FFF6D1" : "#473F1E";
+                style = "display: flex; padding: 1px 12px; gap: 10px; width: 52px; height: 24px; border-radius: 24px; background: " + priorityStyle;
+                break;
+            case "Normal":
+                priorityStyle = ThemeCollection.Contains(this.CurrentTheme) ? "#F5DFFF" : "#4D2F5A";
+                style = "display: flex; padding: 1px 12px; gap: 10px; width: 73px; height: 24px; border-radius: 24px; background: " + @priorityStyle;
+                break;
+            case "Critical":
+                priorityStyle = ThemeCollection.Contains(this.CurrentTheme) ? "#FFEBE9" : "#48211D";
+                style = "display: flex; padding: 1px 12px; gap: 10px; width: 72px; height: 24px; border-radius: 24px; background: " + priorityStyle;
+                break;
+            case "High":
+                priorityStyle = ThemeCollection.Contains(this.CurrentTheme) ? "#FFEBE9" : "#48211D";
+                style = "display: flex; padding: 1px 12px; gap: 10px; width: 55px; height: 24px; border-radius: 24px; background: " + priorityStyle;
+                break;
+        }
+        return style;
+    }
+    private String GetPriorityContentStyle(string status)
+    {
+        switch (status)
+        {
+            case "Low":
+                priorityContentStyle = ThemeCollection.Contains(this.CurrentTheme) ? "#70722B" : "#FDFF88";
+                style = "width: 28px; height: 22px; font-style: normal; font-weight: 500; font-size: 14px; line-height: 20px; text-align: center; color: " + priorityContentStyle;
+                break;
+            case "Normal":
+                priorityContentStyle = ThemeCollection.Contains(this.CurrentTheme) ? "#7100A6" : "#E3A9FF";
+                style = "width: 49px; height: 22px; font-style: normal; font-weight: 500; font-size: 14px; line-height: 20px; text-align: center; color: " + priorityContentStyle;
+                break;
+            case "Critical":
+                priorityContentStyle = ThemeCollection.Contains(this.CurrentTheme) ? "#FF3740" : "#FFB5B8";
+                style = "width: 48px; height: 22px; font-style: normal; font-weight: 500; font-size: 14px; line-height: 20px; text-align: center; color: " + priorityContentStyle;
+                break;
+            case "High":
+                priorityContentStyle = ThemeCollection.Contains(this.CurrentTheme) ? "#FF3740" : "#FFB5B8";
+                style = "width: 31px; height: 22px; font-style: normal; font-weight: 500; font-size: 14px; line-height: 20px; text-align: center; color: " + @priorityContentStyle;
+                break;
+        }
+        return style;
+    }
+
+
+    public class OverviewData
+    {
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string TaskName { get; set; }
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public DateTime? DueDate { get; set; }
+            public double? TimeLog { get; set; }
+            public double? Work { get; set; }
+            public string Assignee { get; set; }
+            public string Manager { get; set; }
+            public int Progress { get; set; }
+            public string Predecessor { get; set; }
+            public double StoryPoints { get; set; }
+            public string Status { get; set; }
+            public int? ParentId { get; set; }
+            public string Priority { get; set; }
+            public string Component { get; set; }
+        }
+        public class ResourceAlloacteData
+        {
+            public int ResourceId { get; set; }
+            public string ResourceName { get; set; }
+            public double Unit { get; set; }
+        }
+        public static List<ResourceAlloacteData> GetResources = new List<ResourceAlloacteData>()
+        {
+            new ResourceAlloacteData() { ResourceId= 1, ResourceName= "Martin Tamer" ,},
+            new ResourceAlloacteData() { ResourceId= 2, ResourceName= "Rose Fuller" },
+            new ResourceAlloacteData() { ResourceId= 3, ResourceName= "Margaret Buchanan" },
+            new ResourceAlloacteData() { ResourceId= 4, ResourceName= "Fuller King" },
+            new ResourceAlloacteData() { ResourceId= 5, ResourceName= "Davolio Fuller" },
+            new ResourceAlloacteData() { ResourceId= 6, ResourceName= "Van Jack" },
+            new ResourceAlloacteData() { ResourceId= 7, ResourceName= "Fuller Buchanan" },
+            new ResourceAlloacteData() { ResourceId= 8, ResourceName= "Jack Davolio" },
+            new ResourceAlloacteData() { ResourceId= 9, ResourceName= "Tamer Vinet" },
+            new ResourceAlloacteData() { ResourceId= 10, ResourceName= "Vinet Fuller" },
+            new ResourceAlloacteData() { ResourceId= 11, ResourceName= "Bergs Anton" },
+            new ResourceAlloacteData() { ResourceId= 12, ResourceName= "Construction Supervisor" }
+        };
+        public static List<TaskData> DataCollection()
+        {
+            List<TaskData> Tasks = new List<TaskData>()
+            {
+                new TaskData(){
+                    TaskId = 1,
+                    TaskName="Q-1 Release",
+                    StartDate=new DateTime(2021,12,20),
+                    EndDate=new DateTime(2022,04,4),
+                    Manager="",
+                    DueDate= new DateTime(2022,04,4),
+                    TimeLog=2,
+                    Work=2,
+                    Progress=80,
+                    Status="In Progress"
+                },
+                new TaskData(){
+                    TaskId= 2,
+                    TaskName="Roadmap",
+                    ParentId=1
+                },
+                new TaskData(){
+                    TaskId= 3,
+                    TaskName="Implementation",
+                    ParentId=2
+                },
+                new TaskData(){
+                    TaskId = 4,
+                    TaskName="Grid",
+                    StartDate=new DateTime(2021,12,20),
+                    EndDate=new DateTime(2022,2,20),
+                    DueDate=new DateTime(2022,04,4),
+                    TimeLog=10,
+                    Work=45,
+                    Progress=70,
+                    ParentId=3
+                },
+                new TaskData(){
+                    TaskId = 5,
+                    TaskName="Batch Editing",
+                    StartDate=new DateTime(2021,12,24),
+                    EndDate=new DateTime(2022,2,21),
+                    Assignee="Martin Tamer",
+                    Manager="",
+                    DueDate=new DateTime(2022,2,17),
+                    TimeLog=10,
+                    Work=43,
+                    Progress=100,
+                    Status="Completed",
+                    ParentId=4,
+                    Priority="High",
+                    Component="Grid",
+
+                },
+                new TaskData(){
+                    TaskId = 6,
+                    TaskName="PDF Export",
+                    StartDate=new DateTime(2021,12,24),
+                    EndDate=new DateTime(2022,2,25),
+                    Assignee="Rose Fuller",
+                    Manager="",
+                    DueDate=new DateTime(2022,2,17),
+                    TimeLog=10,
+                    Work=45,
+                    Progress=10,
+                    Status="On Hold",
+                    ParentId=4,
+                    Priority="Normal",
+                    Component="Grid",
+                    //Segments = new List<Segments>(){ }, new Segments() { StartDate = new DateTime(2021,12,28), TimeLog = 5} }
+
+                },
+                new TaskData(){
+                    TaskId = 7,
+                    TaskName="Tree Grid",
+                    StartDate=new DateTime(2022,1,2),
+                    EndDate=new DateTime(2022,2,20),
+                    DueDate=new DateTime(2022,2,20),
+                    TimeLog=10,
+                    Work=30,
+                    Progress=80,
+                    ParentId=3
+                },
+
+            };
+            return Tasks;
+        }
+    }
+    public class SegmentModel
+    {
+        public int id { get; set; }
+        public int TaskId { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+    }
+    private List<SegmentModel> GetSegmentCollection()
+    {
+        List<SegmentModel> segments = new List<SegmentModel>();
+        segments.Add(new SegmentModel() { id = 1, TaskId = 5, StartDate = new DateTime(2021, 12, 24), Duration = "3" });
+        segments.Add(new SegmentModel() { id = 2, TaskId = 5, StartDate = new DateTime(2021, 12, 28), Duration = "5" });
+        segments.Add(new SegmentModel() { id = 3, TaskId = 6, StartDate = new DateTime(2021, 12, 24), Duration = "5" });
+        segments.Add(new SegmentModel() { id = 4, TaskId = 6, StartDate = new DateTime(2021, 12, 28), Duration = "5" });
+
+        return segments;
+    }
+    
+}
+<style>
+    .e-custom.e-input-group, .e-custom.e-input-group.e-control-wrapper {
+        border: none;
+        background: none;
+    }
+
+    body:not(.material3):not(.material3-dark) .e-ddl.e-input-group.e-control-wrapper .e-ddl-icon::before {
+        content: '\e729';
+        padding-top: 5px;
+        padding-right: 10px;
+    }
+
+    .e-task-label {
+        display: inline-block;
+        width: 100%;
+        padding: 0 6px;
+    }
+
+    .e-toolbar {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-style: solid;
+        border-width: 1px 1px 0;
+    }
+
+    .e-gantt-child-taskbar-inner-div.e-segmented-taskbar {
+        overflow: initial !important;
+    }
+</style>

@@ -1,0 +1,127 @@
+﻿@page "/multipagepdf-scaling"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.DropDowns;
+@using Syncfusion.PdfExport
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Navigations
+@using System.Net
+@using Syncfusion.Blazor.Buttons
+@using System.Reflection;
+@using System.Runtime.Serialization;
+<SfRadioButton Label="Percentage Scaling"
+                Name="percentagescaling"
+                Value="Percentage"
+                @bind-Checked="@ScalingSelection">
+</SfRadioButton>
+<SfRadioButton Label="PageTall Scaling"
+                Name="tallscaling"
+                Value="PageTall"
+                @bind-Checked="@ScalingSelection">
+</SfRadioButton>
+
+<SfGantt @ref="Gantt" ID="Gantt" Toolbar="@ToolbarItems" DataSource="@TaskCollection" Height="450px" Width="1250px" AllowPdfExport GridLines="Syncfusion.Blazor.Gantt.GridLine.Both">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" Dependency="Predecessor" ParentID="ParentId">
+    </GanttTaskFields>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Task Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+        <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+    </GanttColumns>
+    <GanttEvents TValue="TimelineData.TaskData" OnToolbarClick="OnToolbarClick" PdfExporting="PdfExportingHandler"></GanttEvents>
+    <GanttEditSettings AllowEditing AllowTaskbarEditing></GanttEditSettings>
+     <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+</SfGantt>
+
+
+@code {
+    public SfGantt<TimelineData.TaskData> Gantt { get; set; }
+    private DateTime ProjectStartDate { get; set; } = new DateTime(2021, 3, 24);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2021, 7, 6);
+    public List<TimelineData.TaskData> TaskCollection { get; set; } = new List<TimelineData.TaskData>();
+    public string ScalingSelection = "Percentage";
+    private List<object> ToolbarItems = new List<object> {
+        new ToolbarItem{ Id = "GanttPdfCustomization_PdfExport", Text = "PdfExport", PrefixIcon="e-pdfexport"},"Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll",
+        "Search", "ZoomIn", "ZoomOut", "ZoomToFit", "PrevTimeSpan", "NextTimeSpan"
+    };
+    public async Task PdfExportHandler()
+    {
+        await Gantt.ExportToPdfAsync(null, true);
+    }
+    public void PdfExportingHandler(PdfExportEventArgs args)
+    {
+        if (ScalingSelection == "Percentage")
+        {
+            args.MultiPageSettings.ScaleMode = GanttPdfExportScaleMode.Percentage;
+            args.MultiPageSettings.ScalePercentage = 50;
+        }
+        else
+        {
+            args.MultiPageSettings.ScaleMode = GanttPdfExportScaleMode.FitToPages;
+            args.MultiPageSettings.PageTall = 1;
+            args.MultiPageSettings.PageWide = 2;
+        }
+    }
+    private async Task OnToolbarClick(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        if (args.Item.Id == "GanttPdfCustomization_PdfExport")
+        {
+            await PdfExportHandler();
+        }
+    }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = TimelineData.TimelineRecord();
+    }
+    public class TimelineData
+    {
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string TaskName { get; set; }
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public string Duration { get; set; }
+            public int Progress { get; set; }
+            public string Predecessor { get; set; }
+            public int? ParentId { get; set; }
+        }
+        public static List<TaskData> TimelineRecord()
+        {
+            List<TaskData> Tasks = new List<TaskData>() {
+                new TaskData() { TaskId = 1, TaskName = "Product concept ", StartDate = new DateTime(2019, 04, 02), EndDate = new DateTime(2019, 04, 08), Duration = "5days" },
+                new TaskData() { TaskId = 2, TaskName = "Defining the product usage", StartDate = new DateTime(2019, 04, 02), Progress = 30, ParentId = 1 },
+                new TaskData() { TaskId = 3, TaskName = "Defining the Target audience", StartDate = new DateTime(2019, 04, 02), EndDate = new DateTime(2019, 04, 04), Duration = "1", Progress = 40, ParentId = 1 },
+                new TaskData() { TaskId = 4, TaskName = "Prepare product sketch and notes", StartDate = new DateTime(2019, 04, 05), Duration = "2", Progress = 30, ParentId = 1, Predecessor = "2" },
+                new TaskData() { TaskId = 5, TaskName = "Concept approval", StartDate = new DateTime(2019, 04, 08), EndDate = new DateTime(2019, 04, 08), Duration = "0", Predecessor = "3,4" },
+                new TaskData() { TaskId = 6, TaskName = "Market Research", StartDate = new DateTime(2019, 04, 09), EndDate = new DateTime(2019, 04, 18), Duration = "4", Progress = 30 },
+                new TaskData() { TaskId = 7, TaskName = "Demand Analysis", Duration = "4", Progress = 40, ParentId = 6 },
+                new TaskData() { TaskId = 8, TaskName = "Customer Strength", StartDate = new DateTime(2019, 04, 09), EndDate = new DateTime(2019, 04, 12), Duration = "4", Progress = 30, ParentId = 7, Predecessor = "5" },
+                new TaskData() { TaskId = 9, TaskName = "Market Opportunity analysis", StartDate = new DateTime(2019, 04, 09), EndDate = new DateTime(2019, 04, 12), Duration = "4", ParentId = 7, Predecessor = "5" },
+                new TaskData() { TaskId = 10, TaskName = "Competitor analysis", StartDate = new DateTime(2019, 04, 15), EndDate = new DateTime(2019, 04, 18), Duration = "4", Progress = 30, ParentId = 6, Predecessor = "7,8" },
+                new TaskData() { TaskId = 11, TaskName = "Product Strength Analysis", StartDate = new DateTime(2019, 04, 15), EndDate = new DateTime(2019, 04, 18), Duration = "4", Progress = 40, ParentId = 6, Predecessor = "9" },
+                new TaskData() { TaskId = 12, TaskName = "Research Completed", StartDate = new DateTime(2019, 04, 18), EndDate = new DateTime(2019, 04, 18), Duration = "0", Progress = 30, ParentId = 6, Predecessor = "10" },
+                new TaskData() { TaskId = 13, TaskName = "Product design and developement", StartDate = new DateTime(2019, 04, 19), EndDate = new DateTime(2019, 05, 16), Duration = "20" },
+                new TaskData() { TaskId = 14, TaskName = "Functionality Design", StartDate = new DateTime(2019, 04, 19), EndDate = new DateTime(2019, 04, 23), Duration = "3", Progress = 30, ParentId = 13, Predecessor = "12" },
+                new TaskData() { TaskId = 15, TaskName = "Quality Design", StartDate = new DateTime(2019, 04, 19), EndDate = new DateTime(2019, 04, 23), Duration = "3", Progress = 40, ParentId = 13, Predecessor = "12" },
+                new TaskData() { TaskId = 16, TaskName = "Define reliability", StartDate = new DateTime(2019, 04, 24), EndDate = new DateTime(2019, 04, 25), Duration = "2", Progress = 30, ParentId = 13, Predecessor = "15" },
+                new TaskData() { TaskId = 17, TaskName = "Identifying raw mayerials", StartDate = new DateTime(2019, 04, 24), EndDate = new DateTime(2019, 04, 25), Duration = "2", ParentId = 13, Predecessor = "15" },
+                new TaskData() { TaskId = 18, TaskName = "Define cost plan", StartDate = new DateTime(2019, 04, 26), EndDate = new DateTime(2019, 04, 29), Duration = "2", Progress = 30, ParentId = 13, Predecessor = "17" },
+                new TaskData() { TaskId = 19, TaskName = "Manufacturing cost", StartDate = new DateTime(2019, 04, 26), EndDate = new DateTime(2019, 04, 29), Duration = "2", Progress = 40, ParentId = 18, Predecessor = "17" },
+                new TaskData() { TaskId = 20, TaskName = "Selling cost", StartDate = new DateTime(2019, 04, 26), EndDate = new DateTime(2019, 04, 29), Duration = "2", Progress = 30, ParentId = 18, Predecessor = "17" },
+                new TaskData() { TaskId = 21, TaskName = "Developement of final design", StartDate = new DateTime(2019, 04, 30), EndDate = new DateTime(2019, 05, 08), Duration = "7", ParentId = 13 },
+                new TaskData() { TaskId = 22, TaskName = "Develope dimensions and design", StartDate = new DateTime(2019, 04, 30), EndDate = new DateTime(2019, 05, 01), Duration = "2", Progress = 30, ParentId = 21, Predecessor = "19,20" },
+                new TaskData() { TaskId = 23, TaskName = "Develope designs to meet industry", StartDate = new DateTime(2019, 05, 02), EndDate = new DateTime(2019, 05, 03), Duration = "2", Progress = 40, ParentId = 21, Predecessor = "22" },
+                new TaskData() { TaskId = 24, TaskName = "Include all the deatails", StartDate = new DateTime(2019, 05, 06), EndDate = new DateTime(2019, 05, 08), Duration = "3", Progress = 30, ParentId = 21, Predecessor = "23" },
+                new TaskData() { TaskId = 25, TaskName = "CAD computer aided design", StartDate = new DateTime(2019, 05, 09), EndDate = new DateTime(2019, 05, 13), Duration = "3", Predecessor = "24" }
+            };
+            return Tasks;
+        }
+    }
+
+
+}

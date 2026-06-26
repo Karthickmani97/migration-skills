@@ -1,0 +1,249 @@
+@page "/E2EMigration/SfTab"
+@rendermode InteractiveServer
+@*copied from https://blazor.syncfusion.com/demos/gantt-chart/virtual-scroll?theme=fluent*@
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Navigations
+@inherits OwningComponentBase; 
+<div>@message</div>
+<div class="control-section">
+    <div class="row">
+        <div class="col-md-12">
+            
+            <div>NO TAB EVENTS</div>
+            <SfTab @ref="ScheduleTab" Height="500px" Width="1400px">
+                @*<TabEvents Selected="OnSelected"></TabEvents>*@
+                <TabItems>
+                    <TabItem CssClass="tabTsk">
+                        <ChildContent>
+                            <TabHeader Text="Dummy"></TabHeader>
+                        </ChildContent>
+                        <ContentTemplate>
+
+                        </ContentTemplate>
+                    </TabItem>
+                    <TabItem CssClass="tabGantt">
+                        <ChildContent>
+                            <TabHeader Text="Gantt Chart"></TabHeader>
+                        </ChildContent>
+                        <ContentTemplate>
+                            <div style="height: 100%; width: 100%; bottom: 0; margin-left: 0px; margin-right: 0px">
+                                <SfGantt DataSource="@TaskCollection" Height="450px" Width="100%" TreeColumnIndex="1" ProjectStartDate="ProjectStartDate" ProjectEndDate="ProjectEndDate" AllowSelection="true">
+                                    <GanttLabelSettings LeftLabel="TaskName" TValue="TaskDTO"></GanttLabelSettings>
+                                    <GanttTaskFields Id=@nameof(TaskDTO.ProjectTaskIndex)
+                                                     Name=@nameof(TaskDTO.TaskName)
+                                                     StartDate=@nameof(TaskDTO.StartDate)
+                                                     EndDate=@nameof(TaskDTO.EndDate)
+                                                     Progress=@nameof(TaskDTO.Progress)
+                                                     Work=@nameof(TaskDTO.Work)
+                                                     BaselineStartDate=@nameof(TaskDTO.DisplayBaselineStartDate)
+                                                     BaselineEndDate=@nameof(TaskDTO.DisplayBaselineEndDate)
+                                                     ParentID=@nameof(TaskDTO.ParentProjectTaskIndex)>
+                                    </GanttTaskFields>
+                                    <GanttColumns>
+                                        <GanttColumn Field=@nameof(TaskDTO.ProjectTaskIndex) HeaderText="Task Id" IsPrimaryKey="true"></GanttColumn>
+                                        <GanttColumn Field=@nameof(TaskDTO.TaskName) HeaderText="Task Name" Width="300" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip" IsPrimaryKey="true"></GanttColumn>
+
+                                        <GanttColumn Field=@nameof(TaskDTO.ParentTaskName) HeaderText="Parent Task Name" Width="300" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+
+                                        <GanttColumn Field=@nameof(TaskDTO.ProjectName) HeaderText="Project" Width="300" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+
+                                        <GanttColumn Field=@nameof(TaskDTO.Progress) HeaderText="Progress" Width="50"></GanttColumn>
+                                        <GanttColumn Field=@nameof(TaskDTO.ProgressStr) HeaderText="Progress Str" Width="50"></GanttColumn>
+
+                                        <GanttColumn Field=@nameof(TaskDTO.Work) HeaderText="Work" Width="50"></GanttColumn>
+                                        <GanttColumn Field=@nameof(TaskDTO.Duration) HeaderText="Duration" Width="50"></GanttColumn>
+                                        <GanttColumn Field=@nameof(TaskDTO.StartDate) HeaderText="Start Date" Type="ColumnType.Date" Format="d/M/yyyy" Width="100"></GanttColumn>
+                                        <GanttColumn Field=@nameof(TaskDTO.EndDate) HeaderText="End Date" Type="ColumnType.Date" Format="d/M/yyyy" Width="100"></GanttColumn>
+                                    </GanttColumns>
+                                    <GanttSplitterSettings Position="40%"></GanttSplitterSettings>
+                                    <GanttEvents TValue="TaskDTO" OnActionFailure="ActionFailureHandler"></GanttEvents>
+                                </SfGantt>
+                            </div>
+                        </ContentTemplate>
+                    </TabItem>
+                </TabItems>
+            </SfTab>
+            <br/>
+            <div>WITH EVENTS - CHOOSE GanttChart Tab to generate error</div>
+            <SfTab @ref="ScheduleTab" Height="500px" Width="100%">
+                <TabEvents Selected="OnSelected"></TabEvents>  @****For some reason, if Selected event is enabled, it will cause an error in the Gantt control****@
+                <TabItems>
+                    <TabItem CssClass="tabTsk">
+                        <ChildContent>
+                            <TabHeader Text="Dummy"></TabHeader>
+                        </ChildContent>
+                        <ContentTemplate>
+
+                        </ContentTemplate>
+                    </TabItem>
+                    <TabItem CssClass="tabGantt">
+                        <ChildContent>
+                            <TabHeader Text="Gantt Chart"></TabHeader>
+                        </ChildContent>
+                        <ContentTemplate>
+                            <div style="height: 100%; width: 100%; bottom: 0; margin-left: 0px; margin-right: 0px">
+                                <SfGantt DataSource="@TaskCollection" Height="450px" Width="100%" TreeColumnIndex="1" ProjectStartDate="ProjectStartDate" ProjectEndDate="ProjectEndDate" AllowSelection="true">
+                                    <GanttLabelSettings LeftLabel="TaskName" TValue="TaskDTO"></GanttLabelSettings>
+                                    <GanttTaskFields Id=@nameof(TaskDTO.ProjectTaskIndex)
+                                                     Name=@nameof(TaskDTO.TaskName)
+                                                     StartDate=@nameof(TaskDTO.StartDate)
+                                                     EndDate=@nameof(TaskDTO.EndDate)
+                                                     Progress=@nameof(TaskDTO.Progress)
+                                                     Work=@nameof(TaskDTO.Work)
+                                                     BaselineStartDate=@nameof(TaskDTO.DisplayBaselineStartDate)
+                                                     BaselineEndDate=@nameof(TaskDTO.DisplayBaselineEndDate)
+                                                     ParentID=@nameof(TaskDTO.ParentProjectTaskIndex)>
+                                    </GanttTaskFields>
+                                    <GanttColumns>
+                                        <GanttColumn Field=@nameof(TaskDTO.ProjectTaskIndex) HeaderText="Task Id" IsPrimaryKey="true"></GanttColumn>
+                                        <GanttColumn Field=@nameof(TaskDTO.TaskName) HeaderText="Task Name" Width="300" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip" IsPrimaryKey="true"></GanttColumn>
+
+                                        <GanttColumn Field=@nameof(TaskDTO.ParentTaskName) HeaderText="Parent Task Name" Width="300" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+
+                                        <GanttColumn Field=@nameof(TaskDTO.ProjectName) HeaderText="Project" Width="300" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+
+                                        <GanttColumn Field=@nameof(TaskDTO.Progress) HeaderText="Progress" Width="50"></GanttColumn>
+                                        <GanttColumn Field=@nameof(TaskDTO.ProgressStr) HeaderText="Progress Str" Width="50"></GanttColumn>
+
+                                        <GanttColumn Field=@nameof(TaskDTO.Work) HeaderText="Work" Width="50"></GanttColumn>
+                                        <GanttColumn Field=@nameof(TaskDTO.Duration) HeaderText="Duration" Width="50"></GanttColumn>
+                                        <GanttColumn Field=@nameof(TaskDTO.StartDate) HeaderText="Start Date" Type="ColumnType.Date" Format="d/M/yyyy" Width="100"></GanttColumn>
+                                        <GanttColumn Field=@nameof(TaskDTO.EndDate) HeaderText="End Date" Type="ColumnType.Date" Format="d/M/yyyy" Width="100"></GanttColumn>
+                                    </GanttColumns>
+                                    <GanttSplitterSettings Position="40%"></GanttSplitterSettings>
+                                </SfGantt>
+                            </div>
+                        </ContentTemplate>
+                    </TabItem>
+                </TabItems>
+            </SfTab>
+        </div>
+    </div>
+</div>
+@code{
+    private SfTab ScheduleTab { get; set; }
+    private SfGantt<TaskDTO> Obj { get; set; }
+    public string message{ get; set; }
+    private string DateFormat = "MM/dd/yyyy";
+    private DateTime ProjectStartDate = new DateTime(2021, 01, 03);
+    private DateTime ProjectEndDate = new DateTime(2021, 01, 30);
+    private List<TaskDTO> TaskCollection { get; set; } = new();
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+
+    private void OnSelected(Syncfusion.Blazor.Navigations.SelectEventArgs args)
+    {
+        //****The event doesn't need to contain any code at all to throw the error.
+    }
+
+   public class TaskDTO
+    {
+
+        //public int TaskId { get; set; }
+        public int? ProjectTaskIndex { get; set; }
+        public decimal? ProjectTaskIndexDisplay { get; set; }
+        //public int ProjectTaskIndex => (this.ProjectIndexId ) * 10000 + (this.TaskIndexId );
+
+        public Guid TaskId { get; set; }
+
+        public Guid AssignmentId { get; set; }
+        public string TaskName { get; set; }
+        public short? Level { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? Duration { get; set; }
+        public decimal? DurationVal { get; set; }
+        public int? Progress { get; set; }
+        public string? ProgressStr { get; set; }
+        public int? Work { get; set; }
+        public string? Predecessor { get; set; }
+        public Guid? ParentId { get; set; }
+
+        public int? ParentProjectTaskIndex { get; set; }
+        //public int? ParentProjectTaskIndexCopy { get; set; }
+        //public int? ParentProjectTaskIndex => (this.ProjectIndexId ) * 10000 + (this.ParentTaskIndexId );
+        public Guid? ProjectId { get; set; }
+        public string ProjectName { get; set; }
+        public string Superintendent { get; set; }
+        public string ProjectManager { get; set; }
+        public string Department { get; set; }
+        public string CurrentState { get; set; }
+        public string Asset { get; set; }
+        public string ReportCode { get; set; }
+        public int ProjectIndexId { get; set; }
+        public int TaskIndexId { get; set; }
+        public int? ParentTaskIndexId { get; set; }
+        public string? ParentTaskName { get; set; }
+        public string? ResourceNames { get; set; }
+        public string? NamedResources { get; set; }
+        public bool? IsCompleted { get; set; }
+        public bool? IsSummary { get; set; }
+        public bool? IsProjectSummary { get; set; }
+        public string DisplayBaseline { get; set; }
+        public DateTime? DisplayBaselineStartDate { get; set; }
+        public DateTime? DisplayBaselineEndDate { get; set; }
+        public string DisplayBaselineDuration { get; set; }
+        public decimal? DisplayBaselineWork { get; set; }
+        public decimal? DisplayBaselineCost { get; set; }
+        public int DisplayBaselineStartDaysChange { get; set; }
+        public int DisplayBaselineFinishDaysChange { get; set; }
+        public int DisplayBaselineDurationDaysChange { get; set; }
+        public int DisplayBaselineWorkChange { get; set; }
+
+
+        public DateTime? BaselineStartDate { get; set; }
+        public DateTime? BaselineEndDate { get; set; }
+        public string BaselineDuration { get; set; }
+        public decimal? BaselineWork { get; set; }
+        public decimal? BaselineCost { get; set; }
+        public int BaselineStartDaysChange { get; set; }
+        public int BaselineFinishDaysChange { get; set; }
+        public int BaselineDurationDaysChange { get; set; }
+        public int BaselineWorkChange { get; set; }
+
+        public DateTime? Snapshot1StartDate { get; set; }
+        public DateTime? Snapshot1EndDate { get; set; }
+        public string Snapshot1Duration { get; set; }
+        public decimal? Snapshot1Work { get; set; }
+        public int Snapshot1StartDaysChange { get; set; }
+        public int Snapshot1FinishDaysChange { get; set; }
+        public int Snapshot1DurationDaysChange { get; set; }
+        public int Snapshot1WorkChange { get; set; }
+
+        public DateTime? Snapshot2StartDate { get; set; }
+        public DateTime? Snapshot2EndDate { get; set; }
+        public string Snapshot2Duration { get; set; }
+        public decimal? Snapshot2Work { get; set; }
+        public decimal? Snapshot2Cost { get; set; }
+        public int Snapshot2StartDaysChange { get; set; }
+        public int Snapshot2FinishDaysChange { get; set; }
+        public int Snapshot2DurationDaysChange { get; set; }
+        public int Snapshot2WorkChange { get; set; }
+
+        public DateTime? Snapshot3StartDate { get; set; }
+        public DateTime? Snapshot3EndDate { get; set; }
+        public string Snapshot3Duration { get; set; }
+        public decimal? Snapshot3Work { get; set; }
+        public decimal? Snapshot3Cost { get; set; }
+        public int Snapshot3StartDaysChange { get; set; }
+        public int Snapshot3FinishDaysChange { get; set; }
+        public int Snapshot3DurationDaysChange { get; set; }
+        public int Snapshot3WorkChange { get; set; }
+
+ 
+
+        //public List<AssignmentDTO> Assignments { get; set; } = new List<AssignmentDTO>();
+
+        public bool? IsDisplay { get; set; } = null;
+        public bool IsCurrent { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
+        //public int? ParentId { get; set; }
+    }
+}

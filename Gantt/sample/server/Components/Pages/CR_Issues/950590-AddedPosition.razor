@@ -1,0 +1,100 @@
+﻿@page "/datasourceposition"
+@rendermode InteractiveServer
+
+@*
+Replication Procedure:
+1. Run this sample.
+2. Click the "Add Row" button to add a new record.
+3. Click the "Check Position" button.
+4. The position of the newly added record is shown at the top of the sample.
+*@
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Buttons
+<div>@messsage</div>
+<p>New Record Position in DataSource: @NewRecordPosition</p>
+
+<SfButton @onclick="AddRow">Add Row</SfButton>
+<SfButton @onclick="CheckPosition">Check Position</SfButton>
+
+<SfGantt @ref="Gantt" DataSource="@TaskCollection" Height="450px" EnableContextMenu Width="900px">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId">
+    </GanttTaskFields>
+    <GanttEditSettings AllowAdding="true"></GanttEditSettings>
+    <GanttEvents RowUpdating="RowAddingHandler" RowUpdated="RowCreatedHandler" TValue="TaskData" OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+
+@code {
+    public SfGantt<TaskData> Gantt;
+    public TaskData record = new TaskData()
+        {
+            TaskId = 9,
+            TaskName = "New Added Record",
+            StartDate = new DateTime(2022, 04, 05),
+            Duration = "3",
+            Progress = 50
+        };
+
+    private int? NewRecordPosition { get; set; } = null;
+    private List<TaskData> TaskCollection { get; set; }
+    public string messsage{ get; set; }
+
+    public async void AddRow()
+    {
+        await this.Gantt.AddRecordAsync(record, 2, Syncfusion.Blazor.Gantt.RowPosition.Below);
+    }
+
+    public void CheckPosition()
+    {
+        var index = TaskCollection.FindIndex(t => t.TaskId == record.TaskId);
+        NewRecordPosition = index != -1 ? index + 1 : null;
+        StateHasChanged();
+    }
+
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+
+    public void RowAddingHandler(GanttRowUpdatingEventArgs<TaskData> args)
+    {
+        // Optional customization
+    }
+
+    public void RowCreatedHandler(GanttRowUpdatedEventArgs<TaskData> args)
+    {
+        // Optional customization
+    }
+
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        return new List<TaskData>()
+        {
+            new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 04, 05), EndDate = new DateTime(2022, 04, 21) },
+            new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 30, ParentId = 1 },
+            new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 04, 05), Duration = "4", Progress = 40, ParentId = 1 },
+            new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 30, ParentId = 1 },
+            new TaskData() { TaskId = 5, TaskName = "Project estimation", StartDate = new DateTime(2022, 04, 06), EndDate = new DateTime(2022, 04, 21) },
+            new TaskData() { TaskId = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 30, ParentId = 5 },
+            new TaskData() { TaskId = 7, TaskName = "List materials", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 40, ParentId = 5 },
+            new TaskData() { TaskId = 8, TaskName = "Estimation approval", StartDate = new DateTime(2022, 04, 06), Duration = "0", Progress = 30, ParentId = 5 }
+        };
+    }
+}
+
+

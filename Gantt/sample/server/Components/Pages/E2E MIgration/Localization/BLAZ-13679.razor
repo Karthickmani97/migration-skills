@@ -1,0 +1,121 @@
+﻿@page "/E2EMigration/BLAZ-13679"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Popups
+<div>@message</div>
+<SfGantt @ref="Gantt"
+         ID="Gantt"
+         DataSource="@TaskCollection"
+         Height="250px"
+         Width="100%">
+    <GanttTaskFields Id="TaskId"
+                     Name="TaskName"
+                     StartDate="StartDate"
+                     EndDate="EndDate"
+                     Duration="Duration"
+                     Progress="Progress"
+                     Dependency="Predecessor"
+                     Notes="Notes"
+                     ParentID="ParentId"></GanttTaskFields>
+    <GanttTimelineSettings TimelineUnitSize="20">
+    <GanttTopTierSettings Unit="TimelineViewMode.Year"></GanttTopTierSettings>
+    <GanttBottomTierSettings Unit="TimelineViewMode.Month" Format="MMM"></GanttBottomTierSettings>
+</GanttTimelineSettings>
+<GanttColumns>
+        <GanttColumn Field="TaskId" Width="150"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250"></GanttColumn>
+        <GanttColumn Field="StartDate"></GanttColumn>
+        <GanttColumn Field="EndDate"></GanttColumn>
+        <GanttColumn Field="Progress"></GanttColumn>
+        <GanttColumn Field="Notes"></GanttColumn>
+    </GanttColumns>
+    <GanttEvents TValue="TaskData" OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+
+@code{
+    public SfGantt<TaskData> Gantt;
+    public DateTime ProjectStart = new DateTime(2019, 3, 29);
+    public DateTime ProjectEnd = new DateTime(2019, 7, 28);
+    public string message{ get; set; }
+    public List<TaskData> TaskCollection { get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+   public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public string Description { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public string Predecessor { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Notes { get; set; }
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+            new TaskData() {
+                TaskId = 1,
+                TaskName = "Task 1",
+                StartDate = new DateTime(2021, 04, 12, 08, 00, 00),
+                EndDate = new DateTime(2021, 04, 13, 17, 00, 00),
+                Progress = 0,
+                Description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed turpis lorem, semper eu interdum a, viverra et magna.",
+                Notes = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed turpis lorem, semper eu interdum a, viverra et magna."
+            },
+            new TaskData() {
+                TaskId = 2,
+                TaskName = "Task 2",
+                StartDate = new DateTime(2021, 04, 12, 08, 00, 00),
+                EndDate = new DateTime(2021, 04, 13, 17, 00, 00),
+                Progress = 0,
+                Description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed turpis lorem, semper eu interdum a, viverra et magna.",
+                Notes = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed turpis lorem, semper eu interdum a, viverra et magna."
+            },
+            new TaskData() {
+                TaskId = 3,
+                TaskName = "Task 3",
+                StartDate = new DateTime(2021, 04, 12, 08, 00, 00),
+                EndDate = new DateTime(2021, 04, 12, 09, 00, 00),
+                Progress = 0,
+                Description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed turpis lorem, semper eu interdum a, viverra et magna.",
+                Notes = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed turpis lorem, semper eu interdum a, viverra et magna."
+            },
+            new TaskData() {
+                TaskId = 4,
+                TaskName = "Task 4",
+                StartDate = new DateTime(2021, 04, 12, 08, 30, 00),
+                EndDate = new DateTime(2021, 04, 12, 09, 30, 00),
+                Progress = 0,
+                Description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed turpis lorem, semper eu interdum a, viverra et magna.",
+                Notes = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed turpis lorem, semper eu interdum a, viverra et magna."
+            },
+        };
+        return Tasks;
+    }
+}
+
+<style>
+    .e-tooltip-css {
+        filter: drop-shadow(2px 5px 5px rgba(0, 0, 0, .25));
+    }
+
+    .demo-content {
+        border: 0.5px solid grey;
+    }
+
+    .info {
+        padding-left: 12px;
+        padding-right: 5px;
+    }
+</style>

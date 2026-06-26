@@ -1,0 +1,80 @@
+﻿@page "/" 
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Navigations
+@inject IJSRuntime JsInterop
+
+<SfGantt @ref="ganttInstance" ID="remote" TValue="TaskData" Height="700px" Width="100%" TreeColumnIndex="1" ProjectStartDate="new DateTime(2024, 12, 28)" ProjectEndDate="new DateTime(2025, 03, 19)"
+         ScrollToTaskbarOnClick="true" EnableRowVirtualization="true" EnableTimelineVirtualization="true" EnableContextMenu="true" AllowRowDragAndDrop="true" EnablePersistence Toolbar="ToolbarItems"
+         AllowSorting="true" AllowFiltering="true" ShowColumnMenu="true" AllowReordering="true" AllowResizing="true" AllowExcelExport="true" AllowPdfExport="true">
+    <SfDataManager Url=@adapatorUrl Adaptor="Adaptors.WebApiAdaptor"></SfDataManager>
+    <GanttTaskFields Id="Id" Name="Name" StartDate="StartDate" EndDate="EndDate" Progress="CompletionPercent" ParentID="ParentTaskId" Duration="DurationInDays" Dependency="Dependency">
+    </GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="Id"></GanttColumn>
+        <GanttColumn Field="Name" HeaderText="Project Activity" Width="280"></GanttColumn>
+        <GanttColumn Field="Dependency" HeaderText="WBS Predecessor" Width="150"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Planned Start Date"></GanttColumn>
+        <GanttColumn Field="DurationInDays" HeaderText="Estimated Duration"></GanttColumn>
+    </GanttColumns>
+    <GanttTimelineSettings TimelineViewMode="TimelineViewMode.Week">
+        <GanttTopTierSettings Unit="TimelineViewMode.Week" Format="MMM, dd yyyy"></GanttTopTierSettings>
+        <GanttBottomTierSettings Unit="TimelineViewMode.Day" Format="dd"></GanttBottomTierSettings>
+    </GanttTimelineSettings>
+    <GanttLabelSettings TValue="TaskData" RightLabel="Name" TaskLabel="CompletionPercent"></GanttLabelSettings>
+    <GanttEvents OnToolbarClick="HandleToolbarClick" TValue="TaskData"></GanttEvents>
+    <GanttSplitterSettings Collapsible="true"></GanttSplitterSettings>
+</SfGantt>
+
+@code {
+    private SfGantt<TaskData> ganttInstance;
+    private int? recordCount = 1000;
+    // Initialize URL in the code block to ensure it's updated dynamically
+    private string adapatorUrl => $"https://blazor.syncfusion.com/services/production/api/GanttRemoteData?count={recordCount}";
+
+    public List<object> ToolbarItems { get; } = new List<object>
+        {
+            "ZoomIn",
+            "ZoomOut",
+            "ZoomToFit",
+            "Search",
+            new ToolbarItem { Text = "Save state", TooltipText = "Save state", Id = "GetPersistence", PrefixIcon = "e-savestate" },
+            new ToolbarItem { Text = "Load state", TooltipText = "Load state", Id = "SetPersistence", PrefixIcon = "e-setstate" },
+            new ToolbarItem { Text = "Reset state", TooltipText = "Reset state", Id = "ClearPersistence", PrefixIcon = "e-resetstate" },
+            new ToolbarItem { Text = "Reload page", TooltipText = "Reload page", Id = "ReloadPage", PrefixIcon = "e-reloadpage" }
+        };
+    private string? persistedState = null;
+    private async void HandleToolbarClick(ClickEventArgs args)
+    {
+        switch (args.Item.Id)
+        {
+            case "GetPersistence":
+                persistedState = await ganttInstance.GetPersistDataAsync();
+                break;
+            case "SetPersistence":
+                await ganttInstance.SetPersistDataAsync(persistedState);
+                break;
+            case "ClearPersistence":
+                await ganttInstance.ResetPersistDataAsync();
+                break;
+            case "ReloadPage":
+                await JsInterop.InvokeVoidAsync("window.location.reload");
+                break;
+        }
+    }
+
+    public class TaskData
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public int DurationInDays { get; set; }
+        public int CompletionPercent { get; set; }
+        public int? ParentTaskId { get; set; }
+        public string Dependency { get; set; }
+    }
+}

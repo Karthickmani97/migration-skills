@@ -1,0 +1,71 @@
+﻿@page "/BLAZ-967659"
+@using Syncfusion.Blazor.Gantt
+@rendermode InteractiveServer
+@*
+
+Replication Procedure:
+    1. Run this sample.
+    2. check the Events (RowDragSelectionStarting, RowDragSelectionCompleting, RowDragSelectionCompleted) are Triggred for DragSelection. Begin drag using mouse or touch on a selectable row or cell and confirm RowDragSelectionStarting is triggered.Then Release mouse or touch after dragging across multiple rows or cells and confirm RowDragSelectionCompleting is triggered before applying selection and Confirm RowDragSelectionCompleted is triggered after selection is rendered in the UI.
+    3. Right-click and drag to confirm row drag-and-drop is performed.
+    4. check args.Cancel = true in RowDragSelectionStarting and confirm no selection is applied and no UI errors occur. 
+    5. Check args.PreventRender = true in event args and confirm no unnecessary re-renders occur.
+    6. Validate event arguments.
+    7. Enter edit mode on a record and perform drag selection using the left mouse button.
+*@
+    <SfGantt DataSource="@TaskCollection" Height="600px" AllowSelection="true" AllowRowDragAndDrop="true">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId"></GanttTaskFields>
+    <GanttSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple" AllowDragSelection="true"></GanttSelectionSettings>
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId"></GanttTaskFields>
+
+    <GanttEvents RowDragSelectionStarting="OnDragSelectionStart"
+                 RowDragSelectionCompleting="OnDragSelectionCompleting"
+                 RowDragSelectionCompleted="OnDragSelectionCompleted"
+                 TValue="TaskData">
+    </GanttEvents>
+      <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+    <GanttEditSettings AllowEditing="true" AllowAdding="true"></GanttEditSettings>
+</SfGantt>
+@code {
+    private List<TaskData> TaskCollection { get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+    }
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>()
+        {
+            new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 04, 05), EndDate = new DateTime(2022, 04, 21), },
+            new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 30, ParentId = 1 },
+            new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 04, 05), Duration = "4", Progress = 40, ParentId = 1 },
+            new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 30, ParentId = 1 },
+            new TaskData() { TaskId = 5, TaskName = "Project estimation", StartDate = new DateTime(2022, 04, 06), EndDate = new DateTime(2022, 04, 21), },
+            new TaskData() { TaskId = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 30, ParentId = 5 },
+            new TaskData() { TaskId = 7, TaskName = "List materials", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 40, ParentId = 5 },
+            new TaskData() { TaskId = 8, TaskName = "Estimation approval", StartDate = new DateTime(2022, 04, 06), Duration = "0", Progress = 30, ParentId = 5 }
+        };
+        return Tasks;
+    }
+    private void OnDragSelectionStart(dynamic args)
+    {        
+
+    }
+    private void OnDragSelectionCompleting(dynamic args)
+    {       
+ 
+    }
+    private void OnDragSelectionCompleted(dynamic args)
+    {    
+       
+    }
+}

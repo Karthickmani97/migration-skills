@@ -1,0 +1,93 @@
+@page "/BLAZ-942003"
+
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+<button @onclick="UpdateRecordFunc">Update Record By ID</button>
+<SfGantt @ref="Gantt" DataSource="@TaskCollection" Height="450px" Width="700px" AllowUnscheduledTasks="true" Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll", "Indent", "Outdent" })">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate"
+                     Duration="Duration" Progress="Progress" ParentID="ParentId" Work="Work" TaskType="TaskType">
+    </GanttTaskFields>
+    <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="PrimaryId" TaskID="TaskId" ResourceID="ResourceId" Units="Unit" TValue="TaskData" TAssignment="AssignmentModel">
+    </GanttAssignmentFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+    <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" TValue="TaskData" TResources="ResourceInfoModel"></GanttResource>
+    <GanttLabelSettings TValue="TaskData" RightLabel="Resources"></GanttLabelSettings>
+</SfGantt>
+
+@code {
+    public SfGantt<TaskData> Gantt;
+    private List<TaskData> TaskCollection { get; set; }
+    private List<ResourceInfoModel> ResourceCollection { get; set; }
+    private static List<AssignmentModel> AssignmentCollection { get; set; } = new();
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        ResourceCollection = GetResources;
+        AssignmentCollection = GetAssignmentCollection();
+    }
+    public class ResourceInfoModel
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+    }
+    public class AssignmentModel
+    {
+        public int PrimaryId { get; set; }
+        public int TaskId { get; set; }
+        public int ResourceId { get; set; }
+        public double? Unit { get; set; }
+    }
+    List<ResourceInfoModel> GetResources = new List<ResourceInfoModel>() {
+        new ResourceInfoModel() { Id= 1, Name= "Martin Tamer"},
+        new ResourceInfoModel() { Id= 2, Name= "Rose Fuller" },
+        new ResourceInfoModel() { Id= 3, Name= "Margaret Buchanan" },
+        new ResourceInfoModel() { Id= 4, Name= "Fuller King" },
+        new ResourceInfoModel() { Id= 5, Name= "Davolio Fuller" },
+        new ResourceInfoModel() { Id= 6, Name= "Van Jack" },
+        new ResourceInfoModel() { Id= 7, Name= "Fuller Buchanan" },
+        new ResourceInfoModel() { Id= 8, Name= "Jack Davolio" },
+        new ResourceInfoModel() { Id= 9, Name= "Tamer Vinet" },
+        new ResourceInfoModel() { Id= 10, Name= "Vinet Fuller" },
+        new ResourceInfoModel() { Id= 11, Name= "Bergs Anton" },
+        new ResourceInfoModel() { Id= 12, Name= "Construction Supervisor" }
+    };
+    public static List<AssignmentModel> GetAssignmentCollection()
+    {
+        List<AssignmentModel> assignments = new List<AssignmentModel>()
+        {
+            new AssignmentModel(){ PrimaryId=1, TaskId = 5, ResourceId=1}
+        };
+        return assignments;
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public double? Work { get; set; }
+        public TaskType TaskType { get; set; }
+    }
+
+    private async Task UpdateRecordFunc()
+    {
+        //TaskInfoModel data = new TaskInfoModel(30,"ProjectApproval",new DateTime(2022,04,01),new DateTime(2022,04,05),"5",56,29);
+        TaskData data = new TaskData() { TaskId = 5, TaskName = "Project estimation", Duration = "3", Work = 66, TaskType = TaskType.FixedWork };
+        await Gantt.UpdateRecordByIDAsync(data);
+    }
+    private static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>()
+        {
+            new TaskData() { TaskId = 1, TaskName = "Project initiation", Duration = "4", },
+            new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 01, 04), },
+            new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 01, 07), },
+            new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 01, 04), EndDate = new DateTime(2022, 01, 08), Progress = 30, },
+            new TaskData() { TaskId = 5, TaskName = "Project estimation", Duration = "3", Work=16, TaskType=TaskType.FixedWork}
+        };
+        return Tasks;
+    }
+}

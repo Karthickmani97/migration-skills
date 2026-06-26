@@ -1,0 +1,84 @@
+@page "/Custom-column"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Navigations;
+@using Syncfusion.Blazor.Gantt;
+
+<SfTab>
+    <TabItems>
+        <TabItem>
+    <ContentTemplate>
+<SfGantt DataSource="@TaskCollection" ID="Gantt" EnableContextMenu="true" Height="550px" Width="1200px"
+         Toolbar="@(new List<string>(){ "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll","Indent","Outdent"})">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate"
+                     Duration="Duration" Progress="Progress" ParentID="ParentId">
+    </GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Width="150"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Job Name" Width="150"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date" Width="150"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date" Width="150"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration" Width="150"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress" Width="150"></GanttColumn>
+        <GanttColumn Field="Status" HeaderText="Status" Width="150"></GanttColumn>
+        <GanttColumn Field="Priority" HeaderText="Priority" Width="150"></GanttColumn>
+    </GanttColumns>
+    <GanttAddDialogFields>
+        <GanttAddDialogField Fields=@Fields Type="GanttDialogFieldType.General"></GanttAddDialogField>
+        <GanttAddDialogField Fields=@Fields1></GanttAddDialogField>
+    </GanttAddDialogFields>
+    <GanttEditDialogFields>
+        <GanttEditDialogField Fields=@Fields></GanttEditDialogField>
+    </GanttEditDialogFields>
+     <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+</SfGantt>
+    </ContentTemplate>
+        </TabItem>
+   </TabItems>
+</SfTab>
+
+@code {
+    private List<TaskData> TaskCollection { get; set; }
+    private string[] Fields = new string[] { "TaskId", "TaskName", "StartDate", "Status", "Priority" };
+    private string[] Fields1 = new string[] { "Status", "Priority" };
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public string Status { get; set; }
+        public string Priority { get; set; }
+        public int? ParentId { get; set; }
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>()
+        {
+            new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 04, 05), EndDate = new DateTime(2022, 04, 21), },
+            new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 5,   ParentId = 1},
+            new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 04, 05), Duration = "4", Progress = 10,  ParentId = 1, },
+            new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 04, 05), Duration = "8", Progress = 30,  ParentId = 1 },
+            new TaskData() { TaskId = 5, TaskName = "Project estimation", StartDate = new DateTime(2022, 04, 06), EndDate = new DateTime(2022, 04, 21),  },
+            new TaskData() { TaskId = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 30,  ParentId = 5 },
+            new TaskData() { TaskId = 7, TaskName = "List materials", StartDate = new DateTime(2022, 04, 06), Duration = "7", Progress = 40,  ParentId = 5, },
+            new TaskData() { TaskId = 8, TaskName = "Estimation approval", StartDate = new DateTime(2022, 04, 06), Duration = "0", EndDate = new DateTime(2022, 04, 12), Progress = 30,  ParentId = 5 },
+            new TaskData() { TaskId = 9, TaskName = "Identify Site location", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 5,   ParentId = 1},
+            new TaskData() { TaskId = 10, TaskName = "Perform soil test", StartDate = new DateTime(2022, 04, 05), Duration = "4", Progress = 10,  ParentId = 1, },
+            new TaskData() { TaskId = 11, TaskName = "Soil test approval", StartDate = new DateTime(2022, 04, 05), Duration = "8", Progress = 30,  ParentId = 1 },
+            new TaskData() { TaskId = 12, TaskName = "Project estimation", StartDate = new DateTime(2022, 04, 06), EndDate = new DateTime(2022, 04, 21),  },
+            new TaskData() { TaskId = 13, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 30,  ParentId = 5 },
+            new TaskData() { TaskId = 14, TaskName = "List materials", StartDate = new DateTime(2022, 04, 06), Duration = "7", Progress = 40,  ParentId = 5, },
+            new TaskData() { TaskId = 15, TaskName = "Estimation approval", StartDate = new DateTime(2022, 04, 06), Duration = "0", EndDate = new DateTime(2022, 04, 12), Progress = 30,  ParentId = 5 }
+        };
+        return Tasks;
+    }
+}

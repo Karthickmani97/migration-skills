@@ -1,0 +1,90 @@
+﻿@page "/E2EMigration/FrozenColumns"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Grids
+<div>@messsage</div>
+<div>
+    <div>
+        <SfSwitch ValueChange="Change" @bind-Checked="@allowFreelinemoving" TChecked="bool"></SfSwitch>
+        <SfNumericTextBox @bind-Value="@frozenColumns" Width="100px">Frozen Columns</SfNumericTextBox>
+    </div>
+    <SfGantt @ref="Gantt" ID="Frozen" AllowResizing="true" AllowReordering="true" AllowSorting="true" ShowColumnMenu="true" AllowFiltering="true" DataSource="@TaskCollection" Height="550px" Width="1300px"
+        FrozenColumns="@frozenColumns" AllowFreezeLineMoving=@allowFreelinemoving>
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration"
+            Progress="Progress" ParentID="ParentId">
+        </GanttTaskFields>
+        <GanttSplitterSettings Collapsible=true Position="800px"></GanttSplitterSettings>
+        @* <GanttEvents FreezeLineMoving="FreeLineMovingHandler" FreezeLineMoved="FreeLineMovedHandler"
+        TValue="TaskData"></GanttEvents> *@
+        <GanttEvents TValue="TaskData" OnActionFailure="ActionFailureHandler"></GanttEvents>
+    </SfGantt>
+</div>
+
+@code {
+    private SfGantt<TaskData> Gantt;
+    private List<TaskData> TaskCollection { get; set; }
+    public string messsage{ get; set; }
+    private bool allowFreelinemoving { get; set; } = true;
+    private int frozenColumns { get; set; } = 2;
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+      public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+
+    private async Task Change(Syncfusion.Blazor.Buttons.ChangeEventArgs<bool> args)
+
+    {
+        if (args.Checked == false)
+        {
+            this.allowFreelinemoving = false;
+            await Gantt.RefreshAsync();
+        }
+    }
+    private void FreeLineMovingHandler(FreezeLineMovingEventArgs args)
+    {
+        args.Cancel = false;
+    }
+    private void FreeLineMovedHandler(FreezeLineMovedEventArgs args)
+    {
+
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 04, 05), EndDate = new
+DateTime(2022, 04, 21) },
+new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 04, 05), Duration =
+"0", Progress = 30, ParentId = 1 },
+new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 04, 05), Duration = "4",
+Progress = 40, ParentId = 1 },
+new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 04, 05), Duration = "0",
+Progress = 30, ParentId = 1 },
+new TaskData() { TaskId = 5, TaskName = "Project estimation", StartDate = new DateTime(2022, 04, 06), EndDate = new
+DateTime(2022, 04, 21) },
+new TaskData() { TaskId = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 04, 06),
+Duration = "3", Progress = 30, ParentId = 5 },
+new TaskData() { TaskId = 7, TaskName = "List materials", StartDate = new DateTime(2022, 04, 06), Duration = "3",
+Progress = 40, ParentId = 5 },
+new TaskData() { TaskId = 8, TaskName = "Estimation approval", StartDate = new DateTime(2022, 04, 06), Duration = "0",
+Progress = 30, ParentId = 5 }
+};
+        return Tasks;
+    }
+}

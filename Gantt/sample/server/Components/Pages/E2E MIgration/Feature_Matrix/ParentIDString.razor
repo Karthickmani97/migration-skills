@@ -1,0 +1,197 @@
+@page "/E2EMigration/ParentIDString"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+<div>@message</div>
+<SfGantt id="ParentD" DataSource="@TaskCollection" Toolbar="@(new List<string>() { "Add", "Cancel", "CollapseAll" , "ExpandAll", "Delete", "Edit", "Update" , "Indent" , "Outdent"})" AllowSelection="true" Height="450px" Width="1400px">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId">
+    </GanttTaskFields>
+    <GanttTimelineSettings UpdateTimescaleView="true"> </GanttTimelineSettings>
+    	<GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+    <GanttSelectionSettings Mode="SelectionMode.Row" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple"></GanttSelectionSettings>
+    <GanttEditSettings AllowTaskbarEditing="true" AllowEditing="true" AllowAdding="true" AllowDeleting="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Auto" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+    </GanttColumns>
+     <GanttEvents TValue="TaskData" Created="Created" OnActionFailure="ActionFailureHandler" ></GanttEvents>
+</SfGantt>
+
+@code{
+    public List<TaskData> TaskCollection { get; set; }
+    public string message{ get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    public async Task Created()
+    {   
+     
+    }
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? Duration { get; set; }
+        public int? Progress { get; set; }
+        public string? ParentId { get; set; }
+    
+    }
+
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+
+   new TaskData() {
+            TaskId = 1,
+            TaskName = "Product concept ",
+            StartDate = new DateTime(2019, 04, 02),
+            EndDate = new DateTime(2019, 04, 08),
+            Duration = "5days"
+        },
+        new TaskData() {
+            TaskId = 2,
+            TaskName = "Defining the product usage",
+            StartDate = new DateTime(2019, 04, 02),
+            EndDate = new DateTime(2019, 04, 08),
+            Duration = "3",
+            Progress = 30,
+            ParentId = "1"
+        },
+        new TaskData() {
+            TaskId = 3,
+            TaskName = "Defining the Target audience",
+            StartDate = new DateTime(2019, 04, 02),
+            EndDate = new DateTime(2019, 04, 04),
+            Duration = "3",
+            Progress = 40,
+            ParentId = "1"
+        },
+        new TaskData() {
+            TaskId = 4,
+            TaskName = "Prepare product sketch and notes",
+            StartDate = new DateTime(2019, 04, 05),
+            EndDate = new DateTime(2019, 04, 08),
+            Duration = "2",
+            Progress = 30,
+            ParentId = "1"
+           
+        },
+        new TaskData() {
+            TaskId = 5,
+            TaskName = "Concept approval",
+            StartDate = new DateTime(2019, 04, 08),
+            EndDate = new DateTime(2019, 04, 08),
+            Duration="0"
+           
+        },
+        new TaskData() {
+            TaskId = 6,
+            TaskName = "Market Research",
+            StartDate = new DateTime(2019, 04, 09),
+            EndDate = new DateTime(2019, 04, 18),
+            Duration = "4",
+            Progress = 30,
+        },
+        new TaskData() {
+            TaskId = 7,
+            TaskName = "Demand Analysis",
+            StartDate = new DateTime(2019, 04, 09),
+            EndDate = new DateTime(2019, 04, 12),
+            Duration = "4",
+            Progress = 40,
+            ParentId = "6"
+        },
+        new TaskData() {
+            TaskId = 8,
+            TaskName = "Customer Strength",
+            StartDate = new DateTime(2019, 04, 09),
+            EndDate = new DateTime(2019, 04, 12),
+            Duration = "4",
+            Progress = 30,
+            ParentId = "7"
+            
+        }, new TaskData() {
+            TaskId = 9,
+            TaskName = "Market Opportunity analysis",
+            StartDate = new DateTime(2019, 04, 09),
+            EndDate = new DateTime(2019, 04, 012),
+            Duration="4",
+            ParentId= "7"
+           
+        },
+        new TaskData() {
+            TaskId = 10,
+            TaskName = "Competitor analysis",
+            StartDate = new DateTime(2019, 04, 15),
+            EndDate = new DateTime(2019, 04, 18),
+            Duration = "4",
+            Progress = 30,
+            ParentId= "6"
+           
+        },
+        new TaskData() {
+            TaskId = 11,
+            TaskName = "Product Strength Analysis",
+            StartDate = new DateTime(2019, 04, 15),
+            EndDate = new DateTime(2019, 04, 18),
+            Duration = "4",
+            Progress = 40,
+            ParentId = "6"
+            
+        },
+        new TaskData() {
+            TaskId = 12,
+            TaskName = "Research Completed",
+            StartDate = new DateTime(2019, 04, 18),
+            EndDate = new DateTime(2019, 04, 18),
+            Duration = "0",
+            Progress = 30,
+            ParentId = "6"
+           
+        },
+         new TaskData() {
+            TaskId = 13,
+            TaskName = "Product design and developement",
+            StartDate = new DateTime(2019, 04, 19),
+            EndDate = new DateTime(2019, 05, 16),
+            Duration="20",
+
+        },
+        new TaskData() {
+            TaskId = 14,
+            TaskName = "Functionality Design",
+            StartDate = new DateTime(2019, 04, 19),
+            EndDate = new DateTime(2019, 04, 23),
+            Duration = "3",
+            Progress = 30,
+            ParentId = "13"
+           
+        },
+        new TaskData() {
+            TaskId = 15,
+            TaskName = "Quality Design",
+            StartDate = new DateTime(2019, 04, 19),
+            EndDate = new DateTime(2019, 04, 23),
+            Duration = "3",
+            Progress = 40,
+            ParentId = "13"
+            
+        },
+       
+    };
+        return Tasks;
+    }
+}

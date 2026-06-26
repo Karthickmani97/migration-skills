@@ -1,0 +1,675 @@
+﻿@page "/gantt-adaptor-custom"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Gantt;
+@using Syncfusion.Blazor.Data;
+@using Syncfusion.Blazor.Grids;
+@using System.ComponentModel.DataAnnotations;
+<SfGantt EnableContextMenu="true" AllowReordering="true" RenderBaseline="true" TValue="TaskData" AllowSorting="true" AllowFiltering="true" Height="450px" Width="1400px" HighlightWeekends="true"
+                     Toolbar="@(new List<string>(){ "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll","Indent","Outdent"})"
+                     AllowSelection="true"  TreeColumnIndex="1">
+    <SfDataManager AdaptorInstance="@typeof(CustomAdaptor)" Adaptor="Adaptors.CustomAdaptor"></SfDataManager>
+
+    <GanttTaskFields Id="TaskId"
+                     Name="ActivityName"
+                     StartDate="StartDate"
+                     EndDate="EndDate"
+                     BaselineStartDate="BaselineStartDate"
+                     BaselineEndDate="BaselineEndDate"
+                     Duration="Duration"
+                     Progress="Progress"
+                     Work="Work"
+                     Notes="Notes"
+                     Dependency="Predecessor"
+                     TaskType="TaskType"
+                     ParentID="ParentId">
+    </GanttTaskFields>
+
+    <GanttColumns>
+        <GanttColumn Field="TaskId" HeaderText="Task ID" IsPrimaryKey="true" Width="80"
+                     TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+        </GanttColumn>
+
+        <GanttColumn Field="ActivityName" HeaderText="Task Name" Width="160" />
+
+        <GanttColumn Field="Duration" HeaderText="Duration" Width="100"
+                     TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+        </GanttColumn>
+
+        <GanttColumn Field="Predecessor" HeaderText="Dependency" Width="100"
+                     TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+        </GanttColumn>
+
+        <GanttColumn Field="Progress" HeaderText="Progress" Width="100"
+                     EditType="Syncfusion.Blazor.Grids.EditType.NumericEdit"
+                     TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+        </GanttColumn>
+
+        <GanttColumn Field="Email" HeaderText="Email" Width="200"
+                     EditType="Syncfusion.Blazor.Grids.EditType.DefaultEdit">
+        </GanttColumn>
+
+        <GanttColumn Field="StartDate" HeaderText="Start Date" Width="150" Format="d"
+                     EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit">
+        </GanttColumn>
+
+        <GanttColumn Field="EndDate" HeaderText="End Date" Width="150" Format="g"
+                     EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit">
+        </GanttColumn>
+
+        <GanttColumn Field="Work" HeaderText="Work">
+        </GanttColumn>
+
+        <GanttColumn Field="BaselineStartDate" HeaderText="Baseline Start" Width="150" Format="d"
+                     EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit" />
+
+        <GanttColumn Field="BaselineEndDate" HeaderText="Baseline End" Width="150" Format="d"
+                     EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit" />
+
+        <GanttColumn Field="Username" HeaderText="Username" Width="150"
+                     EditType="Syncfusion.Blazor.Grids.EditType.DefaultEdit">
+        </GanttColumn>
+
+        <GanttColumn Field="Password" HeaderText="Password" Width="150"
+                     EditType="Syncfusion.Blazor.Grids.EditType.DefaultEdit">
+        </GanttColumn>
+
+        <GanttColumn Field="Website" HeaderText="Website" Width="200"
+                     EditType="Syncfusion.Blazor.Grids.EditType.DefaultEdit">
+        </GanttColumn>
+
+        <GanttColumn Field="CustomData" HeaderText="Custom Data (String)" Width="200"
+                     EditType="Syncfusion.Blazor.Grids.EditType.DefaultEdit">
+        </GanttColumn>
+
+        <GanttColumn Field="Notes" HeaderText="Notes" />
+
+        <GanttColumn Field="TaskType" HeaderText="Task Type" Width="120"
+                     EditType="Syncfusion.Blazor.Grids.EditType.DropDownEdit">
+        </GanttColumn>
+
+        <GanttColumn Field="ProjectBudget" HeaderText="Project Budget" Width="150"
+                     EditType="Syncfusion.Blazor.Grids.EditType.NumericEdit" Format="C2" />
+
+        <GanttColumn Field="ReviewDate" HeaderText="Review Date" Width="150" Format="d"
+                     EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit" />
+    </GanttColumns>
+    <GanttLabelSettings LeftLabel="ActivityName" TValue="TaskData">
+    </GanttLabelSettings>
+    <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="TaskData" TSegments="SegmentModel" DataSource="SegmentCollection"></GanttSegmentFields>
+    <GanttSplitterSettings Position="40%"> </GanttSplitterSettings>
+    <GanttEditSettings AllowEditing="true" AllowAdding="true" AllowDeleting="true" AllowTaskbarEditing="true"></GanttEditSettings>
+</SfGantt>
+
+@code {
+    public static SfGantt<TaskData>? Gantt { get; set; }
+    public static List<TaskData> GanttData { get; set; } = new List<TaskData>();
+    private List<SegmentModel> SegmentCollection { get; set; } = new List<SegmentModel>();
+    public class SegmentModel
+    {
+        public int id { get; set; }
+        public int TaskId { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+
+        [Required(ErrorMessage = "Need Duration")]
+        [Range(10, 365, ErrorMessage = "Duration must be between 10 and 365 days.")]
+        public double? Duration { get; set; }
+
+    }
+    
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+
+        [CustomValidationActivityName]
+        public string ActivityName { get; set; } = string.Empty;
+
+        public int? Duration { get; set; }
+
+        public string Predecessor { get; set; } = string.Empty;
+
+        [CustomValidationProgress]
+        public int Progress { get; set; }
+
+        [CustomValidationWork]
+        public int Work { get; set; }
+
+        // Present in your model; no validation rules specified
+        public int? ParentId { get; set; }
+
+        [CustomValidationEmail]
+        public string? Email { get; set; } = string.Empty;
+
+        [CustomValidationUsername]
+        public string? Username { get; set; } = string.Empty;
+
+        [CustomValidationPassword]
+        public string? Password { get; set; } = string.Empty;
+
+        [CustomValidationWebsite]
+        public string? Website { get; set; } = string.Empty;
+
+        [CustomValidationCustomData]
+        public string? CustomData { get; set; } = string.Empty;
+
+        [CustomValidationNotes]
+        public string? Notes { get; set; } = string.Empty;
+
+        [CustomValidationTaskType]
+        public string? TaskType { get; set; } = string.Empty;
+
+        [CustomValidationStartDate]
+        public DateTime? StartDate { get; set; }
+
+        [CustomValidationEndDate]
+        public DateTime? EndDate { get; set; }
+
+        [CustomValidationBaselineStartDate]
+        public DateTime? BaselineStartDate { get; set; }
+
+        [CustomValidationBaselineEndDate]
+        public DateTime? BaselineEndDate { get; set; }
+
+        [CustomValidationReviewDate]
+        public DateTime? ReviewDate { get; set; }
+
+        [CustomValidationProjectBudget]
+        public decimal ProjectBudget { get; set; }
+
+        public List<TaskData> SubTasks { get; set; }
+    }
+    public class CustomValidationActivityName : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            var str = value as string;
+            if (string.IsNullOrWhiteSpace(str))
+                return new ValidationResult("Task Name is required.");
+            if (str.Length < 5 || str.Length > 10)
+                return new ValidationResult("Task Name must be between 5 and 10 characters.");
+            return ValidationResult.Success;
+        }
+    }
+
+    public class CustomValidationProgress : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            if (value == null)
+                return new ValidationResult("Progress is required.");
+            var v = (int)value;
+            if (v < 5)
+                return new ValidationResult("Progress must be greater than 5");
+            if (v > 50)
+                return new ValidationResult("Progress must be lesser than 50");
+            return ValidationResult.Success;
+        }
+    }
+
+    public class CustomValidationWork : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            if (value == null)
+                return new ValidationResult("Work is required.");
+            var v = (int)value;
+            if (v < 5 || v > 200)
+                return new ValidationResult("Work must be between 5 and 200.");
+            return ValidationResult.Success;
+        }
+    }
+
+    public class CustomValidationEmail : ValidationAttribute
+    {
+        private static readonly EmailAddressAttribute EmailValidator = new EmailAddressAttribute();
+
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            var str = value as string;
+            if (string.IsNullOrWhiteSpace(str))
+                return new ValidationResult("Email is required.");
+            if (!EmailValidator.IsValid(str))
+                return new ValidationResult("Invalid Email format.");
+            return ValidationResult.Success;
+        }
+    }
+
+    public class CustomValidationUsername : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            var str = value as string;
+            if (string.IsNullOrWhiteSpace(str))
+                return new ValidationResult("Username is required.");
+            if (!System.Text.RegularExpressions.Regex.IsMatch(str, @"^[a-zA-Z0-9_]*$"))
+                return new ValidationResult("Username can only contain letters, numbers, and underscores.");
+            return ValidationResult.Success;
+        }
+    }
+
+    public class CustomValidationPassword : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            var str = value as string ?? string.Empty;
+            if (string.IsNullOrEmpty(str))
+                return new ValidationResult("Password required");
+            // Not required, only length constraints
+            if (str.Length > 0 && (str.Length < 8 || str.Length > 20))
+                return new ValidationResult("Password must be between 8 and 20 characters.");
+            return ValidationResult.Success;
+        }
+    }
+
+    public class CustomValidationWebsite : ValidationAttribute
+    {
+        private static readonly UrlAttribute UrlValidator = new UrlAttribute();
+
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            var str = value as string;
+            if (string.IsNullOrWhiteSpace(str))
+                return new ValidationResult("Website is required.");
+            if (!UrlValidator.IsValid(str))
+                return new ValidationResult("Invalid URL format.");
+            return ValidationResult.Success;
+        }
+    }
+
+    public class CustomValidationCustomData : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            var str = value as string;
+            if (string.IsNullOrWhiteSpace(str))
+                return new ValidationResult("Custom Data is required.");
+            return ValidationResult.Success;
+        }
+    }
+
+    public class CustomValidationNotes : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            var str = value as string;
+            if (string.IsNullOrWhiteSpace(str))
+                return new ValidationResult("Notes is required.");
+            return ValidationResult.Success;
+        }
+    }
+
+    public class CustomValidationTaskType : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            var str = value as string;
+            if (string.IsNullOrWhiteSpace(str))
+                return new ValidationResult("Task Type is required.");
+            return ValidationResult.Success;
+        }
+    }
+
+    public class CustomValidationStartDate : ValidationAttribute
+    {
+        private static readonly DateTime Min = new DateTime(2020, 1, 1);
+
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            if (value is not DateTime dt)
+                return new ValidationResult("Start Date is required.");
+
+            var dateOnly = dt.Date;
+            var max = DateTime.Today;
+
+            if (dateOnly < Min || dateOnly > max)
+                return new ValidationResult("Start Date must be between 01-Jan-2020 and today.");
+
+            return ValidationResult.Success;
+        }
+    }
+
+    public class CustomValidationEndDate : ValidationAttribute
+    {
+        private static readonly DateTime Min = new DateTime(2020, 1, 1);
+
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            if (value is not DateTime dt)
+                return new ValidationResult("End Date is required.");
+
+            var dateOnly = dt.Date;
+            var max = DateTime.Today;
+
+            if (dateOnly < Min || dateOnly > max)
+                return new ValidationResult("End Date must be between 01-Jan-2020 and today.");
+
+            return ValidationResult.Success;
+        }
+    }
+
+    public class CustomValidationBaselineStartDate : ValidationAttribute
+    {
+        private static readonly DateTime Min = new DateTime(2020, 1, 1);
+        private static readonly DateTime Max = new DateTime(2030, 12, 31);
+
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            if (value == null)
+                return new ValidationResult("Baseline Start Date is required.");
+            var dt = (DateTime)value;
+            if (dt < Min || dt > Max)
+                return new ValidationResult("Baseline Start Date must be between 01-Jan-2020 and 31-Dec-2030.");
+            return ValidationResult.Success;
+        }
+    }
+
+    public class CustomValidationBaselineEndDate : ValidationAttribute
+    {
+        private static readonly DateTime Min = new DateTime(2020, 1, 1);
+        private static readonly DateTime Max = new DateTime(2030, 12, 31);
+
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            if (value == null)
+                return new ValidationResult("Baseline End Date is required.");
+            var dt = (DateTime)value;
+            if (dt < Min || dt > Max)
+                return new ValidationResult("Baseline End Date must be between 01-Jan-2020 and 31-Dec-2030.");
+            return ValidationResult.Success;
+        }
+    }
+
+    public class CustomValidationReviewDate : ValidationAttribute
+    {
+        private static readonly DateTime Min = new DateTime(2020, 1, 1);
+        private static readonly DateTime Max = new DateTime(2030, 12, 31);
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            if (value == null)
+                return new ValidationResult("Review Date is required.");
+            // Original message: "can be within the provided range" — if you want a fixed range, add checks here.
+            var dt = (DateTime)value;
+            if (dt < Min || dt > Max)
+                return new ValidationResult("Baseline End Date must be between 01-Jan-2020 and 31-Dec-2030.");
+            return ValidationResult.Success;
+        }
+    }
+
+    public class CustomValidationProjectBudget : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            // Required + range 100..1,000,000
+            if (value == null)
+                return new ValidationResult("Project Budget is required.");
+
+            decimal amount = value switch
+            {
+                decimal d => d,
+                int i => i,
+                long l => l,
+                _ => 0m
+            };
+
+            if (amount < 100m || amount > 1_000_000m)
+                return new ValidationResult("Project Budget must be between $100 and $1,000,000.");
+            return ValidationResult.Success;
+        }
+    }
+    protected override void OnInitialized()
+    {
+        SegmentCollection = GetSegmentCollection();
+        if (GanttData.Count == 0)
+        {
+            GanttData = GetGantt();
+        }
+    }
+    private List<SegmentModel> GetSegmentCollection()
+    {
+        List<SegmentModel> segments = new List<SegmentModel>();
+        segments.Add(new SegmentModel() { id = 1, TaskId = 2, StartDate = new DateTime(2021, 04, 01), Duration = 1 });
+        segments.Add(new SegmentModel() { id = 2, TaskId = 2, StartDate = new DateTime(2021, 03, 29), EndDate = new DateTime(2021, 03, 31) });
+        segments.Add(new SegmentModel() { id = 3, TaskId = 3, StartDate = new DateTime(2021, 04, 01), Duration = 2 });
+        segments.Add(new SegmentModel() { id = 4, TaskId = 3, StartDate = new DateTime(2021, 03, 29), EndDate = new DateTime(2021, 03, 31) });
+        segments.Add(new SegmentModel() { id = 5, TaskId = 3, StartDate = new DateTime(2021, 04, 04), Duration = 3 });
+        segments.Add(new SegmentModel() { id = 6, TaskId = 4, StartDate = new DateTime(2021, 04, 01), Duration = 1 });
+        segments.Add(new SegmentModel() { id = 7, TaskId = 4, StartDate = new DateTime(2021, 03, 29), EndDate = new DateTime(2021, 03, 31) });
+        segments.Add(new SegmentModel() { id = 8, TaskId = 8, StartDate = new DateTime(2021, 04, 01), EndDate = new DateTime(2021, 04, 03) });
+        segments.Add(new SegmentModel() { id = 9, TaskId = 8, StartDate = new DateTime(2021, 04, 05), Duration = 1 });
+        segments.Add(new SegmentModel() { id = 10, TaskId = 9, StartDate = new DateTime(2021, 03, 29), EndDate = new DateTime(2021, 03, 31) });
+        segments.Add(new SegmentModel() { id = 11, TaskId = 9, StartDate = new DateTime(2021, 04, 01), Duration = 1 });
+        segments.Add(new SegmentModel() { id = 12, TaskId = 12, StartDate = new DateTime(2021, 04, 05), Duration = 1 });
+        segments.Add(new SegmentModel() { id = 13, TaskId = 12, StartDate = new DateTime(2021, 04, 07), Duration = 1 });
+        segments.Add(new SegmentModel() { id = 14, TaskId = 14, StartDate = new DateTime(2021, 04, 01), EndDate = new DateTime(2021, 04, 02) });
+        segments.Add(new SegmentModel() { id = 15, TaskId = 14, StartDate = new DateTime(2021, 04, 04), Duration = 2 });
+        return segments;
+    }
+
+    private static List<TaskData> GetGantt()
+    {
+        var data = new List<TaskData>
+        {
+            // Root 1
+            new TaskData {
+                TaskId = 1, ActivityName = "Product concept",
+                StartDate = new DateTime(2021,04,02), EndDate = new DateTime(2021,04,08),
+                BaselineStartDate = new DateTime(2021,03,29), BaselineEndDate = new DateTime(2021,04,04),
+                Duration = 5, Progress = 60, Work = 40, ParentId = null,
+                Email = "concept@example.com", Username = "product_concept", Password = "PassWord123",
+                Website = "https://concept.example.com", CustomData = "Initial Brainstorm",
+                TaskType = "FixedWork", ReviewDate = new DateTime(2021,04,07),
+                Notes = "Initial phase of the product development.", ProjectBudget = 10000
+            },
+            // Children of 1
+            new TaskData {
+                TaskId = 2, ActivityName = "Defining the product usage",
+                StartDate = new DateTime(2021,04,02), EndDate = new DateTime(2021,04,08),
+                BaselineStartDate = new DateTime(2021,03,30), BaselineEndDate = new DateTime(2021,04,05),
+                Duration = 3, Progress = 70, Work = 24, ParentId = 1,
+                Predecessor = "", Email = "", Username = "", Password = "",
+                Website = "", CustomData = "", TaskType = "FixedUnit",
+                ReviewDate = new DateTime(2021,04,06), Notes = "", ProjectBudget = 5000
+            },
+            new TaskData {
+                TaskId = 3, ActivityName = "Defining the target audience",
+                StartDate = new DateTime(2021,04,02), EndDate = new DateTime(2021,04,04),
+                BaselineStartDate = new DateTime(2021,03,30), BaselineEndDate = new DateTime(2021,04,02),
+                Duration = 3, Progress = 80, Work = 20, ParentId = 1,
+                Predecessor = "", Email = "audience@example.com", Username = "target_audience", Password = "PassWord123",
+                Website = "https://audience.example.com", CustomData = "Market Research",
+                TaskType = "FixedWork", ReviewDate = new DateTime(2021,04,03),
+                Notes = "Identifying the primary users for the product.", ProjectBudget = 7500
+            },
+            new TaskData {
+                TaskId = 4, ActivityName = "Prepare product sketch and notes",
+                StartDate = new DateTime(2021,04,05), EndDate = new DateTime(2021,04,08),
+                BaselineStartDate = new DateTime(2021,04,03), BaselineEndDate = new DateTime(2021,04,06),
+                Duration = 2, Progress = 90, Work = 16, ParentId = 1,
+                Predecessor = "2", Email = "sketch@example.com", Username = "product_sketch", Password = "PassWord123",
+                Website = "https://sketch.example.com", CustomData = "Initial Designs",
+                TaskType = "FixedDuration", ReviewDate = new DateTime(2021,04,07),
+                Notes = "Drafting preliminary visual representations of the product.", ProjectBudget = 3000
+            },
+            new TaskData {
+                TaskId = 5, ActivityName = "Concept approval",
+                StartDate = new DateTime(2021,04,08), EndDate = new DateTime(2021,04,08),
+                BaselineStartDate = new DateTime(2021,04,06), BaselineEndDate = new DateTime(2021,04,06),
+                Duration = 0, Progress = 100, Work = 8, ParentId = 1,
+                Predecessor = "3,4", Email = "approval@example.com", Username = "concept_approval", Password = "PassWord123",
+                Website = "https://approval.example.com", CustomData = "Stakeholder Review",
+                TaskType = "FixedWork", ReviewDate = new DateTime(2021,04,08),
+                Notes = "Official sign-off on the product concept.", ProjectBudget = 1000
+            },
+
+            // Root 2
+            new TaskData {
+                TaskId = 6, ActivityName = "Market research",
+                StartDate = new DateTime(2021,04,09), EndDate = new DateTime(2021,04,18),
+                BaselineStartDate = new DateTime(2021,04,06), BaselineEndDate = new DateTime(2021,04,15),
+                Duration = 4, Progress = 30, Work = 32, ParentId = null,
+                Email = "research@example.com", Username = "market_research", Password = "PassWord123",
+                Website = "https://research.example.com", CustomData = "Market Analysis",
+                TaskType = "FixedDuration", ReviewDate = new DateTime(2021,04,12),
+                Notes = "Comprehensive analysis of market trends and conditions.", ProjectBudget = 15000
+            },
+            // Children of 6
+            new TaskData {
+                TaskId = 7, ActivityName = "Demand analysis",
+                StartDate = new DateTime(2021,04,09), EndDate = new DateTime(2021,04,12),
+                BaselineStartDate = new DateTime(2021,04,07), BaselineEndDate = new DateTime(2021,04,10),
+                Duration = 4, Progress = 40, Work = 28, ParentId = 6,
+                Predecessor = "", Email = "demand@example.com", Username = "demand_analysis", Password = "PassWord123",
+                Website = "https://demand.example.com", CustomData = "Consumer insights",
+                TaskType = "FixedWork", ReviewDate = new DateTime(2021,04,11),
+                Notes = "Analyzing market demand for the product.", ProjectBudget = 8000
+            },
+            new TaskData {
+                TaskId = 8, ActivityName = "Customer strength",
+                StartDate = new DateTime(2021,04,09), EndDate = new DateTime(2021,04,12),
+                BaselineStartDate = new DateTime(2021,04,07), BaselineEndDate = new DateTime(2021,04,10),
+                Duration = 4, Progress = 30, Work = 24, ParentId = 7,
+                Predecessor = "5", Email = "strength@example.com", Username = "cust_strength", Password = "PassWord123",
+                Website = "https://strength.example.com", CustomData = "Customer metrics",
+                TaskType = "FixedUnit", ReviewDate = new DateTime(2021,04,11),
+                Notes = "Assessment of existing and potential customer base.", ProjectBudget = 6000
+            },
+            new TaskData {
+                TaskId = 9, ActivityName = "Market opportunity analysis",
+                StartDate = new DateTime(2021,04,09), EndDate = new DateTime(2021,04,12),
+                BaselineStartDate = new DateTime(2021,04,07), BaselineEndDate = new DateTime(2021,04,10),
+                Duration = 4, Progress = 0, Work = 28, ParentId = 7,
+                Predecessor = "5", Email = "opportunity@example.com", Username = "market_opp", Password = "PassWord123",
+                Website = "https://opportunity.example.com", CustomData = "Growth areas",
+                TaskType = "FixedWork", ReviewDate = new DateTime(2021,04,11),
+                Notes = "Identifying untapped market segments and opportunities.", ProjectBudget = 7000
+            },
+            new TaskData {
+                TaskId = 10, ActivityName = "Competitor analysis",
+                StartDate = new DateTime(2021,04,15), EndDate = new DateTime(2021,04,18),
+                BaselineStartDate = new DateTime(2021,04,12), BaselineEndDate = new DateTime(2021,04,15),
+                Duration = 4, Progress = 30, Work = 32, ParentId = 6,
+                Predecessor = "7,8", Email = "competitor@example.com", Username = "competitor_analysis", Password = "PassWord123",
+                Website = "https://competitor.example.com", CustomData = "Competitor strategies",
+                TaskType = "FixedDuration", ReviewDate = new DateTime(2021,04,17),
+                Notes = "Evaluating strategies and performance of competitors.", ProjectBudget = 9000
+            },
+            new TaskData {
+                TaskId = 11, ActivityName = "Product strength analysis",
+                StartDate = new DateTime(2021,04,15), EndDate = new DateTime(2021,04,18),
+                BaselineStartDate = new DateTime(2021,04,12), BaselineEndDate = new DateTime(2021,04,15),
+                Duration = 4, Progress = 40, Work = 28, ParentId = 6,
+                Predecessor = "9", Email = "strength_prod@example.com", Username = "prod_strength", Password = "PassWord123",
+                Website = "https://prodstrength.example.com", CustomData = "Product advantages",
+                TaskType = "FixedWork", ReviewDate = new DateTime(2021,04,17),
+                Notes = "Assessing the unique selling propositions of the product.", ProjectBudget = 7000
+            },
+            new TaskData {
+                TaskId = 12, ActivityName = "Research completed",
+                StartDate = new DateTime(2021,04,18), EndDate = new DateTime(2021,04,18),
+                BaselineStartDate = new DateTime(2021,04,16), BaselineEndDate = new DateTime(2021,04,16),
+                Duration = 0, Progress = 30, Work = 8, ParentId = 6,
+                Predecessor = "10", Email = "research_done@example.com", Username = "research_completed", Password = "PassWord123",
+                Website = "https://researchdone.example.com", CustomData = "Final research report",
+                TaskType = "FixedUnit", ReviewDate = new DateTime(2021,04,18),
+                Notes = "Marker for the completion of all research activities.", ProjectBudget = 500
+            },
+
+            // Root 3
+            new TaskData {
+                TaskId = 13, ActivityName = "Product design and development",
+                StartDate = new DateTime(2021,04,19), EndDate = new DateTime(2021,05,16),
+                BaselineStartDate = new DateTime(2021,04,16), BaselineEndDate = new DateTime(2021,05,13),
+                Duration = 20, Progress = 0, Work = 160, ParentId = null,
+                Predecessor = "6", Email = "design_dev@example.com", Username = "design_dev", Password = "PassWord123",
+                Website = "https://designdev.example.com", CustomData = "Development phase started",
+                TaskType = "FixedWork", ReviewDate = new DateTime(2021,04,25),
+                Notes = "Core phase for product creation and implementation.", ProjectBudget = 50000
+            },
+            // Child of 13
+            new TaskData {
+                TaskId = 14, ActivityName = "Functionality design",
+                StartDate = new DateTime(2021,04,19), EndDate = new DateTime(2021,04,23),
+                BaselineStartDate = new DateTime(2021,04,17), BaselineEndDate = new DateTime(2021,04,21),
+                Duration = 3, Progress = 30, Work = 24, ParentId = 13,
+                Predecessor = "12", Email = "func_design@example.com", Username = "func_design", Password = "PassWord123",
+                Website = "https://funcdesign.example.com", CustomData = "Feature specification",
+                TaskType = "FixedDuration", ReviewDate = new DateTime(2021,04,22),
+                Notes = "Detailed design of product features and behaviors.", ProjectBudget = 12000
+            }
+        };
+
+        return data;
+    }
+
+    public class CustomAdaptor : DataAdaptor
+    {
+        public override object Read(DataManagerRequest dm, string key = null)
+        {
+            return new DataResult() { Result = GanttData, Count = GanttData.Count };
+        }
+
+        public override object Insert(DataManager dm, object value, string key)
+        {
+            var incoming = value as TaskData;
+            if (incoming != null)
+            {
+                // Ensure unique TaskId if not provided
+                if (incoming.TaskId == 0)
+                {
+                    incoming.TaskId = (GanttData.Count == 0 ? 1 : GanttData.Max(t => t.TaskId) + 1);
+                }
+                GanttData.Insert(0, incoming);
+            }
+            return value;
+        }
+
+        public override object Remove(DataManager dm, object value, string keyField, string key)
+        {
+            if (int.TryParse(value?.ToString(), out var id))
+            {
+                var toRemove = GanttData.FirstOrDefault(t => t.TaskId == id);
+                if (toRemove != null)
+                {
+                    GanttData.Remove(toRemove);
+                    // Optionally remove descendants
+                    var desc = GanttData.Where(t => t.ParentId == id).ToList();
+                    foreach (var d in desc) GanttData.Remove(d);
+                }
+            }
+            return value;
+        }
+
+        public override object Update(DataManager dm, object value, string keyField, string key)
+        {
+            var incoming = value as TaskData;
+            var data = GanttData.FirstOrDefault(or => or.TaskId == incoming.TaskId);
+            if (data != null)
+            {
+                data.ActivityName = incoming.ActivityName;
+                data.StartDate = incoming.StartDate;
+                data.EndDate = incoming.EndDate;
+                data.BaselineStartDate = incoming.BaselineStartDate;
+                data.BaselineEndDate = incoming.BaselineEndDate;
+                data.ReviewDate = incoming.ReviewDate;
+
+                data.Duration = incoming.Duration;
+                data.Predecessor = incoming.Predecessor;
+                data.Progress = incoming.Progress;
+                data.Work = incoming.Work;
+                data.ParentId = incoming.ParentId;
+
+                data.Email = incoming.Email;
+                data.Username = incoming.Username;
+                data.Password = incoming.Password;
+                data.Website = incoming.Website;
+                data.CustomData = incoming.CustomData;
+                data.Notes = incoming.Notes;
+                data.TaskType = incoming.TaskType;
+
+                data.ProjectBudget = incoming.ProjectBudget;
+            }
+            return value;
+        }
+    }
+}

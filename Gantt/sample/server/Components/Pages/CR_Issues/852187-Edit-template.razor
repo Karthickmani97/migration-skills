@@ -1,0 +1,109 @@
+@page "/852187-Edit-template"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Grids
+<div>@messsage</div>
+<SfGantt DataSource="@TaskCollection" ID="Gamtt" EnableContextMenu Height="550px" Width="1200px"
+         Toolbar="@(new List<string>(){ "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll","Indent","Outdent"})">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate"
+                     Duration="Duration" Progress="Progress" ParentID="ParentId">
+    </GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Width="150"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Job Name" Width="150"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date" Width="150"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date" Width="150"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration" Width="150"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress" Width="150">
+            
+        </GanttColumn>
+        <GanttColumn Field="Status" HeaderText="Status">
+            <Template>
+
+                @((context as TaskData)?.Status?.Code ?? "-")
+
+            </Template>
+            <EditTemplate>
+                @{
+                    var task = (context as TaskData);
+                    var status = (context as TaskData)?.Status;
+                    var statusId = status?.Id ?? 0;
+                }
+        
+                <SfDropDownList ID="Status" Value="statusId" TItem="Statusclass" TValue="int" DataSource="@DropDownData">
+                    <DropDownListFieldSettings Value="Id" Text="Name"></DropDownListFieldSettings>
+                    <DropDownListEvents TValue="int" TItem="Statusclass"  ValueChange="(args) => { (context as TaskData).Status = args.ItemData;}"></DropDownListEvents>
+                </SfDropDownList>
+            </EditTemplate>
+        </GanttColumn>
+    </GanttColumns>
+     <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+      <GanttEvents TValue="TaskData"OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+
+@code {
+    SfDropDownList<string, string> dropdown;
+    private List<TaskData> TaskCollection { get; set; }
+    public string messsage{ get; set; }
+    private string[] Fields = new string[] { "TaskId", "TaskName", "StartDate", "EndDate", "Status", "Duration" };
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+
+    public void ValueChange(@Syncfusion.Blazor.DropDowns.ChangeEventArgs<int, Statusclass> args)
+    {
+        
+    }
+     
+      public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+ 
+    public List<Statusclass> DropDownData = new List<Statusclass>() {
+        new Statusclass(){ Id=1, Name="Open" },
+        new Statusclass(){ Id=2, Name="Review" },
+        new Statusclass(){ Id=3, Name="validate" },
+        new Statusclass(){ Id=4, Name="Close" },
+    };
+
+    public class Statusclass
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Code { get; set; }
+    }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public Statusclass Status { get; set; }
+        public int? ParentId { get; set; }
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>()
+        {
+            new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 04, 05), EndDate = new DateTime(2022, 04, 21) },
+            new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 5,   ParentId = 1,},
+            new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 04, 05), Duration = "4", Progress = 10,  ParentId = 1, },
+            new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 30,  ParentId = 1 , },
+            new TaskData() { TaskId = 5, TaskName = "Project estimation", StartDate = new DateTime(2022, 04, 06), EndDate = new DateTime(2022, 04, 21)},
+            new TaskData() { TaskId = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 30,  ParentId = 5,  },
+            new TaskData() { TaskId = 7, TaskName = "List materials", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 40,  ParentId = 5, },
+            new TaskData() { TaskId = 8, TaskName = "Estimation approval", StartDate = new DateTime(2022, 04, 06), Duration = "0", Progress = 30,  ParentId = 5 }
+        };
+        return Tasks;
+    }
+}
+
+

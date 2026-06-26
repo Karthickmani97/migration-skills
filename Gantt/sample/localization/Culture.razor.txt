@@ -1,0 +1,75 @@
+@inject NavigationManager NavigationManager
+@using Syncfusion.Blazor.DropDowns
+
+<h2>Select your language</h2>
+
+@* <select @onchange="OnSelected">
+    <option>Select Culture</option>
+    <option value="en-US">English</option>
+    <option value="de">German</option>
+	<option value="zh">Chinese</option>
+    <option value="tr-TR">Turkish</option>
+     <option value="pt-PT">Portuguese</option>
+</select> *@
+
+<div>
+<SfDropDownList Width="100%" @ref="@DropdownType" TValue="string" TItem="DropDownData" DataSource="@SelectionTypes" Value="@Type">
+<DropDownListEvents TValue="string" ValueChange="TypeChange" TItem="DropDownData"></DropDownListEvents>
+<DropDownListFieldSettings Text="Language" Value="Culture"></DropDownListFieldSettings>
+</SfDropDownList>
+</div>
+
+@code {
+    @* private void OnSelected(ChangeEventArgs e)
+    {
+        var culture = (string)e.Value;
+        var uri = new Uri(NavigationManager.Uri)
+            .GetComponents(UriComponents.PathAndQuery, UriFormat.Unescaped);
+        var query = $"?culture={Uri.EscapeDataString(culture)}&" +
+            $"redirectUri={Uri.EscapeDataString(uri)}";
+
+        NavigationManager.NavigateTo("/Culture/SetCulture" + query, forceLoad: true);
+    } *@
+SfDropDownList<string, DropDownData> DropdownType { get; set; }
+
+public List<DropDownData> SelectionTypes { get; set; } = new List<DropDownData>() {
+    new DropDownData() {
+        Language = "English",
+        Culture = "en-US"
+    },
+    new DropDownData() {
+        Language = "German",
+        Culture = "de"
+    },
+    new DropDownData() {
+        Language = "Chinese",
+        Culture = "zh"
+    }
+    new DropDownData() {
+        Language = "Turkish",
+        Culture = "tr-TR"
+    }
+     new DropDownData() {
+        Language = "Portuguese",
+        Culture = "pt-PT"
+    }
+
+    };
+public string Type { get; set; } = "en-US";
+public class DropDownData
+{
+    public string Culture { get; set; }
+    public string Language { get; set; }
+}
+public void TypeChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, DropDownData> args)
+{
+    //Type = args.ItemData.Culture;
+    Type = args.Value;
+    var uri = new Uri(NavigationManager.Uri)
+    .GetComponents(UriComponents.PathAndQuery, UriFormat.Unescaped);
+    var query = $"?culture={Uri.EscapeDataString(Type)}&" +
+    $"redirectUri={Uri.EscapeDataString(uri)}";
+    NavigationManager.NavigateTo("/Culture/SetCulture" + query, forceLoad: true);
+    StateHasChanged();
+}
+}

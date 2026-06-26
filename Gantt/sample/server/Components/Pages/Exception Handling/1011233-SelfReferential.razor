@@ -1,0 +1,195 @@
+﻿@page "/1011233-SelfReferential"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Grids
+
+<p>Exception Message: @ErrorDetails</p><br />
+<SfGantt @ref="Gantt" DataSource="@TaskCollection" EnableContextMenu="true" ShowColumnMenu="true"
+         AllowFiltering="true" AllowSorting="true" ShowColumnChooser="true" AllowRowDragAndDrop="true" 
+         AllowSelection="true" AllowExcelExport="true" 
+         Toolbar="ToolbarActions" Height="500px" Width="100%" AllowReordering="true">
+    <GanttSelectionSettings Mode="SelectionMode.Cell"></GanttSelectionSettings>
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate"
+                     Duration="Duration" Progress="Progress" Dependency="Predecessor" ParentID="ParentId">
+    </GanttTaskFields>
+    <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" TValue="TaskData" TResources="ResourceData"></GanttResource>
+    <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="PrimaryId" TaskID="TaskId" ResourceID="ResourceId" Units="Unit" TValue="TaskData" TAssignment="AssignmentModel">
+    </GanttAssignmentFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true"
+                       AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true" />
+    <GanttEvents OnActionFailure="ActionFailure" TValue="TaskData"></GanttEvents>
+</SfGantt>
+<br />
+<SfButton @onclick="Test_ReorderColumns_InvalidNames">Reorder Invalid Columns</SfButton>
+<SfButton @onclick="Test_EnableItems_InvalidIndices">Enable Toolbar (Invalid Indices)</SfButton>
+<SfButton @onclick="Test_EnableItems_NegativeIndices">Enable Toolbar (negative indices)</SfButton>
+<SfButton @onclick="RemoveResourceAssignmentFunc">Remove ResourceAssignment</SfButton>
+<SfButton @onclick="OpenEditDialog">Open EditDialog</SfButton>
+<SfButton @onclick="ConvertMilestone">Convert To MileStones</SfButton>
+<SfButton @onclick="AddRow">Add Row</SfButton>
+@code {
+    public SfGantt<TaskData> Gantt;
+    private string ErrorDetails = "";
+    public void ActionFailure(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+        this.ErrorDetails = args.Error.Message.ToString();
+        StateHasChanged();
+    }
+    private List<string> ToolbarActions = new List<string>
+    {
+        "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll",
+        "Indent", "Outdent", "Search", "ZoomIn", "ZoomOut", "ZoomToFit"
+    };
+    private async Task Test_ReorderColumns_InvalidNames()
+    {
+        await Gantt.ReorderColumnsAsync(
+            new List<string> { "InvalidCol1", "InvalidCol2" },
+            "TaskName"
+        );
+    }
+    private void Test_EnableItems_InvalidIndices()
+    {
+        Gantt.EnableItems(new List<int> { 50, 100, 200 }, true);
+    }
+    private void Test_EnableItems_NegativeIndices()
+    {
+        Gantt.EnableItems(new List<int> {-1,0,-1 }, true);
+    }
+    public TaskData record = new TaskData()
+        {
+            TaskId = 26,
+            TaskName = "New Added Record",
+            StartDate = new DateTime(2022, 04, 05),
+            Duration = "3",
+            Progress = 50,
+            EndDate = new DateTime(2022, 04, 08)
+        };
+    public async Task AddRow()
+    {
+        await Gantt.AddRecordAsync(record, -999, RowPosition.Above);
+    }
+    private void ConvertMilestone()
+    {
+        Gantt.ConvertToMilestone("-1");
+    }
+    public async void RemoveResourceAssignmentFunc()
+    {
+        AssignmentModel resourceAssignmentData = new AssignmentModel()
+            {
+                TaskId = 2,
+                ResourceId = 5,
+            };
+        await Gantt.DeleteResourceAssignmentAsync(resourceAssignmentData);
+    }
+    private async Task OpenEditDialog()
+    {
+        await Gantt.OpenEditDialogAsync(2);
+    }
+    private List<TaskData> TaskCollection { get; set; }
+    public List<ResourceData> ResourceCollection { get; set; }
+    public List<AssignmentModel> AssignmentCollection { get; set; } = new();
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        this.ResourceCollection = ResourceDataCollection.GetResources();
+        this.AssignmentCollection = AssignmentDataCollection.GetAssignmentCollection();
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; }
+    }
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>()
+        {
+            new TaskData() { TaskId = 1, TaskName = "Project Initiation", StartDate = new DateTime(2022, 04, 01), EndDate = new DateTime(2022, 04, 10) },
+            new TaskData() { TaskId = 2, TaskName = "Requirement Gathering", StartDate = new DateTime(2022, 04, 01), Duration = "3", Progress = 50, ParentId = 1 },
+            new TaskData() { TaskId = 3, TaskName = "Feasibility Study", StartDate = new DateTime(2022, 04, 04), Duration = "2", Progress = 40, ParentId = 1, Predecessor = "2FS" },
+            new TaskData() { TaskId = 4, TaskName = "Approval", StartDate = new DateTime(2022, 04, 06), Duration = "1", Progress = 30, ParentId = 1, Predecessor = "3FS" },
+            new TaskData() { TaskId = 5, TaskName = "Planning Phase", StartDate = new DateTime(2022, 04, 07), EndDate = new DateTime(2022, 04, 20) },
+            new TaskData() { TaskId = 6, TaskName = "Resource Planning", StartDate = new DateTime(2022, 04, 07), Duration = "3", Progress = 60, ParentId = 5 },
+            new TaskData() { TaskId = 7, TaskName = "Budget Planning", StartDate = new DateTime(2022, 04, 10), Duration = "2", Progress = 50, ParentId = 5, Predecessor = "6FS" },
+            new TaskData() { TaskId = 8, TaskName = "Schedule Planning", StartDate = new DateTime(2022, 04, 12), Duration = "2", Progress = 40, ParentId = 5, Predecessor = "7FS" },
+            new TaskData() { TaskId = 9, TaskName = "Planning Approval", StartDate = new DateTime(2022, 04, 14), Duration = "1", Progress = 30, ParentId = 5, Predecessor = "8FS" },
+            new TaskData() { TaskId = 10, TaskName = "Project Closure", StartDate = new DateTime(2022, 05, 08), Duration = "1", Progress = 0, Predecessor = "9FS" }
+        };
+        return Tasks;
+    }
+    public class AssignmentModel
+    {
+        public int PrimaryId { get; set; }
+        public int TaskId { get; set; }
+        public int ResourceId { get; set; }
+        public double? Unit { get; set; }
+    }
+    public class ResourceData
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public double? Unit { get; set; }
+        public string Role { get; set; }
+        public string Team { get; set; }
+
+    }
+    public class ResourceDataCollection
+    {
+        public static List<ResourceData> GetResources()
+        {
+            List<ResourceData> resource = new List<ResourceData>() {
+            new ResourceData() { Id = 21, Name = "Martin Tamer" ,Unit = 70},
+            new ResourceData() { Id = 22, Name = "Rose Fuller" },
+            new ResourceData() { Id = 23, Name = "Margaret Buchanan" },
+            new ResourceData() { Id = 24, Name = "Fuller King" },
+            new ResourceData() { Id = 25, Name = "Davolio Fuller" },
+            new ResourceData() { Id = 26, Name = "Van Jack" },
+            new ResourceData() { Id = 27, Name = "Fuller Buchanan" },
+            new ResourceData() { Id = 28, Name = "Jack Davolio" },
+            new ResourceData() { Id = 29, Name = "Tamer Vinet" },
+            new ResourceData() { Id = 30, Name = "Vinet Fuller" },
+            new ResourceData() { Id = 31, Name = "Bergs Anton" },
+            new ResourceData() { Id = 32, Name = "Construction Supervisor" }
+            };
+            return resource;
+        }
+    }
+    public class AssignmentDataCollection
+    {
+        public static List<AssignmentModel> GetAssignmentCollection()
+        {
+            List<AssignmentModel> assignments = new List<AssignmentModel>()
+            {
+                new AssignmentModel(){ PrimaryId = 1, TaskId = 2, ResourceId = 21, Unit = 70},
+                new AssignmentModel(){ PrimaryId = 2, TaskId = 3, ResourceId = 23, Unit = 70},
+                new AssignmentModel(){ PrimaryId = 3, TaskId = 3, ResourceId = 25},
+            };
+            return assignments;
+        }
+    }
+}
+<style>
+    .e-btn {
+        margin: 4px;
+    }
+
+    .category {
+        font-weight: bold;
+        margin-top: 15px;
+        color: #d32f2f;
+    }
+
+    .test-info {
+        background-color: #fff3cd;
+        border: 1px solid #ffc107;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+    }
+</style>

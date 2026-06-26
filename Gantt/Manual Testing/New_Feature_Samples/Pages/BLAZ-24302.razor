@@ -1,0 +1,109 @@
+@page "/BLAZ-24302"
+
+@using Syncfusion.Blazor.Gantt
+@using System.Diagnostics
+
+<SfGantt @ref="Gantt" ID="Gantt" Toolbar="@(new List<string>() { "Add", "Cancel", "CollapseAll", "Delete", "Edit", "ExpandAll", "NextTimeSpan", "PrevTimeSpan", "Search", "Update" , "Indent" , "Outdent" ,"ZoomIn", "ZoomOut", "ZoomToFit"})" 
+         DataSource="@TaskCollection" EnableVirtualization=true AllowSelection="true" Height="400px" Width="700px">
+    <GanttTaskFields Id="ID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" Dependency = "Predecessor" ParentID="ParentId">
+    </GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true"></GanttEditSettings>
+     <GanttSplitterSettings Position="30%"></GanttSplitterSettings>
+      <GanttEvents Created="OnGanttCreated" TValue="TaskData"></GanttEvents>
+</SfGantt>
+
+    
+@code{
+    public SfGantt<TaskData> Gantt;
+    SfGantt<TaskData> Obj { get; set; }
+    private DateTime Holiday1 = new DateTime(2017, 01, 11);
+    private DateTime Holiday2 = new DateTime(2017, 01, 12);
+    private DateTime Holiday3 = new DateTime(2017, 01, 07);
+    private DateTime Holiday4 = new DateTime(2017, 01, 08);
+    public DateTime ProjectStartDate = new DateTime(2017, 01, 01);
+    public DateTime ProjectEndDate = new DateTime(2017, 01, 30);
+    public List<TaskData> TaskCollection { get; set; }
+    public string runningTime = string.Empty;
+    public DateTime? StartAt { get; private set; }
+    public DateTime? EndAt { get; private set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = VirtualData.GetTreeVirtualData();
+    }
+    private void OnGanttCreated(object sender)
+    {
+        //EndAt = DateTime.Now;
+        //TimeSpan ts = (TimeSpan)(EndAt - StartAt);
+        //runningTime = ts.TotalMilliseconds.ToString();
+    }
+    public class VirtualData
+    {
+        public static List<TaskData> GetTreeVirtualData()
+        {
+            List<TaskData> DataCollection = new List<TaskData>();
+            Random rand = new Random();
+            var x = 0;
+            for (var i = 1; i <= 500; i++)
+            {
+                var name = rand.Next(0, 100);
+                TaskData Parent = new TaskData()
+                {
+                    ID = ++x,
+                    TaskName = "Task " + x,
+                    StartDate = new DateTime(2017, 1, 9),
+                    EndDate = new DateTime(2017, 1, 13),
+                    Duration = "5",
+                    Progress = rand.Next(100),
+                    ParentId = null,
+                };
+                DataCollection.Add(Parent);
+                var child = 0;
+                for (var j = 1; j <= 9; j++)
+                {
+                    var childName = rand.Next(0, 100);
+                    if (j <= 4)
+                    {
+                        DataCollection.Add(new TaskData()
+                            {
+                                ID = ++x,
+                                TaskName = "Task " + x,
+                                StartDate = new DateTime(2017, 1, 9),
+                                EndDate = new DateTime(2017, 1, 13),
+                                Duration = "5",
+                                Progress = rand.Next(100),
+                                Predecessor = $"{x - 1}FS",
+                                ParentId = (Parent.ID + j - 1)
+                            });
+                        child = x;
+                    }
+                    else
+                    {
+                        DataCollection.Add(new TaskData()
+                            {
+                                ID = ++x,
+                                TaskName = "Task " + x,
+                                StartDate = new DateTime(2017, 1, 9),
+                                EndDate = new DateTime(2017, 1, 13),
+                                Duration = "5",
+                                Progress = rand.Next(100),
+                                Predecessor = $"{x - 1}FS",
+                                ParentId = child
+                            });
+                    }
+                }
+            }
+            return DataCollection;
+        }
+    }
+    public class TaskData
+    {
+        public int ID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; }
+    }
+}

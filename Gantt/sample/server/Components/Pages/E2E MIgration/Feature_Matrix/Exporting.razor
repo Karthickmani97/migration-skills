@@ -1,0 +1,114 @@
+@page "/E2EMigration/exporting"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+<div>@messsage</div>
+<SfGantt ID="GanttExport" DataSource="@TaskCollection" Height="450px" Width="1400px" @ref="Gantt" AllowExcelExport="true" Toolbar="@(new List<string>() { "ExcelExport", "CsvExport" })">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" Child="SubTasks">
+    </GanttTaskFields>
+    <GanttEvents OnToolbarClick="ToolbarClickHandler" Created="Created" TValue="TaskData" OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+ 
+@code{
+    public SfGantt<TaskData> Gantt;
+    public List<TaskData> TaskCollection { get; set; }
+    public string messsage{ get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    public async Task Created()
+    {   
+     
+    }
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+
+    public void ToolbarClickHandler(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        if (args.Item.Text == "Excel export")
+        {
+            this.Gantt.ExportToExcelAsync();
+        }
+        else if (args.Item.Text == "CSV export")
+        {
+            this.Gantt.ExportToCsvAsync();
+        }
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? Duration { get; set; }
+        public int? Progress { get; set; }
+        public List<TaskData> SubTasks { get; set; }
+    }
+	  public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+        new TaskData() {
+            TaskId = 1,
+            TaskName = "Project initiation",
+            StartDate = new DateTime(2019, 04, 02),
+            EndDate = new DateTime(2019, 04, 21),
+            SubTasks = (new List <TaskData> () {
+                new TaskData() {
+                    TaskId = 2,
+                    TaskName = "Identify Site location",
+                    StartDate = new DateTime(2019, 04, 02),
+                    Duration = "0",
+                    Progress = 30,
+                },
+                new TaskData() {
+                    TaskId = 3,
+                    TaskName = "Perform soil test",
+                    StartDate = new DateTime(2019, 04, 02),
+                    Duration = "4",
+                    Progress = 40,
+                },
+                new TaskData() {
+                    TaskId = 4,
+                    TaskName = "Soil test approval",
+                    StartDate = new DateTime(2019, 04, 02),
+                    Duration = "0",
+                    Progress = 30
+                },
+            })
+        },
+        new TaskData() {
+            TaskId = 5,
+            TaskName = "Project estimation",
+            StartDate = new DateTime(2019, 04, 02),
+            EndDate = new DateTime(2019, 04, 21),
+            SubTasks = (new List <TaskData> () {
+                new TaskData() {
+                    TaskId = 6,
+                    TaskName = "Develop floor plan for estimation",
+                    StartDate = new DateTime(2019, 04, 04),
+                    Duration = "3",
+                    Progress = 30,
+                },
+                new TaskData() {
+                    TaskId = 7,
+                    TaskName = "List materials",
+                    StartDate = new DateTime(2019, 04, 04),
+                    Duration = "3",
+                    Progress = 40
+                },
+                new TaskData() {
+                    TaskId = 8,
+                    TaskName = "Estimation approval",
+                    StartDate = new DateTime(2019, 04, 04),
+                    Duration = "0",
+                    Progress = 30,
+                }
+            })
+        }
+    };
+ 
+        return Tasks;
+    }
+}

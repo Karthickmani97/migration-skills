@@ -1,0 +1,168 @@
+﻿@page "/Predecessor/negative"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.DropDowns
+<SfGantt @ref="Gantt" DataSource="@TaskCollection" Toolbar="@(new List<string>() {"Add", "Edit", "Delete", "Cancel"})" EnableContextMenu="true" Height="550px" Width="100%" HighlightWeekends="true"
+         WorkWeek="@(new string[] {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"})" AllowSorting="true">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                     ParentID="ParentId" Dependency="Predecessor">
+    </GanttTaskFields>
+    <GanttEditSettings ShowDeleteConfirmDialog="true" AllowDeleting="true" AllowAdding="true" AllowEditing="true" AllowTaskbarEditing="true" NewRowPosition="RowPosition.Child"></GanttEditSettings>
+    <GanttEvents TValue="TaskInfoModel" CellSaved="CellSaved" OnCellSave="CellSaveHandler"  TaskbarEditing="OnTaskbarEditingHandler" TaskbarEdited="OnTaskbarEditedHandler" TaskConnectorChanging="ConnectorLineDrawHandler" TaskConnectorChanged="ConnectorLineDrawCompletedHandler"></GanttEvents>
+</SfGantt>
+<div>
+    <SfDropDownList @bind-Value="selectedMethod" DataSource="methods" Placeholder="Public Methods" Width="300px">
+        <DropDownListEvents TItem="DropdownData" TValue="string" ValueChange="HandleMethodChange"></DropDownListEvents>
+        <DropDownListFieldSettings Text="Text" Value="Value"></DropDownListFieldSettings>
+    </SfDropDownList>
+</div>
+
+@code {
+    public SfGantt<TaskInfoModel> Gantt;
+    public List<TaskInfoModel> TaskCollection { get; set; }
+    private string selectedMethod { get; set; } = "";
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    private List<DropdownData> methods = new List<DropdownData>
+     {
+         new DropdownData{ Text = "Add Predecessor", Value = "AddPredecessor" },
+         new DropdownData{ Text = "Update Predecessor", Value = "UpdatePredecessor" },
+         new DropdownData{ Text = "Remove Predecessor", Value = "RemovePredecessor" },
+     };
+    private void HandleMethodChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, DropdownData> args)
+    {
+        selectedMethod = args.Value;
+        SwitchMethods();
+    }
+    private void SwitchMethods()
+    {
+        switch (selectedMethod)
+        {
+            case "AddPredecessor":
+                this.Gantt.AddPredecessor(-2, "4FF-2");
+                break;
+            case "UpdatePredecessor":
+                Gantt.UpdatePredecessor(3, "4FS");
+                break;
+            case "RemovePredecessor":
+                Gantt.RemovePredecessor(3);
+                break;
+        }
+    }
+    private async Task CellSaveHandler(Syncfusion.Blazor.Grids.CellSaveArgs<TaskInfoModel> args)
+    {
+        if (args.ColumnName == "Predecessor")
+        {
+            args.Value = "-2FS+2";
+        }
+        await Task.CompletedTask;
+    }
+    public async void CellSaved(Syncfusion.Blazor.Grids.CellSavedArgs<TaskInfoModel> args)
+    {
+        await Task.CompletedTask;
+    }
+    public async void ConnectorLineDrawHandler(TaskConnectorChangeEventArgs<TaskInfoModel> args)
+    {
+        await Task.CompletedTask;  
+    }
+    public async void ConnectorLineDrawCompletedHandler(TaskConnectorChangedEventArgs<TaskInfoModel> args)
+    {
+        await Task.CompletedTask;
+    }
+    private async Task OnTaskbarEditingHandler(TaskbarEditingEventArgs<TaskInfoModel> args)
+    {
+        await Task.CompletedTask;
+    }
+    private async Task OnTaskbarEditedHandler(TaskbarEditedEventArgs<TaskInfoModel> args)
+    {
+        await Task.CompletedTask;
+    }
+    public class DropdownData
+    {
+        public string? Text { get; set; }
+        public string? Value { get; set; }
+    }
+    public class TaskInfoModel
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; }
+    }
+
+    public static List<TaskInfoModel> GetTaskCollection()
+    {
+        List<TaskInfoModel> Tasks = new List<TaskInfoModel>() {
+            new TaskInfoModel() {
+                TaskId = 1,
+                TaskName = "Project initiation",
+                StartDate = new DateTime(2019, 04, 02),
+                EndDate = new DateTime(2019, 04, 21),
+            },
+            new TaskInfoModel() {
+                TaskId = -2,
+                TaskName = "Perform soil test",
+                StartDate = new DateTime(2019, 04, 02),
+                Duration = "4",
+                Progress = 40,
+            },
+            new TaskInfoModel() {
+                TaskId = 3,
+                TaskName = "Perform soil test",
+                StartDate = new DateTime(2019, 04, 02),
+                Duration = "4",
+                Progress = 40,
+                Predecessor = "-2FS - 2Days",
+            },
+             new TaskInfoModel() {
+                TaskId = 4,
+                TaskName = "Project initiation",
+                StartDate = new DateTime(2019, 04, 02),
+                EndDate = new DateTime(2019, 04, 21),
+            },
+            new TaskInfoModel() {
+                TaskId = 5,
+                TaskName = "Perform soil test",
+                StartDate = new DateTime(2019, 04, 02),
+                Duration = "4",
+                Progress = 40,
+            },
+            new TaskInfoModel() {
+                TaskId = 6,
+                TaskName = "Perform soil test",
+                StartDate = new DateTime(2019, 04, 02),
+                Duration = "4",
+                Progress = 40,
+            },
+             new TaskInfoModel() {
+                TaskId = -7,
+                TaskName = "Project initiation",
+                StartDate = new DateTime(2019, 04, 02),
+                EndDate = new DateTime(2019, 04, 21),
+            },
+            new TaskInfoModel() {
+                TaskId = 8,
+                TaskName = "Perform soil test",
+                StartDate = new DateTime(2019, 04, 02),
+                Duration = "4",
+                Progress = 40,
+            },
+            new TaskInfoModel() {
+                TaskId = 9,
+                TaskName = "Perform soil test",
+                StartDate = new DateTime(2019, 04, 02),
+                Duration = "4",
+                Progress = 40,
+                Predecessor = "-7FS - 3 days",
+            }
+        };
+        return Tasks;
+    }
+}

@@ -1,0 +1,332 @@
+@page "/BLAZ-949038"
+
+@using Syncfusion.Blazor.Gantt
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor
+<button @onclick="AddPredecessor">Add Predecessor</button>
+<button @onclick="UpdatePredecessorHandler">Update Predecessor</button>
+<button @onclick="RemovePredecessorFunc">Remove Predecessor</button>
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt DataSource="@TaskCollection" @ref="Gantt" Height="550px" Width="100%" HighlightWeekends="true"
+            AllowExcelExport="true"
+            AllowFiltering="true"
+            AllowReordering="true"
+            AllowResizing="true"
+            AllowRowDragAndDrop="true"
+            AllowSorting="true"
+            ShowInlineNotes="true"
+            DurationUnit="DurationUnit.Hour"
+            ShowColumnMenu="true"
+            ShowColumnChooser="true"
+            EnableContextMenu="true"
+            WorkWeek="@WorkWeek"
+            IncludeWeekend="false"
+            Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll", "Indent", "Outdent" })"
+            AllowSelection="true" GridLines="Syncfusion.Blazor.Gantt.GridLine.Both" TreeColumnIndex="1"
+            ProjectStartDate="@ProjectStartDate" ProjectEndDate="@ProjectEndDate" ScrollToTaskbarOnClick="true">
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                ParentID="ParentId" Work="Work" TaskType="TaskType" BaselineEndDate="BaselineEndDate" BaselineStartDate="BaselineStartDate" Notes="Notes" Dependency="Predecessor">
+                </GanttTaskFields>
+                <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+                <GanttColumns>
+                    <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+                    <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+                    <GanttResourceColumn HeaderText="Resources"></GanttResourceColumn>
+                    <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+                    <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+                    <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+                    <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+                    <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+                    <GanttColumn Field="BaselineStartDate" HeaderText="BaselineStartDate"></GanttColumn>
+                    <GanttColumn Field="BaselineEndDate" HeaderText="BaselineEndDate"></GanttColumn>
+                </GanttColumns>
+                <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" MaxUnits="MaxUnit" Group="Group" TValue="GanttData.TaskData" TResources="GanttData.ResourceInfoModel"></GanttResource>
+                <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="Id" TaskID="TaskId" ResourceID="ResourceId" TValue="GanttData.TaskData" TAssignment="GanttData.AssignmentModel"></GanttAssignmentFields>
+                <GanttSegmentFields PrimaryKey="Id" ForeignKey="TaskId" StartDate="SegmentStartDate" EndDate="SegmentEndDate" Duration="SegmentDuration" TValue="GanttData.TaskData" TSegments="GanttData.SegmentModel" DataSource="SegmentCollection"></GanttSegmentFields>
+                <GanttEditDialogFields>
+                    <GanttEditDialogField Type="GanttDialogFieldType.General" HeaderText="General"></GanttEditDialogField>
+                    <GanttEditDialogField Type="GanttDialogFieldType.Dependency"></GanttEditDialogField>
+                    <GanttEditDialogField Type="GanttDialogFieldType.Resources"></GanttEditDialogField>
+                    <GanttEditDialogField Type="GanttDialogFieldType.Segments"></GanttEditDialogField>
+                    <GanttEditDialogField Type="GanttDialogFieldType.Notes"></GanttEditDialogField>
+                </GanttEditDialogFields>
+                <GanttAddDialogFields>
+                    <GanttAddDialogField Type="GanttDialogFieldType.General" HeaderText="General"></GanttAddDialogField>
+                    <GanttAddDialogField Type="GanttDialogFieldType.Dependency"></GanttAddDialogField>
+                    <GanttAddDialogField Type="GanttDialogFieldType.Resources"></GanttAddDialogField>
+                    <GanttAddDialogField Type="GanttDialogFieldType.Segments"></GanttAddDialogField>
+                    <GanttAddDialogField Type="GanttDialogFieldType.Notes"></GanttAddDialogField>
+                </GanttAddDialogFields>
+                <GanttKeySettings MoveLeftCell="Shift+LeftArrow" MoveRightCell="Tab" MoveUpCell="UpArrow" MoveDownCell="" IndentRow="LeftArrow" OutdentRow=""></GanttKeySettings>
+                <GanttEventMarkers>
+                    <GanttEventMarker Day="new DateTime(2025,4,2)" Label="Project Start"></GanttEventMarker>
+                </GanttEventMarkers>
+                <GanttHolidays>
+                    <GanttHoliday Label="Telugu New Year" From="new DateTime(2025, 04, 9)" To="new DateTime(2025, 04, 09)"></GanttHoliday>
+                    <GanttHoliday Label="Tamil New Year" From="new DateTime(2025, 04, 14)" To="new DateTime(2025, 04, 14)"></GanttHoliday>
+                </GanttHolidays>
+                <GanttTimelineSettings>
+                    <GanttTopTierSettings Unit="TimelineViewMode.Week" Format="MMM dd, y"></GanttTopTierSettings>
+                    <GanttBottomTierSettings Unit="TimelineViewMode.Day"></GanttBottomTierSettings>
+                </GanttTimelineSettings>
+                <GanttFilterSettings HierarchyMode="FilterHierarchyMode.Parent" IgnoreAccent="false"></GanttFilterSettings>
+                <GanttSearchSettings IgnoreCase="false" IgnoreAccent="false" Fields="@SearchFields" HierarchyMode="FilterHierarchyMode.Parent" Operator="Operator.Contains"></GanttSearchSettings>
+                @*  <GanttSortSettings AllowUnsort="@AllowUnsort">
+        @if (EnableSortDescriptors)
+        {
+            <GanttSortDescriptors>
+                <GanttSortDescriptor Field="@SortField" Direction="@SortDirection"></GanttSortDescriptor>
+            </GanttSortDescriptors>
+        }
+    </GanttSortSettings> *@
+                @* <GanttTaskbarSettings AllowTaskbarDragAndDrop="@AllowTaskbarDragAndDrop" EnableMultiTaskbar="@EnableMultiTaskbar"></GanttTaskbarSettings> *@
+                <GanttLabelSettings LeftLabel="TaskName" TaskLabel="Progress" TValue="GanttData.TaskData"></GanttLabelSettings>
+                <GanttSplitterSettings ColumnIndex="2"></GanttSplitterSettings>
+                <GanttTooltipSettings ShowTooltip="true" ShowTooltipOnEditing="true" TValue="GanttData.TaskData">
+                    @* <EditingTemplate>
+                        @{
+                            <div>Start Date: @context.StartDate</div>
+                        }
+                    </EditingTemplate>
+                    <ConnectorLineTemplate>
+                        @{
+                                        var record = context as GanttData.TaskData;
+                            <div>
+                                @record.Predecessor
+                            </div>
+                        }
+                    </ConnectorLineTemplate>
+                    <TaskbarTemplate>
+                        @{
+                            var record = context as GanttData.TaskData;
+                            <div>
+                                @record.TaskName
+                            </div>
+                        }
+                    </TaskbarTemplate>
+                    <TimelineCellTemplate>
+                        @{
+                            var record = context;
+                            <div>
+                                @record
+                            </div>
+                        }
+                    </TimelineCellTemplate> *@
+                </GanttTooltipSettings>
+                <GanttEvents TValue="GanttData.TaskData" BeforeTooltipRender="BeforeTooltipHandler" CellSaved="CellSaved" TaskbarEditing="OnTaskbarEditingHandler" TaskbarEdited="OnTaskbarEditedHandler" OnCellSave="CellSaveHandler" TaskConnectorChanging="ConnectorLineDrawHandler" TaskConnectorChanged="ConnectorLineDrawCompletedHandler"></GanttEvents>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+<style>
+    html, body {
+    height: 100%;
+    }
+</style>
+@code {
+    private DateTime ProjectStartDate { get; set; } = new DateTime(2025, 3, 25);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2025, 9, 01);
+    private static List<GanttData.AssignmentModel> AssignmentCollection { get; set; }
+    private List<GanttData.ResourceInfoModel> ResourceCollection { get; set; }
+    private List<GanttData.SegmentModel> SegmentCollection { get; set; }
+    private List<GanttData.TaskData> TaskCollection { get; set; }
+    private SfGantt<GanttData.TaskData> Gantt;
+    public string[] WorkWeek { get; set; } = new string[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+    public string[] SearchFields { get; set; } = new string[] { "TaskName", "StartDate", "EndDate", "Duration", "Progress" };
+    protected override void OnInitialized()
+    {
+        TaskCollection = GanttData.EditingData().ToList();
+        ResourceCollection = GanttData.GetResources;
+        AssignmentCollection = GanttData.GetAssignmentCollection();
+        SegmentCollection = GanttData.GetSegmentCollection();
+    }
+    public void AddPredecessor()
+    {
+        this.Gantt.AddPredecessor(10, "8FF");
+    }
+    private void UpdatePredecessorHandler()
+    {
+        Gantt.UpdatePredecessor(7, "4FS");
+    }
+    public void RemovePredecessorFunc()
+    {
+        Gantt.RemovePredecessor(3);
+    }
+    private async Task CellSaveHandler(Syncfusion.Blazor.Grids.CellSaveArgs<GanttData.TaskData> args)
+    {
+        // if (args.ColumnName == "Predecessor")
+        // {
+        //     args.Value = "@#$%";
+        // }
+        await Task.CompletedTask;
+    }
+    public void CellSaved(Syncfusion.Blazor.Grids.CellSavedArgs<GanttData.TaskData> args)
+    {
+
+    }
+    private async Task BeforeTooltipHandler(BeforeTooltipRenderEventArgs<GanttData.TaskData> args)
+    {
+        await Task.CompletedTask;
+    }
+    public void ConnectorLineDrawHandler(TaskConnectorChangeEventArgs<GanttData.TaskData> args)
+    {
+        //Here, you can customize your code.
+    }
+    public void ConnectorLineDrawCompletedHandler(TaskConnectorChangedEventArgs<GanttData.TaskData> args)
+    {
+        //Here, you can customize your code.
+    }
+    private async Task OnTaskbarEditingHandler(TaskbarEditingEventArgs<GanttData.TaskData> args)
+    {
+        //args.EnablePredecessorOffsetValidation = true;
+        await Task.CompletedTask;
+    }
+    private async Task OnTaskbarEditedHandler(TaskbarEditedEventArgs<GanttData.TaskData> args)
+    {
+        await Task.CompletedTask;
+    }
+    public class GanttData
+    {
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string TaskName { get; set; }
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public string Duration { get; set; }
+            public int Progress { get; set; }
+            public string Predecessor { get; set; }
+            public string Notes { get; set; }
+            public int? ParentId { get; set; }
+            public double? Work { get; set; }
+            public string TaskType { get; set; }
+            public DateTime? BaselineStartDate { get; set; }
+            public DateTime? BaselineEndDate { get; set; }
+        }
+        public class ResourceInfoModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public double MaxUnit { get; set; }
+            public string? Group { get; set; }
+        }
+        public class AssignmentModel
+        {
+            public int Id { get; set; }
+            public int TaskId { get; set; }
+            public int ResourceId { get; set; }
+            public double? Unit { get; set; }
+        }
+        public class SegmentModel
+        {
+            public int Id { get; set; }
+            public int TaskId { get; set; }
+            public DateTime SegmentStartDate { get; set; }
+            public DateTime SegmentEndDate { get; set; }
+            public string SegmentDuration { get; set; }
+        }
+        public static List<SegmentModel> GetSegmentCollection()
+        {
+            List<SegmentModel> segments = new List<SegmentModel>
+            {
+                new SegmentModel() { Id = 1, TaskId = 2, SegmentStartDate = new DateTime(2025, 04, 02), SegmentEndDate = new DateTime(2025, 04, 03) },
+                new SegmentModel() { Id = 2, TaskId = 2, SegmentStartDate = new DateTime(2025, 04, 05), SegmentDuration = "1" },
+                new SegmentModel() { Id = 3, TaskId = 3, SegmentStartDate = new DateTime(2025, 04, 07), SegmentDuration = "1" },
+                new SegmentModel() { Id = 4, TaskId = 3, SegmentStartDate = new DateTime(2025, 04, 10), SegmentEndDate = new DateTime(2025, 04, 11) },
+                new SegmentModel() { Id = 5, TaskId = 4, SegmentStartDate = new DateTime(2025, 04, 10), SegmentDuration = "1" },
+                new SegmentModel() { Id = 6, TaskId = 4, SegmentStartDate = new DateTime(2025, 04, 11), SegmentEndDate = new DateTime(2025, 04, 12) },
+                new SegmentModel() { Id = 7, TaskId = 7, SegmentStartDate = new DateTime(2025, 04, 15), SegmentDuration = "1" },
+                new SegmentModel() { Id = 8, TaskId = 7, SegmentStartDate = new DateTime(2025, 04, 17), SegmentDuration = "1" },
+                new SegmentModel() { Id = 9, TaskId = 8, SegmentStartDate = new DateTime(2025, 04, 18), SegmentEndDate = new DateTime(2025, 04, 19) },
+                new SegmentModel() { Id = 10, TaskId = 8, SegmentStartDate = new DateTime(2025, 04, 21), SegmentDuration = "1" },
+            };
+            return segments;
+        }
+        public static List<ResourceInfoModel> GetResources = new List<ResourceInfoModel>()
+        {
+            new ResourceInfoModel() { Id= 1, Name= "Martin Tamer", Group="Planning Team"},
+            new ResourceInfoModel() { Id= 2, Name= "Rose Fuller", Group="Testing Team" },
+            new ResourceInfoModel() { Id= 3, Name= "Margaret Buchanan", Group="Approval Team" },
+            new ResourceInfoModel() { Id= 4, Name= "Fuller King", Group="Development Team" },
+            new ResourceInfoModel() { Id= 5, Name= "Davolio Fuller", Group="Approval Team" },
+            new ResourceInfoModel() { Id= 6, Name= "Fuller Buchanan", Group="Development Team" },
+            new ResourceInfoModel() { Id= 7, Name= "Jack Davolio", Group="Planning Team" },
+            new ResourceInfoModel() { Id= 8, Name= "Tamer Vinet", Group="Testing Team" },
+            new ResourceInfoModel() { Id= 9, Name= "Vinet Fuller", Group="Development Team" },
+            new ResourceInfoModel() { Id= 10, Name= "Bergs Anton", Group="Testing Team" },
+            new ResourceInfoModel() { Id= 11, Name= "Construction Supervisor", Group="Testing Team" },
+        };
+        public static List<AssignmentModel> GetAssignmentCollection()
+        {
+            List<AssignmentModel> assignments = new List<AssignmentModel>()
+            {
+                new AssignmentModel(){ Id=1, TaskId = 2 , ResourceId=1, Unit=70},
+                new AssignmentModel(){ Id=2, TaskId = 3 , ResourceId=1, Unit=70},
+                new AssignmentModel(){ Id=3, TaskId = 4 , ResourceId=3},
+                new AssignmentModel(){ Id=4, TaskId = 5 , ResourceId=8},
+                new AssignmentModel(){ Id=5, TaskId = 6 , ResourceId=2},
+                new AssignmentModel(){ Id=6, TaskId = 7 , ResourceId=4, Unit=30},
+                new AssignmentModel(){ Id=7, TaskId = 8 , ResourceId=8},
+                new AssignmentModel(){ Id=8, TaskId = 9 , ResourceId=11},
+                new AssignmentModel(){ Id=9, TaskId = 12 , ResourceId=2},
+                new AssignmentModel(){ Id=10, TaskId = 13 , ResourceId=6},
+                new AssignmentModel(){ Id=11, TaskId = 14 , ResourceId=7},
+                new AssignmentModel(){ Id=12, TaskId = 15 , ResourceId=9},
+                new AssignmentModel(){ Id=13, TaskId = 16 , ResourceId=10},
+                new AssignmentModel(){ Id=14, TaskId = 17 , ResourceId=7},
+                new AssignmentModel(){ Id=15, TaskId = 18 , ResourceId=5},
+                new AssignmentModel(){ Id=16, TaskId = 19 , ResourceId=5}
+            };
+            return assignments;
+        }
+        public static List<TaskData> EditingData()
+        {
+            List<TaskData> Tasks = new List<TaskData>() {
+                new TaskData() { TaskId = 1, TaskName = "Planning and Permits", StartDate = new DateTime(2025, 04, 02), EndDate = new DateTime(2025, 04, 10), Duration = "7", Progress = 100 }, // Completed
+                new TaskData() { TaskId = 2, TaskName = "Site Evaluation", StartDate = new DateTime(2025, 04, 02), EndDate = new DateTime(2025, 04, 04), Duration = "3", Progress = 100, ParentId = 1 }, // Completed
+                new TaskData() { TaskId = 3, TaskName = "Obtain Permits", StartDate = new DateTime(2025, 04, 07), EndDate = new DateTime(2025, 04, 10), Duration = "3", Progress = 100, ParentId = 1, Predecessor = "2FF" }, // Completed
+                new TaskData() { TaskId = 4, TaskName = "Finalize Planning", StartDate = new DateTime(2025, 04, 10), EndDate = new DateTime(2025, 04, 11), Duration = "2", Progress = 100, ParentId = 1, Predecessor = "3SF" }, // Completed
+                new TaskData() { TaskId = 5, TaskName = "Site Preparation", StartDate = new DateTime(2025, 04, 14), EndDate = new DateTime(2025, 04, 18), Duration = "5", Progress = 100,  }, // Completed
+                new TaskData() { TaskId = 6, TaskName = "Site Clearing", StartDate = new DateTime(2025, 04, 14), Duration = "0", Progress = 100, ParentId = 5, Predecessor = "4"}, // Completed
+                new TaskData() { TaskId = 7, TaskName = "Grading and Excavation", StartDate = new DateTime(2025, 04, 15), EndDate = new DateTime(2025, 04, 17), Duration = "3", Progress = 100, ParentId = 5, Predecessor = "6SS" }, // Completed
+                new TaskData() { TaskId = 8, TaskName = "Foundation Work", StartDate = new DateTime(2025, 04, 18), EndDate = new DateTime(2025, 04, 21), Duration = "4", Progress = 100, ParentId = 5, Predecessor = "7" }, // Completed
+                new TaskData() { TaskId = 9, TaskName = "Foundation and Basement", StartDate = new DateTime(2025, 04, 22), EndDate = new DateTime(2025, 04, 28), Duration = "5", Progress = 100, ParentId = 5 }, // Completed
+                new TaskData() { TaskId = 10, TaskName = "Pour Foundation", StartDate = new DateTime(2025, 04, 22), EndDate = new DateTime(2025, 04, 23), Duration = "2", Progress = 100, ParentId = 9 }, // Completed
+                new TaskData() { TaskId = 11, TaskName = "Cure Foundation", StartDate = new DateTime(2025, 04, 24), EndDate = new DateTime(2025, 04, 25), Duration = "2", Progress = 100, ParentId = 9 }, // Completed
+                new TaskData() { TaskId = 12, TaskName = "Basement Walls", StartDate = new DateTime(2025, 04, 28), EndDate = new DateTime(2025, 04, 30), Duration = "3", Progress = 100, ParentId = 9, Predecessor = "11" }, // Completed
+                new TaskData() { TaskId = 13, TaskName = "Framing", StartDate = new DateTime(2025, 05, 01), EndDate = new DateTime(2025, 05, 07), Duration = "5", Progress = 100 }, // Completed
+                new TaskData() { TaskId = 14, TaskName = "Frame Floors", StartDate = new DateTime(2025, 05, 01), EndDate = new DateTime(2025, 05, 02), Duration = "2", Progress = 100, ParentId = 13, Predecessor = "12" }, // Completed
+                new TaskData() { TaskId = 15, TaskName = "Frame Walls", StartDate = new DateTime(2025, 05, 05), EndDate = new DateTime(2025, 05, 06), Duration = "2", Progress = 100, ParentId = 13, Predecessor = "14" }, // Completed
+                new TaskData() { TaskId = 16, TaskName = "Install Trusses", StartDate = new DateTime(2025, 05, 07), EndDate = new DateTime(2025, 05, 08), Duration = "2", Progress = 100, ParentId = 13, Predecessor = "15" }, // Completed
+                new TaskData() { TaskId = 17, TaskName = "Roofing", StartDate = new DateTime(2025, 05, 09), EndDate = new DateTime(2025, 05, 13), Duration = "3", Progress = 100, Predecessor = "16" }, // Completed
+                new TaskData() { TaskId = 18, TaskName = "Mechanical, Electrical, Plumbing", StartDate = new DateTime(2025, 05, 14), EndDate = new DateTime(2025, 05, 24), Duration = "9", Progress = 50 }, // In progress
+                new TaskData() { TaskId = 19, TaskName = "HVAC Installation", StartDate = new DateTime(2025, 05, 14), EndDate = new DateTime(2025, 05, 16), Duration = "3", Progress = 100, ParentId = 18, Predecessor = "17" }, // Completed
+                new TaskData() { TaskId = 20, TaskName = "Plumbing Installation", StartDate = new DateTime(2025, 05, 19), EndDate = new DateTime(2025, 05, 21), Duration = "3", Progress = 50, ParentId = 18, Predecessor = "19" }, // In progress
+                new TaskData() { TaskId = 21, TaskName = "Electrical Installation", StartDate = new DateTime(2025, 05, 22), EndDate = new DateTime(2025, 05, 24), Duration = "3", Progress = 0, ParentId = 18, Predecessor = "20" }, // Not started
+                new TaskData() { TaskId = 22, TaskName = "Interior Finishing", StartDate = new DateTime(2025, 05, 26), EndDate = new DateTime(2025, 06, 17), Duration = "15", Progress = 0, Predecessor = "21" }, // Not started
+                new TaskData() { TaskId = 23, TaskName = "Insulation and Drywall", StartDate = new DateTime(2025, 05, 26), EndDate = new DateTime(2025, 05, 30), Duration = "5", Progress = 0, ParentId = 22, Predecessor = "21" }, // Not started
+                new TaskData() { TaskId = 24, TaskName = "Interior Painting", StartDate = new DateTime(2025, 06, 02), EndDate = new DateTime(2025, 06, 05), Duration = "4", Progress = 0, ParentId = 22, Predecessor = "23" }, // Not started
+                new TaskData() { TaskId = 25, TaskName = "Flooring Installation", StartDate = new DateTime(2025, 06, 06), EndDate = new DateTime(2025, 06, 09), Duration = "4", Progress = 0, ParentId = 22, Predecessor = "24" }, // Not started
+                new TaskData() { TaskId = 26, TaskName = "Cabinet and Fixture Setup", StartDate = new DateTime(2025, 06, 10), EndDate = new DateTime(2025, 06, 12), Duration = "3", Progress = 0, ParentId = 22, Predecessor = "25" }, // Not started
+                new TaskData() { TaskId = 27, TaskName = "Final Fixture Installation", StartDate = new DateTime(2025, 06, 13), EndDate = new DateTime(2025, 06, 15), Duration = "3", Progress = 0, ParentId = 22, Predecessor = "26" }, // Not started
+                new TaskData() { TaskId = 28, TaskName = "Exterior Finishing", StartDate = new DateTime(2025, 06, 16), EndDate = new DateTime(2025, 06, 19), Duration = "4", Progress = 0, Predecessor = "27" }, // Not started
+                new TaskData() { TaskId = 29, TaskName = "Landscaping", StartDate = new DateTime(2025, 06, 20), EndDate = new DateTime(2025, 06, 25), Duration = "5", Progress = 0, Predecessor = "28" }, // Not started
+                new TaskData() { TaskId = 30, TaskName = "Final Inspection", StartDate = new DateTime(2025, 06, 26), EndDate = new DateTime(2025, 06, 30), Duration = "3", Progress = 0, Predecessor = "29" }, // Not started
+                new TaskData() { TaskId = 31, TaskName = "Correction of Issues", StartDate = new DateTime(2025, 07, 01), EndDate = new DateTime(2025, 07, 03), Duration = "3", Progress = 0, Predecessor = "30" }, // Not started
+                new TaskData() { TaskId = 32, TaskName = "Final Walkthrough", StartDate = new DateTime(2025, 07, 04), EndDate = new DateTime(2025, 07, 07), Duration = "2", Progress = 0, Predecessor = "31" }, // Not started
+                new TaskData() { TaskId = 33, TaskName = "Handover Preparation", StartDate = new DateTime(2025, 07, 08), EndDate = new DateTime(2025, 07, 10), Duration = "3", Progress = 0, Predecessor = "32" }, // Not started
+                new TaskData() { TaskId = 34, TaskName = "Client Handover", StartDate = new DateTime(2025, 07, 11), EndDate = new DateTime(2025, 07, 12), Duration = "2", Progress = 0, Predecessor = "33" }, // Not started
+                new TaskData() { TaskId = 35, TaskName = "Warranty Period Begins", StartDate = new DateTime(2025, 07, 14), EndDate = new DateTime(2025, 07, 15), Duration = "2", Progress = 0, Predecessor = "34" }, // Not started
+                new TaskData() { TaskId = 36, TaskName = "Routine Maintenance Visits", StartDate = new DateTime(2025, 07, 16), EndDate = new DateTime(2025, 07, 25), Duration = "10", Progress = 0, Predecessor = "35" }, // Not started
+                new TaskData() { TaskId = 37, TaskName = "First Year Warranty Review", StartDate = new DateTime(2025, 07, 28), EndDate = new DateTime(2025, 08, 01), Duration = "5", Progress = 0, Predecessor = "36" }, // Not started
+                new TaskData() { TaskId = 38, TaskName = "Final Project Documentation", StartDate = new DateTime(2025, 08, 04), EndDate = new DateTime(2025, 08, 06), Duration = "3", Progress = 0, Predecessor = "37" }, // Not started
+                new TaskData() { TaskId = 39, TaskName = "Celebrate Project Completion", StartDate = new DateTime(2025, 08, 07), EndDate = new DateTime(2025, 08, 09), Duration = "3", Progress = 0, Predecessor = "38" }, // Not started
+                new TaskData() { TaskId = 40, TaskName = "Begin Next Project Planning", StartDate = new DateTime(2025, 08, 10), EndDate = new DateTime(2025, 08, 13), Duration = "4", Progress = 0, Predecessor = "39" } // Not started
+            };
+            return Tasks;
+        }
+    }
+}

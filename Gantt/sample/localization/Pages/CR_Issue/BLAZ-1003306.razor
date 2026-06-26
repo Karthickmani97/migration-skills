@@ -1,0 +1,105 @@
+@page "/BLAZ-1003306"
+@inject NavigationManager Navigator
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Gantt
+@using System.Globalization
+<h5>Expected - Indicators:</h5>
+@if (TaskCollection1?.SelectMany(t => t.Indicators).Any() == true)
+{
+    <ul>
+        @foreach (var indicator in TaskCollection1.Where(x => x.Indicators != null).SelectMany(t => t.Indicators))
+        {
+            <li>@indicator.Date.ToString("G")</li>
+        }
+    </ul>
+}
+<SfGantt @ref="Gantt1" DataSource="@TaskCollection1" Height="450px">
+    <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration"
+                     Progress="Progress" ParentID="ParentID" Indicators="Indicators">
+    </GanttTaskFields>
+</SfGantt>
+<h5 class="mt-4">Problem - Indicators:</h5>
+@if (TaskCollection?.SelectMany(t => t.Indicators).Any() == true)
+{
+    <ul>
+        @foreach (var indicator in TaskCollection.Where(x => x.Indicators != null).SelectMany(t => t.Indicators))
+        {
+            <li>@indicator.Date.ToString("G")</li>
+        }
+    </ul>
+}
+<SfGantt @ref="Gantt" DataSource="@TaskCollection" Height="450px">
+    <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration"
+                     Progress="Progress" ParentID="ParentID" Indicators="Indicators">
+    </GanttTaskFields>
+</SfGantt>
+@code {
+    public SfGantt<TaskData> Gantt;
+    public SfGantt<TaskData> Gantt1;
+    public List<TaskData> TaskCollection { get; set; }
+    public List<TaskData> TaskCollection1 { get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        this.TaskCollection1 = GetTaskCollection1();
+    }
+    public class TaskData
+    {
+        public int TaskID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentID { get; set; }
+        public List<GanttIndicator> Indicators { get; set; }
+    }
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+            new TaskData() { TaskID = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 01, 04), EndDate = new DateTime(2022, 01, 10), Indicators=(new List<GanttIndicator>()
+            {
+                    new GanttIndicator() { Name="product", IconClass="e-btn-icon e-notes-info e-icons e-icon-left e-gantt e-notes-info::before", Date=new DateTime(2022, 01, 11, 12, 0, 0), Tooltip="sales"}
+                })
+            },
+            new TaskData() { TaskID = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 01, 04), Duration = "2", Progress = 30, ParentID = 1, Indicators=(new List<GanttIndicator>()
+            {
+                    new GanttIndicator(){ Name="customer", IconClass="e-btn-icon e-notes-info e-icons e-icon-left e-gantt e-notes-info::before", Date=new DateTime(2022, 01, 11, 12, 0, 0), Tooltip="people" },
+                    new GanttIndicator(){ Name="product", IconClass="e-btn-icon e-notes-info e-icons e-icon-left e-gantt e-notes-info::before", Date=new DateTime(2022, 01, 8, 12, 0, 0), Tooltip="sales" }
+                })
+            },
+            new TaskData() { TaskID = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 01, 04), EndDate = new DateTime(2022, 01, 10), Duration = "5", Progress = 40, ParentID = 1 },
+            new TaskData() { TaskID = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 01, 04), Duration = "5", EndDate = new DateTime(2022, 01, 05), Progress = 30, ParentID = 1 },
+            new TaskData() { TaskID = 5, TaskName = "Project initiation", StartDate = new DateTime(2022, 01, 04), EndDate = new DateTime(2022, 01, 07) },
+            new TaskData() { TaskID = 6, TaskName = "Identify Site location", StartDate = new DateTime(2022, 01, 04), Duration = "2", Progress = 30, ParentID = 5 },
+            new TaskData() { TaskID = 7, TaskName = "Perform soil test", StartDate = new DateTime(2022, 01, 04), Duration = "4", Progress = 40, ParentID = 5 },
+            new TaskData() { TaskID = 8, TaskName = "Soil test approval", StartDate = new DateTime(2022, 01, 04), Duration = "5", Progress = 30, ParentID = 5 },
+        };
+        return Tasks;
+    }
+  
+    public static List<TaskData> GetTaskCollection1()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+            new TaskData() { TaskID = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 01, 04), EndDate = new DateTime(2022, 01, 10), Indicators=(new List<GanttIndicator>()
+            {
+                    new GanttIndicator() { Name="product", IconClass="e-btn-icon e-notes-info e-icons e-icon-left e-gantt e-notes-info::before", Date=new DateTime(2022, 01, 11), Tooltip="sales"}
+                })
+            },
+            new TaskData() { TaskID = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 01, 04), Duration = "2", Progress = 30, ParentID = 1, Indicators=(new List<GanttIndicator>()
+            {
+                    new GanttIndicator(){ Name="customer", IconClass="e-btn-icon e-notes-info e-icons e-icon-left e-gantt e-notes-info::before", Date=new DateTime(2022, 01, 11), Tooltip="people" },
+                    new GanttIndicator(){ Name="product", IconClass="e-btn-icon e-notes-info e-icons e-icon-left e-gantt e-notes-info::before", Date=new DateTime(2022, 01, 8), Tooltip="sales" }
+                })
+            },
+            new TaskData() { TaskID = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 01, 04), EndDate = new DateTime(2022, 01, 10), Duration = "5", Progress = 40, ParentID = 1 },
+            new TaskData() { TaskID = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 01, 04), Duration = "5", EndDate = new DateTime(2022, 01, 05), Progress = 30, ParentID = 1 },
+            new TaskData() { TaskID = 5, TaskName = "Project initiation", StartDate = new DateTime(2022, 01, 04), EndDate = new DateTime(2022, 01, 07) },
+            new TaskData() { TaskID = 6, TaskName = "Identify Site location", StartDate = new DateTime(2022, 01, 04), Duration = "2", Progress = 30, ParentID = 5 },
+            new TaskData() { TaskID = 7, TaskName = "Perform soil test", StartDate = new DateTime(2022, 01, 04), Duration = "4", Progress = 40, ParentID = 5 },
+            new TaskData() { TaskID = 8, TaskName = "Soil test approval", StartDate = new DateTime(2022, 01, 04), Duration = "5", Progress = 30, ParentID = 5 },
+        };
+        return Tasks;
+    }
+}

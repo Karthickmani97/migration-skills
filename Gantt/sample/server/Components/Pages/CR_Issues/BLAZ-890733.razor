@@ -1,0 +1,116 @@
+@page "/BLAZ-890733"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Buttons
+@* <SfButton OnClick="ScrollToTaskbarAsync">ScrollToTaskbarAsync</SfButton> *@
+<div>@messsage</div>
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+
+            <SfGantt @ref="Obj" DataSource="@TaskCollection" Height="450px" Width="100%" EnableRowVirtualization="false" EnableContextMenu
+                      Toolbar="@(new List<string>() { "Add", "Delete", "Edit", "ZoomIn", "ZoomOut" })">
+                 <GanttLabelSettings LeftLabel="TaskName" TValue="TaskData"></GanttLabelSettings>
+                 <GanttTaskFields ParentID="ParentId" Id="ID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress">
+                 </GanttTaskFields>
+                 <GanttColumns>
+                     <GanttColumn Field="ID" HeaderText="TaskId" Width="100" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Center"></GanttColumn>
+                     <GanttColumn Field="TaskName" HeaderText="TaskName"></GanttColumn>
+                     <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+                     <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+                     <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+                     <GanttColumn Field="Progress" HeaderText="Progress" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Center"></GanttColumn>
+                 </GanttColumns>
+                 <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Auto" ShowDeleteConfirmDialog="true">
+                 </GanttEditSettings>
+                 <GanttSplitterSettings Position="40%"></GanttSplitterSettings>
+                   <GanttEvents TValue="TaskData"OnActionFailure="ActionFailureHandler"></GanttEvents>
+                 @* <GanttEvents TValue="TaskData" QueryChartRowInfo="QueryChartRowInfo"></GanttEvents> *@
+             </SfGantt>
+         </div>
+     </div>
+ </div>
+ 
+ @code {
+    private SfGantt<TaskData> Obj { get; set; }
+    private DateTime ProjectStartDate = new DateTime(2000, 1, 1);
+    private DateTime ProjectEndDate = new DateTime(2000, 12, 31);
+    private List<TaskData> TaskCollection { get; set; }
+    public string messsage{ get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = VirtualData.GetTreeVirtualData(10);
+    }
+      public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+    private int index { get; set; } = 0;
+
+    private List<int> rowIndexCollection { get; set; } = new List<int>();
+    // public void QueryChartRowInfo(QueryChartRowInfoEventArgs<TaskData> args)
+    // {
+    //     // Here, you can get the error details in the args.
+    //     rowIndexCollection.Add(index);
+    //     index++;
+    // }
+    // private void ScrollToTaskbarAsync()
+    // {
+    //     Obj.ScrollToTaskbarAsync(this.TaskCollection[58].ID);
+    //     Obj.SelectRowAsync(58);
+    // }
+    public class VirtualData
+    {
+        public static List<TaskData> GetTreeVirtualData(int count)
+        {
+            List<TaskData> DataCollection = new List<TaskData>();
+            var x = 0;
+            int duration = 0;
+            DateTime startDate = new DateTime(2000, 1, 5);
+            DateTime endDate = new DateTime(2000, 1, 12);
+            for (var i = 1; i <= count / 5; i++)
+            {
+                TaskData Parent = new TaskData()
+                    {
+
+                        ID = Guid.NewGuid(),
+                        TaskName = "Task " + x,
+                        StartDate = startDate,
+                        EndDate = startDate.AddDays(26),
+                        Duration = "20",
+                        Progress = 34,
+                    };
+
+                DataCollection.Add(Parent);
+                for (var j = 1; j <= 4; j++)
+                {
+                    startDate = startDate.AddDays(j == 1 ? 0 : duration + 2);
+                    duration = 5;
+                    ++x;
+                    DataCollection.Add(new TaskData()
+                        {
+                            ID = Guid.NewGuid(),
+                            TaskName = "Task " + x,
+                            StartDate = startDate,
+                            EndDate = startDate.AddDays(5),
+                            Duration = duration.ToString(),
+                            Progress = 50,
+                            ParentId = Parent.ID,
+                        });
+                }
+                ++x;
+            }
+            return DataCollection;
+        }
+    }
+    public class TaskData
+    {
+        public Guid ID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public Guid? ParentId { get; set; }
+    }
+}

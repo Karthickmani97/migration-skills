@@ -1,0 +1,199 @@
+@page "/E2EMigration/toolbar"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.TreeGrid
+<div>@message</div>
+<button @onclick="Click1" id="Toolbar1">Toolbar1</button>
+<button @onclick="Click2" id="Toolbar2">Toolbar2</button>
+<br>
+<br>
+<SfGantt  ID="GanttToolbar" DataSource="@TaskCollection" RowHeight="RowsHeight" 
+ GridLines="Syncfusion.Blazor.Gantt.GridLine.Both"
+ @ref="Gantt" Toolbar="@Tools" 
+ Height="550px" Width="1400px">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate"
+                     Duration="Duration" Progress="Progress" Child="SubTasks">
+    </GanttTaskFields>
+    <GanttEditSettings AllowEditing="true" AllowAdding="true" AllowDeleting="true">
+    </GanttEditSettings>
+    <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+     <GanttEvents OnToolbarClick="ToolBarClick" Created="Created" TValue="TaskData"OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+<style>
+    @@font-face {
+        font-family: 'e-grid-rowheight';
+        src: url(data:application/x-font-ttf;charset=utf-8;base64,AAEAAAAKAIAAAwAgT1MvMj1uSfkAAAEoAAAAVmNtYXDOLM5rAAABkAAAAEJnbHlm/CWF1QAAAeAAAAGIaGVhZBRfqPEAAADQAAAANmhoZWEIUQQFAAAArAAAACRobXR4EAAAAAAAAYAAAAAQbG9jYQDyALYAAAHUAAAACm1heHABFAB4AAABCAAAACBuYW1l2jjwtgAAA2gAAAKRcG9zdJYOJ5oAAAX8AAAARgABAAAEAAAAAFwEAAAAAAAD9AABAAAAAAAAAAAAAAAAAAAABAABAAAAAQAAWBvKcl8PPPUACwQAAAAAANimsgAAAAAA2KayAAAAAAAD9AP0AAAACAACAAAAAAAAAAEAAAAEAGwABgAAAAAAAgAAAAoACgAAAP8AAAAAAAAAAQQAAZAABQAAAokCzAAAAI8CiQLMAAAB6wAyAQgAAAIABQMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUGZFZABA5wHnBwQAAAAAXAQAAAAAAAABAAAAAAAABAAAAAQAAAAEAAAABAAAAAAAAAIAAAADAAAAFAADAAEAAAAUAAQALgAAAAYABAABAALnAucH//8AAOcB5wf//wAAAAAAAQAGAAgAAAACAAEAAwAAAAAAAAAuALYAxAAAAAYAAAAAA8UD9AADAAcACwAPABMAFwAANyE1ISchNSE1ITUhNyE1ITchNSEnITUhPQOH/HkCA4f8eQOH/HkCA4f8eQEDh/x5AQOH/HkMX1dfVl9WXlVfV18AAAAAAwAAAAAD9ANtACMARwBrAAA3FR8HIT8HNS8HIQ8GAxUfByE/BzUvByEPBgMVHwchPwc1LwchDwYMAQIDBQUHBwgDnAgHBwUFAwIBAQIDBQUHBwj8ZAgHBwUFAwIBAQIDBQUHBwgDnAgHBwUFAwIBAQIDBQUHBwj8ZAgHBwUFAwIBAQIDBQUHBwgDnAgHBwUFAwIBAQIDBQUHBwj8ZAgHBwUFAwLgJwgIBgYEBAIBAQIEBAYGCAgnCAcHBQUDAgEBAgMFBQcHASsmCQcHBQUDAgEBAgMFBQcHCSYICAcFBQMCAQECAwUFBwgBLCcIBwcFBQMCAQECAwUFBwcIJwgIBgYEBAIBAQIEBAYGCAAAAAABAAAAAAP0AlIAAwAAEyE1IQwD6PwYAa2mAAAAAAASAN4AAQAAAAAAAAABAAAAAQAAAAAAAQAQAAEAAQAAAAAAAgAHABEAAQAAAAAAAwAQABgAAQAAAAAABAAQACgAAQAAAAAABQALADgAAQAAAAAABgAQAEMAAQAAAAAACgAsAFMAAQAAAAAACwASAH8AAwABBAkAAAACAJEAAwABBAkAAQAgAJMAAwABBAkAAgAOALMAAwABBAkAAwAgAMEAAwABBAkABAAgAOEAAwABBAkABQAWAQEAAwABBAkABgAgARcAAwABBAkACgBYATcAAwABBAkACwAkAY8gZS1ncmlkLXJvd2hlaWdodFJlZ3VsYXJlLWdyaWQtcm93aGVpZ2h0ZS1ncmlkLXJvd2hlaWdodFZlcnNpb24gMS4wZS1ncmlkLXJvd2hlaWdodEZvbnQgZ2VuZXJhdGVkIHVzaW5nIFN5bmNmdXNpb24gTWV0cm8gU3R1ZGlvd3d3LnN5bmNmdXNpb24uY29tACAAZQAtAGcAcgBpAGQALQByAG8AdwBoAGUAaQBnAGgAdABSAGUAZwB1AGwAYQByAGUALQBnAHIAaQBkAC0AcgBvAHcAaABlAGkAZwBoAHQAZQAtAGcAcgBpAGQALQByAG8AdwBoAGUAaQBnAGgAdABWAGUAcgBzAGkAbwBuACAAMQAuADAAZQAtAGcAcgBpAGQALQByAG8AdwBoAGUAaQBnAGgAdABGAG8AbgB0ACAAZwBlAG4AZQByAGEAdABlAGQAIAB1AHMAaQBuAGcAIABTAHkAbgBjAGYAdQBzAGkAbwBuACAATQBlAHQAcgBvACAAUwB0AHUAZABpAG8AdwB3AHcALgBzAHkAbgBjAGYAdQBzAGkAbwBuAC4AYwBvAG0AAAAAAgAAAAAAAAAKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAQIBAwEEAQUADWFsaWduLWp1c3RpZnkEbWVudQVtaW51cwAAAAA=) format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    .e-small-icon::before {
+        font-family: 'e-grid-rowheight';
+        content: '\e707';
+    }
+
+    .e-medium-icon::before {
+        font-family: 'e-grid-rowheight';
+        content: '\e701';
+    }
+
+    .e-big-icon::before {
+        font-family: 'e-grid-rowheight';
+        content: '\e702';
+    }
+</style>
+@code{
+    public SfGantt<TaskData> Gantt;
+    public List<TaskData> TaskCollection { get; set; }
+    public string message{ get; set; }
+    public int RowsHeight { get; set; } = 36;
+    public List<object> Tools = new List<object>();
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        Tools.Add("Add");
+        Tools.Add("Update");
+        Tools.Add("Cancel");
+        Tools.Add("Delete");
+        Tools.Add("Edit");
+        Tools.Add("CollapseAll");
+        Tools.Add("ExpandAll");
+    }
+    public async Task Created()
+    {   
+     
+    }
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+    public void Click2() {
+        Tools = new List<object>();
+        Tools.Add("ZoomToFit");
+		Tools.Add("NextTimeSpan");
+		Tools.Add("PrevTimeSpan");
+        Tools.Add("ZoomIn");
+        Tools.Add("ZoomOut");
+        Tools.Add(new ToolbarItem() { PrefixIcon = "e-big-icon", Id = "small", Align = ItemAlign.Left, TooltipText = "Small" });
+        Tools.Add(new ToolbarItem() { PrefixIcon = "e-medium-icon", Id = "medium", Align = ItemAlign.Left, TooltipText = "Medium" });
+        Tools.Add(new ToolbarItem() { PrefixIcon = "e-small-icon", Id = "big", Align = ItemAlign.Left, TooltipText = "Big" });
+        Tools.Add(new ToolbarItem() { Id = "showChart", Text = "ShowChart", Align = ItemAlign.Left, TooltipText = "ShowChart" });
+        Tools.Add(new ToolbarItem() { Id = "hideChart", Text = "HideChart", Align = ItemAlign.Left, TooltipText = "HideChart" });
+    }
+
+     public void Click1() {
+        Tools = new List<object>();
+        Tools.Add("Add");
+        Tools.Add("Update");
+        Tools.Add("Cancel");
+        Tools.Add("Delete");
+        Tools.Add("Edit");
+        Tools.Add("CollapseAll");
+        Tools.Add("ExpandAll");
+        Tools.Add("Indent");
+        Tools.Add("Outdent");
+    }
+    public void ToolBarClick(Syncfusion.Blazor.Navigations.ClickEventArgs Args)
+    {
+        if (Args.Item.Id == "small")
+        {
+            RowsHeight = 20;
+        }
+        if (Args.Item.Id == "medium")
+        {
+            RowsHeight = 40;
+        }
+        if (Args.Item.Id == "big")
+        {
+            RowsHeight = 60;
+        }
+        if (Args.Item.Id == "showChart")
+        {
+            this.Gantt.SetSplitterPositionAsync(Syncfusion.Blazor.Gantt.SplitterView.Default);
+        }
+        if (Args.Item.Id == "hideChart")
+        {
+            this.Gantt.SetSplitterPositionAsync(Syncfusion.Blazor.Gantt.SplitterView.Grid);
+        }
+
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public List<object> Tools = new List<object>();
+        public DateTime? EndDate { get; set; }
+        public string? Duration { get; set; }
+        public int? Progress { get; set; }
+        public List<TaskData> SubTasks { get; set; }
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+        new TaskData() {
+            TaskId = 1,
+            TaskName = "Project initiation",
+            StartDate = new DateTime(2019, 04, 02),
+            EndDate = new DateTime(2019, 04, 21),
+            SubTasks = (new List <TaskData> () {
+                new TaskData() {
+                    TaskId = 2,
+                    TaskName = "Identify Site location",
+                    StartDate = new DateTime(2019, 04, 02),
+                    Duration = "0",
+                    Progress = 30,
+                },
+                new TaskData() {
+                    TaskId = 3,
+                    TaskName = "Perform soil test",
+                    StartDate = new DateTime(2019, 04, 02),
+                    Duration = "4",
+                    Progress = 40,
+                },
+                new TaskData() {
+                    TaskId = 4,
+                    TaskName = "Soil test approval",
+                    StartDate = new DateTime(2019, 04, 02),
+                    Duration = "0",
+                    Progress = 30
+                },
+            })
+        },
+        new TaskData() {
+            TaskId = 5,
+            TaskName = "Project estimation",
+            StartDate = new DateTime(2019, 04, 02),
+            EndDate = new DateTime(2019, 04, 21),
+            SubTasks = (new List <TaskData> () {
+                new TaskData() {
+                    TaskId = 6,
+                    TaskName = "Develop floor plan for estimation",
+                    StartDate = new DateTime(2019, 04, 04),
+                    Duration = "3",
+                    Progress = 30,
+                },
+                new TaskData() {
+                    TaskId = 7,
+                    TaskName = "List materials",
+                    StartDate = new DateTime(2019, 04, 04),
+                    Duration = "3",
+                    Progress = 40
+                },
+                new TaskData() {
+                    TaskId = 8,
+                    TaskName = "Estimation approval",
+                    StartDate = new DateTime(2019, 04, 04),
+                    Duration = "0",
+                    Progress = 30,
+                }
+            })
+        }
+    };
+
+        return Tasks;
+    }
+}

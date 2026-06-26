@@ -1,0 +1,87 @@
+@page "/E2EMigration/ParentPredecessor"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+<div>@message</div>
+<SfGantt @ref="Gantt" ID="Parent" DataSource="@TaskCollection" RenderBaseline="true" Height="450px" Width="1200px">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Child="SubTasks" Dependency="Predecessor"
+                     Duration="Duration" Progress="Progress" BaselineStartDate="BaselineStartDate"
+                     BaselineEndDate="BaselineEndDate">
+    </GanttTaskFields>
+    <GanttEditSettings AllowTaskbarEditing="true" AllowEditing="true"></GanttEditSettings>
+    <GanttEvents TValue="TaskData" OnActionComplete="OnActionComplete" OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+
+@code{
+    public SfGantt<TaskData> Gantt;
+    private DateTime ProjectStart = new DateTime(2022, 06, 21);
+    private DateTime ProjectEnd = new DateTime(2019, 07, 07);
+    private List<TaskData> TaskCollection { get; set; }
+    public string message{ get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+     public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+
+    public void OnActionComplete(GanttActionEventArgs<TaskData> args)
+    {
+        if (args.Action == "TaskbarEditing" && args.RequestType == Syncfusion.Blazor.Gantt.Action.Save)
+        {
+            Console.WriteLine(args);
+            for (int i = 0; i < args.ModifiedTaskData.Count; i++)
+            {
+                args.ModifiedTaskData[i].BaselineStartDate = args.ModifiedTaskData[i].StartDate;
+                args.ModifiedTaskData[i].BaselineEndDate = args.ModifiedTaskData[i].EndDate;
+                this.Gantt.UpdateRecordByIDAsync(args.ModifiedTaskData[i]);
+            }
+        }
+    }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public DateTime? BaselineStartDate { get; set; }
+        public DateTime? BaselineEndDate { get; set; }
+        public string? Duration { get; set; }
+        public int? Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string? Predecessor { get; set; }
+        public List<TaskData> SubTasks { get; set; }
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>()
+{
+            new TaskData() { TaskId = 11, TaskName = "Big Parent", StartDate = new DateTime(2022, 06, 21), EndDate = new DateTime(2019, 07, 07),
+                SubTasks = new List<TaskData> {
+                    new TaskData() { TaskId = 1, TaskName = "#1 Needs to be under Big Parent", StartDate = new DateTime(2022, 06, 21), EndDate = new DateTime(2022, 06, 21), Duration = "3"  },
+                    new TaskData() { TaskId = 2, TaskName = "Under Big Parent, but has #1 Predecessor", StartDate = new DateTime(2022, 06, 30), BaselineStartDate = new DateTime(2022, 06, 30), BaselineEndDate = new DateTime(2022, 07, 6), Duration = "5", Progress = 70,
+                        Predecessor = "1FS+4"
+                    },
+                } },
+                // new TaskData() { TaskId = 12, TaskName = "Big Parent", StartDate = new DateTime(2022, 06, 21), EndDate = new DateTime(2019, 07, 07),
+                //SubTasks = new List<TaskData> {
+                //    new TaskData() { TaskId = 3, TaskName = "#1 Needs to be under Big Parent", StartDate = new DateTime(2022, 06, 21), EndDate = new DateTime(2022, 06, 21), Duration = "3"  },
+                //    new TaskData() { TaskId = 4, TaskName = "Under Big Parent, but has #1 Predecessor", StartDate = new DateTime(2022, 06, 30), BaselineStartDate = new DateTime(2022, 06, 30), BaselineEndDate = new DateTime(2022, 07, 6), Duration = "5", Progress = 70,
+                //        Predecessor = "3FS+4"
+                //    },
+                //} },
+                // new TaskData() { TaskId = 13, TaskName = "Big Parent", StartDate = new DateTime(2022, 06, 21), EndDate = new DateTime(2019, 07, 07),
+                //SubTasks = new List<TaskData> {
+                //    new TaskData() { TaskId = 5, TaskName = "#1 Needs to be under Big Parent", StartDate = new DateTime(2022, 06, 21), EndDate = new DateTime(2022, 06, 21), Duration = "3"  },
+                //    new TaskData() { TaskId = 6, TaskName = "Under Big Parent, but has #1 Predecessor", StartDate = new DateTime(2022, 06, 30), BaselineStartDate = new DateTime(2022, 06, 30), BaselineEndDate = new DateTime(2022, 07, 6), Duration = "5", Progress = 70,
+                //        Predecessor = "5FS"
+                //    },
+                //} }   
+                        
+        };
+        return Tasks;
+    }
+}

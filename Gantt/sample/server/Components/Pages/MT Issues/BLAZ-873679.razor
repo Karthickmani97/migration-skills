@@ -1,0 +1,499 @@
+@page "/BLAZ-873679"
+
+@rendermode InteractiveServer
+@* @using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.TreeGrid;
+@using System.Diagnostics
+@using Syncfusion.Blazor.Navigations
+@using Microsoft.AspNetCore.Components.Web
+
+<SfGrid @ref="Gantt"
+         ID="Gantt"
+         DataSource="@TaskCollection"
+         Toolbar="@(new List<string>() { "Add", "Cancel", "Update" , "Delete", "Edit", "CollapseAll", "ExpandAll",  "Indent" , "Outdent" ,"ZoomIn", "ZoomOut", "ZoomToFit" ,"NextTimeSpan", "PrevTimeSpan", "Search" })"
+         EnableVirtualization="true"
+         AllowSelection="true"
+         AllowFiltering="true"
+         GridLines="Syncfusion.Blazor.Grids.GridLine.Both"
+         AllowSorting="true"
+         AllowResizing="true"
+         ShowColumnMenu="true"
+         AllowReordering="true"
+         AllowRowDragAndDrop="true"
+
+         Height="600px"
+         Width="1400px"
+            >
+<GridColumns>
+<GridColumn Field="ID" HeaderText="Task Id" Width="100" Visible="true" IsPrimaryKey="true"></GridColumn>
+        <GridColumn Field="TaskName" HeaderText="Job Name" MinWidth="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GridColumn>
+        <GridColumn Field="StartDate" HeaderText="Start Date" Width="180"></GridColumn>
+        <GridColumn Field="EndDate" HeaderText="End Date" Width="180"></GridColumn>
+        <GridColumn Field="Duration" HeaderText="Duration" Width="180"></GridColumn>
+        <GridColumn Field="Progress" HeaderText="Progress" Width="150"></GridColumn>
+                <GridColumn Field="Predecessor" HeaderText="Dependency" Width="150"></GridColumn>
+</GridColumns>
+ 
+    <GridEditSettings AllowAdding="true"
+                       AllowDeleting="true"
+                       AllowEditing="true"
+                       ShowDeleteConfirmDialog="true">
+</GridEditSettings>
+ 
+</SfGrid>
+ 
+@code {
+    public DateTime Event = new DateTime(2017, 04, 10);
+    //public DateTime Holiday1 = new DateTime(2017, 04, 11);
+    //public DateTime Holiday2 = new DateTime(2017, 04, 12);
+    private List<(DateTime Start, DateTime End)> holidayDates = new();
+    //private void CollapseHandler(Syncfusion.Blazor.TreeGrid.RowCollapsingEventArgs<TaskData> args)
+    //{
+    //    args.CollapseAll = false;
+    //}
+ 
+    //private void ExpandingHandler(Syncfusion.Blazor.TreeGrid.RowExpandingEventArgs<TaskData> args)
+    //{
+    //    args.ExpandAll = false;
+    //}
+    
+    public SfGrid<TaskData> Gantt;
+    SfGrid<TaskData> Obj { get; set; }
+    Stopwatch timer = new Stopwatch();
+ 
+    public List<TaskData> TaskCollection { get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = VirtualData.GetTreeVirtualData();
+        timer.Start();
+        holidayDates.Add((new DateTime(2017, 04, 11), new DateTime(2017, 04, 12)));
+    }
+    public class VirtualData
+    {
+        public static List<TaskData> GetTreeVirtualData()
+        {
+            List<TaskData> DataCollection = new List<TaskData>();
+            // Random rand = new Random();
+            var x = 0;
+            for (var i = 1; i <= 10; i++)
+            {
+                //  var name = rand.Next(0, 100);
+                TaskData Parent = new TaskData()
+                    {
+                        ID = ++x,
+                        TaskName = "Task " + x,
+                        StartDate = new DateTime(2017, 1, 9),
+                        EndDate = new DateTime(2017, 1, 13),
+                        Duration = "10",
+                        Progress = 10,
+                        ParentId = null,
+                        Predecessor = null,
+                    };
+                DataCollection.Add(Parent);
+                for (var j = 1; j <= 10; j++)
+                {
+                    var id = ++x;
+                    string virtualpredeceesor = string.Empty;
+ 
+                    DataCollection.Add(new TaskData()
+                        {
+                            ID = id,
+                            TaskName = "Task " + x,
+                            StartDate = new DateTime(2017, 1, 9),
+                            EndDate = new DateTime(2019, 1, 13),
+                            Duration = "10",
+                            Progress = 36,
+                            ParentId = Parent.ID,
+                            //Predecessor = virtualpredeceesor
+ 
+                        });
+ 
+ 
+                    if (id == 2)
+                    {
+                        x++;
+                        DataCollection.Add(new TaskData()
+                            {
+                                ID = id + 1,
+                                TaskName = "Task " + x,
+                                StartDate = new DateTime(2017, 1, 9),
+                                EndDate = new DateTime(2019, 1, 13),
+                                Duration = "10",
+                                Progress = 55,
+                                ParentId = 50,
+                                //Predecessor = virtualpredeceesor
+                                //Predecessor = (id - 1)+"FS"
+                            });
+                    }
+                    if (id == 7)
+                    {
+                        x++;
+                        DataCollection.Add(new TaskData()
+                            {
+                                ID = id + 1,
+                                TaskName = "Task " + x,
+                                StartDate = new DateTime(2017, 1, 9),
+                                EndDate = new DateTime(2019, 1, 13),
+                                Duration = "10",
+                                Progress = 40,
+                                ParentId = id,
+                                //Predecessor = virtualpredeceesor
+                                //Predecessor = (id - 1)+"FS"
+                            });
+                    }
+                    if (id == 8)
+                    {
+                        x++;
+                        DataCollection.Add(new TaskData()
+                            {
+                                ID = id + 1,
+                                TaskName = "Task " + x,
+                                StartDate = new DateTime(2017, 1, 9),
+                                EndDate = new DateTime(2019, 1, 13),
+                                Duration = "10",
+                                Progress = 50,
+                                ParentId = id,
+                                //Predecessor = virtualpredeceesor
+                                //Predecessor = (id - 1)+"FS"
+                            });
+                    }
+                    if (id == 9)
+                    {
+                        x++;
+                        DataCollection.Add(new TaskData()
+                            {
+                                ID = id + 1,
+                                TaskName = "Task " + x,
+                                StartDate = new DateTime(2017, 1, 9),
+                                EndDate = new DateTime(2019, 1, 13),
+                                Duration = "10",
+                                Progress = 20,
+                                ParentId = id,
+                                //Predecessor = virtualpredeceesor
+                                //Predecessor = (id - 1)+"FS"
+                            });
+                    }
+                    if (id == 100)
+                    {
+                        x++;
+                        DataCollection.Add(new TaskData()
+                            {
+                                ID = id + 1,
+                                TaskName = "Task ",
+                                StartDate = new DateTime(2017, 1, 9),
+                                EndDate = new DateTime(2019, 1, 13),
+                                Duration = "10",
+                                Progress = 20,
+                                ParentId = id,
+                                //Predecessor = virtualpredeceesor
+                                Predecessor = "4FS"
+                            });
+                    }
+ 
+                }
+            }
+            return DataCollection;
+        }
+    }
+    public class TaskData
+    {
+        public int ID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; }
+    }
+}
+ 
+<style>
+    .e-gantt .e-gantt-chart .e-custom-event-marker {
+        width: 1px;
+        border-left: 2px red dotted;
+    }
+ 
+    .e-gantt .e-gantt-chart .e-custom-holiday {
+        background-color: #e82869;
+    }
+</style> *@
+
+ @using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+<SfGantt ID="GanttSelfdata" DataSource="@TaskCollection" EnableContextMenu="true" Toolbar="@(new List<string>() { "Add", "Cancel", "Delete", "Edit", "Update","Indent","Outdent" })" Height="450px" Width="1400px">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" Dependency="Predecessor" ParentID="ParentId" Notes="Notes">
+    </GanttTaskFields>
+    <GanttSelectionSettings Mode="SelectionMode.Row" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple"></GanttSelectionSettings>
+    <GanttEditSettings AllowEditing="true" AllowAdding="true" AllowDeleting="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true">
+    </GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        <GanttColumn Field="Duration"  HeaderText="Duration"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+        <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+        <GanttColumn Field="Notes" Width="100"></GanttColumn>
+    </GanttColumns>
+    <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+     <GanttEvents TValue="TaskData" Created="Created" ></GanttEvents>
+</SfGantt>
+
+@code{
+    public List<TaskData> TaskCollection { get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    public async Task Created()
+    {   
+     
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; }
+        public string Notes { get; set; }
+    }
+
+    public static List <TaskData> GetTaskCollection() {
+    List <TaskData> Tasks = new List <TaskData> () {
+
+        new TaskData() {
+            TaskId = 1,
+            TaskName = "Product concept ",
+            StartDate = new DateTime(2019, 04, 02),
+            EndDate = new DateTime(2019, 04, 08),
+            Duration = "5days"
+        },
+        new TaskData() {
+            TaskId = 2,
+            TaskName = "Defining the product usage",
+            Progress = 30,
+            ParentId = 1,
+            Duration = "0",
+        },
+        new TaskData() {
+            TaskId = 3,
+            TaskName = "Defining the Target audience",
+            StartDate = new DateTime(2019, 04, 02),
+            EndDate = new DateTime(2019, 04, 04),
+            Duration = "1",
+            Progress = 40,
+            ParentId = 1
+        },
+        new TaskData() {
+            TaskId = 4,
+            TaskName = "Prepare product sketch and notes",
+            StartDate = new DateTime(2019, 04, 05),
+            Duration = "2",
+            Progress = 30,
+            ParentId = 1,
+            Predecessor="2"
+        },
+       new TaskData() {
+            TaskId = 5,
+            TaskName = "Concept approval",
+            StartDate = new DateTime(2019, 04, 08),
+            EndDate = new DateTime(2019, 04, 08),
+            Duration="0",
+            Predecessor="3,4"
+        },
+        new TaskData() {
+            TaskId = 6,
+            TaskName = "Market Research",
+            StartDate = new DateTime(2019, 04, 09),
+            EndDate = new DateTime(2019, 04, 18),
+            Duration = "4",
+            Progress = 30,
+        },
+        new TaskData() {
+            TaskId = 7,
+            TaskName = "Demand Analysis",
+            Duration = "4",
+            Progress = 40,
+            ParentId = 6
+        },
+        new TaskData() {
+            TaskId = 8,
+            TaskName = "Customer Strength",
+            StartDate = new DateTime(2019, 04, 09),
+            EndDate = new DateTime(2019, 04, 12),
+            Duration = "4",
+            Progress = 30,
+            ParentId = 7,
+            Predecessor="5"
+            
+        }, new TaskData() {
+            TaskId = 9,
+            TaskName = "Market Opportunity analysis",
+            StartDate = new DateTime(2019, 04, 09),
+            EndDate = new DateTime(2019, 04, 012),
+            Duration="4",
+            ParentId= 7,
+            Predecessor="5"
+        },
+        new TaskData() {
+            TaskId = 10,
+            TaskName = "Competitor analysis",
+            StartDate = new DateTime(2019, 04, 15),
+            EndDate = new DateTime(2019, 04, 18),
+            Duration = "4",
+            Progress = 30,
+            ParentId= 6,
+            Predecessor="7,8"
+        },
+        new TaskData() {
+            TaskId = 11,
+            TaskName = "Product Strength Analysis",
+            StartDate = new DateTime(2019, 04, 15),
+            EndDate = new DateTime(2019, 04, 18),
+            Duration = "4",
+            Progress = 40,
+            ParentId = 6,
+            Predecessor="9"
+        },
+        new TaskData() {
+            TaskId = 12,
+            TaskName = "Research Completed",
+            StartDate = new DateTime(2019, 04, 18),
+            EndDate = new DateTime(2019, 04, 18),
+            Duration = "0",
+            Progress = 30,
+            ParentId = 6,
+            Predecessor="10",
+        },
+         new TaskData() {
+            TaskId = 13,
+            TaskName = "Product design and developement",
+            StartDate = new DateTime(2019, 04, 19),
+            EndDate = new DateTime(2019, 05, 16),
+            Duration="20",
+        },
+        new TaskData() {
+            TaskId = 14,
+            TaskName = "Functionality Design",
+            StartDate = new DateTime(2019, 04, 19),
+            EndDate = new DateTime(2019, 04, 23),
+            Duration = "3",
+            Progress = 30,
+            ParentId = 13,
+            Predecessor="12"
+        },
+        new TaskData() {
+            TaskId = 15,
+            TaskName = "Quality Design",
+            StartDate = new DateTime(2019, 04, 19),
+            EndDate = new DateTime(2019, 04, 23),
+            Duration = "3",
+            Progress = 40,
+            ParentId = 13,
+            Predecessor="12"
+        },
+        new TaskData() {
+            TaskId = 16,
+            TaskName = "Define reliability",
+            StartDate = new DateTime(2019, 04, 24),
+            EndDate = new DateTime(2019, 04, 25),
+            Duration = "2",
+            Progress = 30,
+            ParentId = 13,
+            Predecessor="15"
+        },
+         new TaskData() {
+            TaskId = 17,
+            TaskName = "Identifying raw mayerials",
+            StartDate = new DateTime(2019, 04, 24),
+            EndDate = new DateTime(2019, 04, 25),
+            Duration="2",
+            ParentId=13,
+            Predecessor="15"
+        },
+        new TaskData() {
+            TaskId = 18,
+            TaskName = "Define cost plan",
+            StartDate = new DateTime(2019, 04, 26),
+            EndDate = new DateTime(2019, 04, 29),
+            Duration = "2",
+            Progress = 30,
+            ParentId=13,
+            Predecessor="17"
+        },
+        new TaskData() {
+            TaskId = 19,
+            TaskName = "Manufacturing cost",
+            StartDate = new DateTime(2019, 04, 26),
+            EndDate = new DateTime(2019, 04, 29),
+            Duration = "2",
+            Progress = 40,
+            ParentId = 18,
+            Predecessor="17"
+        },
+        new TaskData() {
+            TaskId = 20,
+            TaskName = "Selling cost",
+            StartDate = new DateTime(2019, 04, 26),
+            EndDate = new DateTime(2019, 04, 29),
+            Duration = "2",
+            Progress = 30,
+            ParentId = 18,
+            Predecessor="17"
+        },
+         new TaskData() {
+            TaskId = 21,
+            TaskName = "Developement of final design",
+            StartDate = new DateTime(2019, 04, 30),
+            EndDate = new DateTime(2019, 05, 08),
+            Duration="7",
+            ParentId=13
+        },
+        new TaskData() {
+            TaskId = 22,
+            TaskName = "Develope dimensions and design",
+            StartDate = new DateTime(2019, 04, 30),
+            EndDate = new DateTime(2019, 05, 01),
+            Duration = "2",
+            Progress = 30,
+            ParentId=21,
+            Predecessor="19,20"
+        },
+        new TaskData() {
+            TaskId = 23,
+            TaskName = "Develope designs to meet industry",
+            StartDate = new DateTime(2019, 05, 02),
+            EndDate = new DateTime(2019, 05, 03),
+            Duration = "2",
+            Progress = 40,
+            ParentId = 21,
+            Predecessor="22"
+        },
+        new TaskData() {
+            TaskId = 24,
+            TaskName = "Include all the deatails",
+            StartDate = new DateTime(2019, 05, 06),
+            EndDate = new DateTime(2019, 05, 08),
+            Duration = "3",
+            Progress = 30,
+            ParentId = 21,
+            Predecessor="23"
+        },
+         new TaskData() {
+            TaskId = 25,
+            TaskName = "CAD computer aided design",
+            StartDate = new DateTime(2019, 05, 09),
+            EndDate = new DateTime(2019, 05, 13),
+            Duration="3",
+            Predecessor="24"
+        }
+    };
+    return Tasks;
+}
+}

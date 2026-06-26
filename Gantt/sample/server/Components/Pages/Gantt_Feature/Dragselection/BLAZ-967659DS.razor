@@ -1,0 +1,108 @@
+﻿@page "/BLAZ-967659DS"
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@rendermode InteractiveServer
+<p>Event Trigger : @Message</p><br />
+<p>Args Triggering at starting: @ArgsStarting </p>
+<p>Args Triggering at completing: @ArgsCompleting </p>
+<p>Args Triggering at completing: @ArgsCompleted </p>
+<SfGantt DataSource="@TaskCollection" Height="650px" AllowSelection="true" AllowRowDragAndDrop="true">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId">
+    </GanttTaskFields>
+    <GanttSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row"
+                            Type="Syncfusion.Blazor.Grids.SelectionType.Multiple"
+                            AllowDragSelection="true">
+    </GanttSelectionSettings>
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId">
+    </GanttTaskFields>
+    <GanttEvents RowDragSelectionStarting="OnDragSelectionStart"
+                 RowDragSelectionCompleting="OnDragSelectionCompleting"
+                 RowDragSelectionCompleted="OnDragSelectionCompleted"
+                 TValue="TaskData">
+    </GanttEvents>
+      <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+    <GanttEditSettings AllowEditing="true" AllowAdding="true"></GanttEditSettings>
+</SfGantt>
+@code {
+    private List<TaskData> TaskCollection { get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    public string Message { get; set; }
+    public string ArgsStarting { get; set; }
+    public string ArgsCompleting { get; set; }
+    public string ArgsCompleted { get; set; }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+    }
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>()
+        {
+            new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 04, 05), EndDate = new DateTime(2022, 04, 21), },
+            new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 30, ParentId = 1 },
+            new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 04, 05), Duration = "4", Progress = 40, ParentId = 1 },
+            new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 30, ParentId = 1 },
+            new TaskData() { TaskId = 5, TaskName = "Project estimation", StartDate = new DateTime(2022, 04, 06), EndDate = new DateTime(2022, 04, 21), },
+            new TaskData() { TaskId = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 30, ParentId = 5 },
+            new TaskData() { TaskId = 7, TaskName = "List materials", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 40, ParentId = 5 },
+            new TaskData() { TaskId = 8, TaskName = "Estimation approval", StartDate = new DateTime(2022, 04, 06), Duration = "0", Progress = 30, ParentId = 5 },
+            new TaskData() { TaskId = 9, TaskName = "Site preparation", StartDate = new DateTime(2022, 04, 22), EndDate = new DateTime(2022, 04, 28) },
+            new TaskData() { TaskId = 10, TaskName = "Clear site", StartDate = new DateTime(2022, 04, 22), Duration = "2", Progress = 50, ParentId = 9 },
+            new TaskData() { TaskId = 11, TaskName = "Level ground", StartDate = new DateTime(2022, 04, 24), Duration = "3", Progress = 60, ParentId = 9 },
+            new TaskData() { TaskId = 12, TaskName = "Site inspection", StartDate = new DateTime(2022, 04, 27), Duration = "0", Progress = 20, ParentId = 9 },
+            new TaskData() { TaskId = 13, TaskName = "Foundation planning", StartDate = new DateTime(2022, 04, 29), EndDate = new DateTime(2022, 05, 05) },
+            new TaskData() { TaskId = 14, TaskName = "Foundation work", StartDate = new DateTime(2022, 05, 06), EndDate = new DateTime(2022, 05, 15) },
+            new TaskData() { TaskId = 15, TaskName = "Excavation", StartDate = new DateTime(2022, 05, 06), Duration = "4", Progress = 45, ParentId = 14 },
+            new TaskData() { TaskId = 16, TaskName = "Pour concrete", StartDate = new DateTime(2022, 05, 10), Duration = "3", Progress = 50, ParentId = 14 },
+            new TaskData() { TaskId = 17, TaskName = "Curing", StartDate = new DateTime(2022, 05, 13), Duration = "2", Progress = 20, ParentId = 14 },
+            new TaskData() { TaskId = 18, TaskName = "Foundation inspection", StartDate = new DateTime(2022, 05, 15), Duration = "0", Progress = 10, ParentId = 14 },
+        };
+        return Tasks;
+    }
+    private void OnDragSelectionStart(dynamic args)
+    {
+        Message = "DragSelectionStart";
+        try
+        {
+            ArgsStarting = $"cell startIndex: {args.CellStartIndex}, Row StartIndex: {args.RowStartIndex}";
+        }
+        catch
+        {
+            ArgsStarting = "(details unavailable)";
+        }
+    }
+    private void OnDragSelectionCompleting(dynamic args)
+    {
+        Message = "DragSelectionCompleting";
+        try
+        {
+            ArgsCompleting = $"Cell startIndex: {args.CellStartIndex}, Row StartIndex: {args.RowStartIndex}, Cell EndIndex: {args.CellEndIndex}, Row EndIndex: {args.RowEndIndex}, TargetGridID: {args.TargetGridID}";
+        }
+        catch
+        {
+            ArgsCompleting = "(details unavailable)";
+        }
+    }
+    private void OnDragSelectionCompleted(dynamic args)
+    {
+        Message = "DragSelectionCompleted";
+        try
+        {
+            ArgsCompleted = $"Cell startIndex: {args.CellStartIndex}, Row StartIndex: {args.RowStartIndex}, Cell EndIndex: {args.CellEndIndex}, Row EndIndex: {args.RowEndIndex}, TargetGridID: {args.TargetGridID}";
+        }
+        catch
+        {
+            ArgsCompleted = "(details unavailable)";
+        }
+    }
+
+}

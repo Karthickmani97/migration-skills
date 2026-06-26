@@ -1,0 +1,17 @@
+
+{
+  "servers": {
+    "syncfusion-blazor-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+          "--@syncfusion:registry=https://nexus.syncfusioninternal.com/repository/ej2-development/",
+          "-y",
+          "@syncfusion/blazor-assistant@latest"
+      ],
+      "env": {
+        "Syncfusion_API_Key": "SrjfqiqNfw99225hQt0YUZJEA85hAqIwfl2B7FR/DTqzIMiLGu1l0AgY+lRF/+kZyKh33pdstQRU9fPOdnI/OA=="
+      }
+    }
+  }
+}

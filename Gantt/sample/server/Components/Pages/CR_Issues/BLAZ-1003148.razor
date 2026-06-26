@@ -1,0 +1,62 @@
+@page "/BLAZ-1003148"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Gantt
+ <div>@messsage</div>
+<SfGantt TValue="TaskData" DataSource="@TaskDataList" Height="450px" Width="100%">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentId="ParentId" />
+        <GanttEvents OnActionBegin="OnActionBegin" TValue="TaskData"OnActionFailure="ActionFailureHandler"></GanttEvents>
+        <GanttEditSettings AllowEditing="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Dialog" />
+        <GanttColumns>
+            <GanttColumn Field="TaskId" HeaderText="ID" Width="100px"></GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Task Name" AllowEditing="false"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date" AllowEditing="true"></GanttColumn>
+        </GanttColumns>
+    </SfGantt>
+@code {
+    public string messsage{ get; set; }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+    }
+  
+    private List<TaskData> TaskDataList = new List<TaskData>
+    {
+        new TaskData
+        {
+            TaskId = 1,
+            TaskName = "Planning",
+            StartDate = new DateTime(2026, 01, 01),
+            EndDate = new DateTime(2026, 01, 05),
+            Duration = "5",
+            Progress = 50,
+            ParentId = null
+        },
+        new TaskData
+        {
+            TaskId = 2,
+            TaskName = "Design",
+            StartDate = new DateTime(2026, 01, 06),
+            EndDate = new DateTime(2026, 01, 06),
+            Duration = "0",
+            Progress = 30,
+            ParentId = null
+        },
+    };
+    private async Task OnActionBegin(GanttActionEventArgs<TaskData> args)
+    {
+    }
+      public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+
+}

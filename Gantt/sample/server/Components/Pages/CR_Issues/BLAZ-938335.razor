@@ -1,0 +1,94 @@
+@page "/BLAZ-938335"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+<div>@messsage</div>
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt DataSource="@TaskCollection" @ref="@ganttChartRef" DateFormat="MMM dd, y"
+                     AllowUnscheduledTasks="true"
+                Height="450px" Width="100%" EnableContextMenu="true" HighlightWeekends="true" TreeColumnIndex="1" AllowSorting="true">
+                <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Dependency="Predecessor" Duration="Duration" Progress="Progress" Child="Subtasks">
+                </GanttTaskFields>
+                <GanttEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" AllowTaskbarEditing="true"></GanttEditSettings>
+                <GanttColumns>
+                    <GanttColumn Field="TaskID"></GanttColumn>
+                    <GanttColumn Field="TaskName" ></GanttColumn>
+                    <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+                    <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+                    <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+                    <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+                    <GanttColumn Field="Predecessor" HeaderText="Predecessor"></GanttColumn>
+                </GanttColumns>
+                <GanttTimelineSettings>
+                    <GanttTopTierSettings Unit="TimelineViewMode.Week" Format="MMM dd, y"></GanttTopTierSettings>
+                    <GanttBottomTierSettings Unit="TimelineViewMode.Day"></GanttBottomTierSettings>
+                </GanttTimelineSettings>
+                <GanttEditDialogFields>
+        <GanttEditDialogField Type="GanttDialogFieldType.General" HeaderText="General"></GanttEditDialogField>
+        <GanttEditDialogField Type="GanttDialogFieldType.Notes"></GanttEditDialogField>
+    </GanttEditDialogFields>
+                <GanttLabelSettings LeftLabel="TaskName" TValue="TaskData"></GanttLabelSettings>
+                <GanttSplitterSettings Position="35%"></GanttSplitterSettings>
+                <GanttEvents TValue="TaskData"OnActionFailure="ActionFailureHandler"></GanttEvents>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+@code{
+    private List<TaskData> TaskCollection { get; set; }
+    public string messsage{ get; set; }
+    private SfGantt<TaskData> ganttChartRef;
+    protected override void OnInitialized()
+    {
+        TaskCollection = EditingData;
+    }
+    public void TaskbarEdited(TaskbarEditedEventArgs<TaskData> args)
+    {
+        
+    }
+      public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+    public class TaskData
+    {
+        public string TaskID { get; set; }
+        public string TaskName { get; set; }
+        public string Duration { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public int? Progress { get; set; }
+        public string Predecessor { get; set; }
+        public List<TaskData> Subtasks { get; set; }
+    }
+
+    public List<TaskData> EditingData = new List<TaskData>
+{
+    new TaskData
+        {
+            TaskID = "A1",
+            TaskName = "Project Initiation",
+            StartDate = new DateTime(2022, 11, 6),
+            EndDate = new DateTime(2022, 11, 20),
+        },
+        new TaskData
+        {
+            TaskID = "A-2",
+            TaskName = "Identify Site location",
+            StartDate = new DateTime(2022, 11, 16),
+            EndDate = new DateTime(2022, 11, 19),
+            Progress = 50,
+        },
+        new TaskData
+        {
+            TaskID = "A3",
+            TaskName = "Apply for permits",
+            StartDate = new DateTime(2022, 11, 19),
+            EndDate = new DateTime(2022, 11, 22),
+            Progress = 50,
+            Predecessor = "A-2FS",
+        }
+};
+
+}

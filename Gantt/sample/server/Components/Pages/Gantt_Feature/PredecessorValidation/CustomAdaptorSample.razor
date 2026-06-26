@@ -1,0 +1,190 @@
+﻿@page "/customadaptorValidation"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Gantt;
+@using Syncfusion.Blazor.Data;
+@using Syncfusion.Blazor;
+@using Syncfusion.Blazor.DropDowns;
+@using Syncfusion.Blazor.Grids;
+
+<SfGantt @ref="Gantt" ID="CustomAdaptor" TValue="TaskData" AutoUpdatePredecessorOffset="false" Height="550px" Width="100%" AllowFiltering="true" AllowResizing="true" AllowReordering="true" AllowMultiSorting="true" AllowRowDragAndDrop="true" AllowSelection="true" AllowSorting="true" EnableContextMenu="true" Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Update", "Cancel", "Search", "Indent", "Outdent", "ExpandAll", "CollapseAll" })">
+    <SfDataManager AdaptorInstance="@typeof(CustomAdaptor)" Adaptor="Adaptors.CustomAdaptor"></SfDataManager>
+    <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Progress="Progress" Duration="Duration" ParentID="ParentID"
+                     Dependency="Predecessor">
+    </GanttTaskFields>
+    <GanttColumns>
+        <GanttColumn Field="TaskID" HeaderText="ID"></GanttColumn>        
+        <GanttColumn Field="TaskName" HeaderText="Event Name"></GanttColumn>
+        <GanttColumn Field="Predecessor" HeaderText="Predecessor" Width="150"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+    </GanttColumns>
+    <GanttEditSettings AllowEditing="true" AllowAdding="true" AllowDeleting="true" AllowTaskbarEditing="true"></GanttEditSettings>
+
+    <GanttLabelSettings RightLabel="Resources" TValue="TaskData"></GanttLabelSettings>
+
+</SfGantt>
+
+
+@code {
+    public static SfGantt<TaskData>? Gantt { get; set; }
+    public static List<TaskData> GanttData { get; set; }
+    public static List<TaskData> gantt = new List<TaskData>();
+    public static int index = 0;
+
+
+    public class TaskData
+    {
+        public int TaskID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public int Progress { get; set; }
+        public string Duration { get; set; }
+        public int? ParentID { get; set; }
+        public string Predecessor { get; set; }        
+        public TaskData() { }
+    }
+
+
+    // Assigning the datasource collection on SfGantt
+    protected override void OnInitialized()
+    {
+        GanttData = GetGantt().ToList();
+    }
+
+
+    // Gantt datasource collection
+    private static List<TaskData> GetGantt()
+    {
+        if (gantt.Count == 0)
+        {
+            for (var i = 1; i <= 8; i++)
+            {
+                int parentTaskId = gantt.Count + 1;
+                gantt.Add(new TaskData()
+                    {
+                        TaskID = parentTaskId,
+                        TaskName = "Parent Task " + parentTaskId.ToString(),
+                        StartDate = new DateTime(2022, 06, 07),
+                        EndDate = new DateTime(2022, 08, 25),
+                        Progress = 40,
+                        ParentID = null,
+                        Duration = "5"
+                    });
+
+                int previousChildId = 0;
+
+                for (var j = 0; j < 3; j++)
+                {
+                    int childTaskId = gantt.Count + 1;
+                    string predecessor = previousChildId > 0 ? $"{previousChildId}FS" : null;
+
+                    if (j == 0)
+                    {
+                        gantt.Add(new TaskData()
+                            {
+                                TaskID = childTaskId,
+                                TaskName = "Child Task " + childTaskId.ToString(),
+                                StartDate = new DateTime(2022, 06, 07),
+                                EndDate = new DateTime(2022, 08, 25),
+                                Progress = 30,
+                                ParentID = parentTaskId,
+                                Duration = "3",
+                                Predecessor = predecessor
+                            });
+                    }
+                    else if (j == 1)
+                    {
+                        gantt.Add(new TaskData()
+                            {
+                                TaskID = childTaskId,
+                                TaskName = "Child Task " + childTaskId.ToString(),
+                                StartDate = new DateTime(2022, 06, 07),
+                                EndDate = new DateTime(2022, 08, 25),
+                                Progress = 100,
+                                ParentID = parentTaskId,
+                                Duration = "4",
+                                Predecessor = predecessor
+                            });
+                    }
+                    else
+                    {
+                        gantt.Add(new TaskData()
+                            {
+                                TaskID = childTaskId,
+                                TaskName = "Child Task " + childTaskId.ToString(),
+                                StartDate = new DateTime(2022, 06, 07),
+                                EndDate = new DateTime(2022, 08, 25),
+                                Progress = 23,
+                                ParentID = parentTaskId,
+                                Duration = "6",
+                                Predecessor = predecessor
+                            });
+                    }
+
+                    previousChildId = childTaskId;
+                }
+            }
+        }
+        return gantt;
+    }
+
+    // returns the child records count
+    private int GetChildRecordsCount(int? id)
+    {
+        var count = 0;
+        for (var i = 0; i < GetGantt().Count; i++)
+        {
+            if (GetGantt()[i].ParentID == id)
+            {
+                count++;
+                count += GetChildRecordsCount(GetGantt()[i].TaskID);
+            }
+        }
+        return count;
+    }
+
+    // Implementing custom adaptor by extending the DataAdaptor class.
+    public class CustomAdaptor : DataAdaptor
+    {
+        // Performs data Read operation.
+        public override object Read(DataManagerRequest dm, string key = null)
+        {
+            IEnumerable<TaskData> DataSource = GanttData;
+            if (dm.Search != null && dm.Search.Count > 0)
+            {
+                // Searching
+                DataSource = DataOperations.PerformSearching(DataSource, dm.Search);
+            }
+            if (dm.Sorted != null && dm.Sorted.Count > 0)
+            {
+                // Sorting
+                DataSource = DataOperations.PerformSorting(DataSource, dm.Sorted);
+            }
+            if (dm.Where != null && dm.Where.Count > 0)
+            {
+                // Filtering
+                if (dm.Where[0].Field != null && dm.Where[0].Field == "ParentID") { }
+                else
+                {
+                    DataSource = DataOperations.PerformFiltering(DataSource, dm.Where, dm.Where[0].Operator);
+                }
+            }
+            int count = DataSource.Cast<TaskData>().Count();
+            if (dm.Skip != 0)
+            {
+                //Paging
+                DataSource = DataOperations.PerformSkip(DataSource, dm.Skip);
+            }
+            if (dm.Take != 0)
+            {
+                DataSource = DataOperations.PerformTake(DataSource, dm.Take);
+            }
+            return dm.RequiresCounts ? new DataResult() { Result = DataSource, Count = count } : (object)DataSource;
+        }
+    }
+
+}
+

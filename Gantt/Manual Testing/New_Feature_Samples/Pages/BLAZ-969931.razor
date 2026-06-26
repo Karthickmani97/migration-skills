@@ -1,0 +1,147 @@
+﻿@page "/BLAZ-969931"
+@using Syncfusion.Blazor.Gantt
+@*
+Replication Procedure:
+    1. Run this sample.
+    2. Click on the filter icon in any column header (e.g., "Task Name").
+    3. Confirm that the Excel-style filter popup opens with checkbox-based single, multi-select options and select all options.
+    4. Apply a condition-based filter (e.g., "Contains", "Greater Than") and verify filtered results.
+    5. Use the FilterItemTemplate and confirm custom UI elements render correctly inside the popup.
+    6. In the Filtering event, set args.Cancel = true and verify:
+        - Filtering is not applied.
+        - The popup remains open and interactive.
+        - The interface remains responsive.
+    7. In the FilterDialogOpening event, set args.Cancel = true and verify:
+        - The popup does not open.
+        - No flicker or error is shown.
+    8. Set args.FilterChoiceCount and verify that the number of items shown in the popup is limited accordingly.
+    9. Confirm that the following events are triggered in sequence:
+        - FilterDialogOpening
+        - FilterDialogOpened
+        - Filtering
+        - Filtered
+    10. Verify that the filter popup renders with the correct height, width, and data when customized.
+    11. Use keyboard navigation (Arrow keys, Enter, Escape, Tab) to interact with the popup.
+    12. Verify that focus remains on the search box or last interacted element when filtering is canceled.
+    13. Verify the custom filter dialog box position, rendering and its functions for filtering.
+    14. Verify the clear filter button is functioned properly.
+    15. Verify filtering for all the columns.
+    16. Verify predeccessor is properly rendered.
+    17. Verify the working of Filter dialog box "Ok" and "cancel" button.
+    18. Verify all the args functionality in the events.
+    19. Verify the filtering property with all hierarchy modes.
+*@
+<SfGantt @ref="GanttRef" DataSource="@TaskCollection" Height="550px" width="100%" AllowFiltering="true" WorkUnit="WorkUnit.Hour">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Work="Work" Manual="IsManual" Dependency="Predecessor" TaskType="TaskType" />
+    <GanttColumns>
+        <GanttColumn Field="TaskId" HeaderText="Task ID" />
+        <GanttColumn Field="TaskName" HeaderText="Task Name">
+            <FilterItemTemplate>
+                @{
+                    var filterContext = (context as FilterItemTemplateContext);
+                    var itemTemplateValue = "Textofcheck(" + filterContext.Value + ")";
+                }
+                @itemTemplateValue
+            </FilterItemTemplate>
+        </GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="StartDate" />
+        <GanttColumn Field="EndDate" HeaderText="EndDate" />
+        <GanttColumn Field="Duration" HeaderText="Duration" />
+        <GanttColumn Field="Work" HeaderText="Work (hrs)" />
+        <GanttColumn Field="IsManual" HeaderText="Task Mode" />
+        <GanttColumn Field="TaskType" HeaderText="Task Type" />
+        <GanttColumn Field="Predecessor" HeaderText="Predecessor" />
+    </GanttColumns>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true" />
+    <GanttFilterSettings FilterType="Syncfusion.Blazor.Gantt.FilterType.Excel"
+                         HierarchyMode="FilterHierarchyMode.Parent" />
+    <GanttSplitterSettings Position="40%"></GanttSplitterSettings>
+    <GanttEvents FilterDialogOpening="FilterDialogOpeningHandler" FilterDialogOpened="FilterDialogOpenedHandler" Filtering="FilteringHandler" Filtered="FilteredHandler" TValue="TaskData"></GanttEvents>
+</SfGantt>
+
+@code {
+
+    private SfGantt<TaskData> GanttRef; 
+    public List<TaskData> TaskCollection { get; set; }
+    protected override void OnInitialized()
+    {
+        TaskCollection = GetTaskCollection();
+    }
+    public string Message { get; set; }
+    public void FilterDialogOpeningHandler(FilterDialogOpeningEventArgs args)
+    {
+        //Here, you can customize your code.
+       
+    }
+    public void FilterDialogOpenedHandler(FilterDialogOpenedEventArgs args)
+    {
+        //Here, you can customize your code.
+        
+    }
+    public void FilteringHandler(FilteringEventArgs args)
+    {
+        // Here, you can customize your code.
+      
+    }
+    public void FilteredHandler(FilteredEventArgs args)
+    {
+        // Here, you can customize your code.
+       
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public double Work { get; set; }
+        public bool IsManual { get; set; }
+        public string Predecessor { get; set; }
+        public string TaskType { get; set; }
+    }
+    public static List<TaskData> GetTaskCollection()
+    {
+        return new List<TaskData>
+    {
+        new TaskData { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 04, 05), EndDate = new DateTime(2022, 04, 21), Work = 40, IsManual = false, TaskType = "FixedDuration" },
+        new TaskData { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 04, 05), Duration = "0 days", Progress = 30, ParentId = 1, Work = 8, IsManual = true, TaskType = "FixedWork" },
+        new TaskData { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 04, 05), Duration = "4 days", Progress = 40, ParentId = 1, Work = 16, IsManual = true, Predecessor = "2FS", TaskType = "FixedWork" },
+        new TaskData { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 04, 05), Duration = "0 days", Progress = 30, ParentId = 1, Work = 4, IsManual = false, Predecessor = "3FS", TaskType = "FixedWork" },
+        new TaskData { TaskId = 5, TaskName = "Project estimation", StartDate = new DateTime(2022, 04, 06), EndDate = new DateTime(2022, 04, 21), Work = 32, IsManual = true, TaskType = "FixedDuration" },
+
+        new TaskData { TaskId = 6, TaskName = "Design phase", StartDate = new DateTime(2022, 04, 22), EndDate = new DateTime(2022, 05, 10), Work = 60, IsManual = false, TaskType = "FixedDuration" },
+        new TaskData { TaskId = 7, TaskName = "Architectural design", StartDate = new DateTime(2022, 04, 22), Duration = "10 days", Progress = 50, ParentId = 6, Work = 40, IsManual = true, TaskType = "FixedWork" },
+        new TaskData { TaskId = 8, TaskName = "Structural design", StartDate = new DateTime(2022, 04, 25), Duration = "8 days", Progress = 20, ParentId = 6, Work = 32, IsManual = true, Predecessor = "7FS", TaskType = "FixedWork" },
+        new TaskData { TaskId = 9, TaskName = "Design approval", StartDate = new DateTime(2022, 05, 05), Duration = "2 days", Progress = 0, ParentId = 6, Work = 8, IsManual = false, Predecessor = "8FS", TaskType = "FixedWork" },
+
+        new TaskData { TaskId = 10, TaskName = "Procurement phase", StartDate = new DateTime(2022, 05, 11), EndDate = new DateTime(2022, 05, 25), Work = 50, IsManual = false, TaskType = "FixedDuration" },
+        new TaskData { TaskId = 11, TaskName = "Material listing", StartDate = new DateTime(2022, 05, 11), Duration = "3 days", Progress = 100, ParentId = 10, Work = 12, IsManual = true, TaskType = "FixedWork" },
+        new TaskData { TaskId = 12, TaskName = "Vendor selection", StartDate = new DateTime(2022, 05, 14), Duration = "5 days", Progress = 60, ParentId = 10, Work = 20, IsManual = true, Predecessor = "11FS", TaskType = "FixedWork" },
+        new TaskData { TaskId = 13, TaskName = "Purchase order", StartDate = new DateTime(2022, 05, 20), Duration = "2 days", Progress = 0, ParentId = 10, Work = 8, IsManual = false, Predecessor = "12FS", TaskType = "FixedWork" },
+
+        new TaskData { TaskId = 14, TaskName = "Construction phase", StartDate = new DateTime(2022, 05, 26), EndDate = new DateTime(2022, 07, 15), Work = 200, IsManual = false, TaskType = "FixedDuration" },
+        new TaskData { TaskId = 15, TaskName = "Foundation work", StartDate = new DateTime(2022, 05, 26), Duration = "10 days", Progress = 70, ParentId = 14, Work = 40, IsManual = true, TaskType = "FixedWork" },
+        new TaskData { TaskId = 16, TaskName = "Framing", StartDate = new DateTime(2022, 06, 06), Duration = "15 days", Progress = 50, ParentId = 14, Work = 60, IsManual = true, Predecessor = "15FS", TaskType = "FixedWork" },
+        new TaskData { TaskId = 17, TaskName = "Roofing", StartDate = new DateTime(2022, 06, 22), Duration = "5 days", Progress = 20, ParentId = 14, Work = 20, IsManual = false, Predecessor = "16FS", TaskType = "FixedWork" },
+        new TaskData { TaskId = 18, TaskName = "Exterior finishing", StartDate = new DateTime(2022, 06, 28), Duration = "10 days", Progress = 0, ParentId = 14, Work = 40, IsManual = true, Predecessor = "17FS", TaskType = "FixedWork" },
+
+        new TaskData { TaskId = 19, TaskName = "Interior phase", StartDate = new DateTime(2022, 07, 16), EndDate = new DateTime(2022, 08, 10), Work = 100, IsManual = false, TaskType = "FixedDuration" },
+        new TaskData { TaskId = 20, TaskName = "Electrical work", StartDate = new DateTime(2022, 07, 16), Duration = "5 days", Progress = 0, ParentId = 19, Work = 20, IsManual = true, TaskType = "FixedWork" },
+        new TaskData { TaskId = 21, TaskName = "Plumbing", StartDate = new DateTime(2022, 07, 21), Duration = "5 days", Progress = 0, ParentId = 19, Work = 20, IsManual = true, Predecessor = "20FS", TaskType = "FixedWork" },
+        new TaskData { TaskId = 22, TaskName = "HVAC installation", StartDate = new DateTime(2022, 07, 26), Duration = "5 days", Progress = 0, ParentId = 19, Work = 20, IsManual = false, Predecessor = "21FS", TaskType = "FixedWork" },
+        new TaskData { TaskId = 23, TaskName = "Interior finishing", StartDate = new DateTime(2022, 08, 01), Duration = "10 days", Progress = 0, ParentId = 19, Work = 40, IsManual = true, Predecessor = "22FS", TaskType = "FixedWork" },
+
+        new TaskData { TaskId = 24, TaskName = "Inspection phase", StartDate = new DateTime(2022, 08, 11), EndDate = new DateTime(2022, 08, 20), Work = 20, IsManual = false, TaskType = "FixedDuration" },
+        new TaskData { TaskId = 25, TaskName = "Safety inspection", StartDate = new DateTime(2022, 08, 11), Duration = "3 days", Progress = 0, ParentId = 24, Work = 8, IsManual = true, TaskType = "FixedWork" },
+        new TaskData { TaskId = 26, TaskName = "Code compliance", StartDate = new DateTime(2022, 08, 14), Duration = "3 days", Progress = 0, ParentId = 24, Work = 8, IsManual = true, Predecessor = "25FS", TaskType = "FixedWork" },
+        new TaskData { TaskId = 27, TaskName = "Final approval", StartDate = new DateTime(2022, 08, 17), Duration = "2 days", Progress = 0, ParentId = 24, Work = 4, IsManual = false, Predecessor = "26FS", TaskType = "FixedWork" },
+
+        new TaskData { TaskId = 28, TaskName = "Handover phase", StartDate = new DateTime(2022, 08, 21), EndDate = new DateTime(2022, 08, 30), Work = 16, IsManual = false, TaskType = "FixedDuration" },
+        new TaskData { TaskId = 29, TaskName = "Client walkthrough", StartDate = new DateTime(2022, 08, 21), Duration = "2 days", Progress = 0, ParentId = 28, Work = 4, IsManual = true, TaskType = "FixedWork" },
+        new TaskData { TaskId = 30, TaskName = "Punch list creation", StartDate = new DateTime(2022, 08, 23), Duration = "2 days", Progress = 0, ParentId = 28, Work = 4, IsManual = true, Predecessor = "29FS", TaskType = "FixedWork" },
+      };
+    }
+}

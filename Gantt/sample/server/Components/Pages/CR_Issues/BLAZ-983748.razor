@@ -1,0 +1,59 @@
+@page "/BLAZ-983748"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Navigations
+<div>@messsage</div>
+<SfGantt @ref="gantt" DataSource="@TaskCollection" ID="Gantt" Height="450px" Width="700px" AllowPdfExport
+         Toolbar="@(new List<object>(){new Syncfusion.Blazor.Navigations.ToolbarItem(){ Text = "Export To PDF", Id = "CustomPdfExport" , PrefixIcon="e-icons e-export-pdf-1"}})">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId">
+    </GanttTaskFields>
+    <GanttEvents TValue="TaskData" OnToolbarClick="OnToolbarClicked"OnActionFailure="ActionFailureHandler"></GanttEvents>
+    <GanttHolidays>
+        <GanttHoliday From="DateTime.Today.Date" To="DateTime.Today.Date"></GanttHoliday>
+    </GanttHolidays>
+</SfGantt>
+
+@code {
+    private SfGantt<TaskData> gantt;
+    private DateTime ProjectStartDate { get; set; } = new DateTime(2024, 1, 01);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2024, 1, 13);
+    private List<TaskData> TaskCollection { get; set; }
+    public string messsage{ get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+     public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+    private async Task OnToolbarClicked()
+    {
+        if (gantt is null)
+            return;
+
+        await gantt.ExportToPdfAsync(new GanttPdfExportProperties());
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+        new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2024, 01, 03), EndDate = new DateTime(2024, 01, 21) },
+        new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2024, 01, 03), Duration = "0", Progress = 30, ParentId = 1 },
+        new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2024, 01, 03), Duration = "4", Progress = 40, ParentId = 1 },
+        new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2024, 01, 03), Duration = "0", Progress = 30, ParentId = 1 },
+
+    };
+        return Tasks;
+    }
+}

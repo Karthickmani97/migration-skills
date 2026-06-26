@@ -1,0 +1,168 @@
+﻿@page "/BLAZ-968784"
+
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Buttons
+@*
+Replication Procedure:
+	1.Run the below sample.	
+	2.Verify WBS column rendering:	
+		Confirm that the WBS column is visible in the grid. 
+		Ensure each task displays a valid WBS code (e.g., 1, 1.1, 1.1.1). 
+	3.Perform task actions and validate WBS updates:	
+		Add a new task under a parent and confirm the WBS code is correctly generated (e.g., 1.2). 
+		Delete a task and verify that sibling and child WBS codes are updated accordingly. 
+		Indent a task and confirm it becomes a child of the previous sibling with updated WBS (e.g., 1.1.1). 
+		Outdent a task and confirm it moves up a level with recalculated WBS. 
+		Drag and drop a task to a new parent and verify WBS code reflects the new hierarchy. 
+	4.Validate WBS Predecessor updates:	
+		Ensure that tasks with dependencies show correct WBS-based predecessor strings (e.g., 1.1FS, 1.2.1SS). 
+		Confirm that after structural changes, predecessor strings are updated to reflect new WBS codes. 
+	5.Validate the dynamic Configuration
+		Disable the EnableWBS and check the WBS code and WBS Predecessor are Editable.
+		Disable the EnableAutoGenerateWBS and check the WBS Code are not changes when perform any actions
+*@
+<div class="col-lg-12 control-section">
+	<div class="content-wrapper">
+		<div class="row">
+			<div>
+				<label class="showhide" style="padding: 10px 10px 10px 25px"> EnableWBS </label>
+				<SfSwitch ValueChange="@((ChangeEventArgs<bool> args) => HandleEnableWbsChange(args))" @bind-Checked="@IsEnableWbs" TChecked="bool"></SfSwitch>
+
+				<label class="showhide" style="padding: 10px 10px 10px 25px"> EnableAutoGenerateWBS </label>
+				<SfSwitch ValueChange="@((ChangeEventArgs<bool> args) => HandleAutoWbsChange(args))" @bind-Checked="@IsEnableAutoWbsCode" TChecked="bool"></SfSwitch>
+			</div>
+			<SfGantt @ref="GanttChartInstance" DataSource="@TaskCollection" Height="600px" Width="100%" ShowWbsColumn="@IsEnableWbs" AutoGenerateWbs="@IsEnableAutoWbsCode"
+					 TreeColumnIndex="1" EnableContextMenu="true" ShowColumnMenu="true" AllowReordering="true" AllowExcelExport="true"
+					 AllowPdfExport="true" AllowRowDragAndDrop="true" AllowSorting="true" AllowFiltering="true" AllowResizing="true"
+					 ProjectStartDate="ProjectStartDate" ProjectEndDate="ProjectEndDate" ScrollToTaskbarOnClick="true" Toolbar="ToolbarActions">
+
+				<GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration"
+								 ParentID="ParentId" Dependency="Predecessor" WbsCode="Wbs" WbsPredecessor="WbsPredecessor">
+				</GanttTaskFields>
+
+				<GanttColumns>
+					<GanttColumn Field="TaskId" HeaderText="Task ID" Width="100" Visible="false"></GanttColumn>
+					<GanttColumn Field="Wbs" HeaderText="WBS Code" Width="200"></GanttColumn>
+					<GanttColumn Field="TaskName" HeaderText="Task Name"></GanttColumn>
+					<GanttColumn Field="Predecessor" HeaderText="Predecessor" Visible="false"></GanttColumn>
+					<GanttColumn Field="WbsPredecessor" HeaderText="WBS Predecessor" Width="150"></GanttColumn>
+					<GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+				</GanttColumns>
+
+				<GanttEvents OnToolbarClick="HandleToolbarClick" TValue="TaskData"></GanttEvents>
+
+				<GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true" />
+
+				<GanttSplitterSettings Position="40%"></GanttSplitterSettings>
+			</SfGantt>
+		</div>
+	</div>
+</div>
+
+@code {
+	private SfGantt<TaskData> GanttChartInstance { get; set; }
+	private DateTime ProjectStartDate = new DateTime(2000, 1, 1);
+	private DateTime ProjectEndDate = new DateTime(2025, 12, 31);
+	private bool IsEnableAutoWbsCode { get; set; } = true;
+	private bool IsEnableWbs { get; set; } = true;
+	private List<TaskData> TaskCollection { get; set; }
+
+	protected override void OnInitialized()
+	{
+		TaskCollection = GetTaskCollection();
+	}
+	public class TaskData
+	{
+		public int TaskId { get; set; }
+		public string TaskName { get; set; }
+		public DateTime StartDate { get; set; }
+		public DateTime? EndDate { get; set; }
+		public string Duration { get; set; }
+		public int? ParentId { get; set; }
+		public string Predecessor { get; set; }
+		public string Wbs { get; set; }
+		public string WbsPredecessor { get; set; }
+	}
+	public void HandleEnableWbsChange(ChangeEventArgs<bool> args)
+	{
+		IsEnableWbs = args.Checked;
+	}
+
+	public void HandleAutoWbsChange(ChangeEventArgs<bool> args)
+	{
+		IsEnableAutoWbsCode = args.Checked;
+	}
+
+	private List<object> ToolbarActions = new List<object>
+	{
+		"Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll", "Indent", "Outdent", "ZoomIn", "ZoomOut", "ZoomToFit", "ExcelExport", "CsvExport",
+		new ToolbarItem { Text = "PDF Export", TooltipText = "PDF Export", Id = "PdfExport", PrefixIcon = "e-pdfexport" },
+		 "Search"
+
+	};
+
+
+	public async Task HandleToolbarClick(ClickEventArgs args)
+	{
+		if (args.Item.Id == "GanttChartInstance_excelexport")
+		{
+			await GanttChartInstance.ExportToExcelAsync();
+		}
+		else if (args.Item.Id == "GanttChartInstance_csvexport")
+		{
+			await GanttChartInstance.ExportToCsvAsync();
+		}
+		else if (args.Item.Id == "PdfExport")
+		{
+			await GanttChartInstance.ExportToPdfAsync();
+		}
+	}
+	public static List<TaskData> GetTaskCollection()
+	{
+		List<TaskData> Tasks = new List<TaskData>() {
+			new TaskData { TaskId = 1, TaskName = "Product concept", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 08), Duration = "5days" },
+			new TaskData { TaskId = 2, TaskName = "Define the product usage", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 08), Duration = "3", ParentId = 1 },
+			new TaskData { TaskId = 3, TaskName = "Define the target audience", EndDate = new DateTime(2021, 04, 04), ParentId = 1, Predecessor = "2FS" },
+			new TaskData { TaskId = 4, TaskName = "Prepare product sketch and notes", StartDate = new DateTime(2021, 04, 05), Duration = "2", ParentId = 1, Predecessor = "3FS" },
+			new TaskData { TaskId = 5, TaskName = "Concept approval", StartDate = new DateTime(2021, 04, 08), EndDate = new DateTime(2021, 04, 08), Duration = "0", ParentId = 1, Predecessor = "4FS" },
+			new TaskData { TaskId = 6, TaskName = "Market research", StartDate = new DateTime(2021, 04, 09), EndDate = new DateTime(2021, 04, 18), Duration = "4", },
+			new TaskData { TaskId = 7, TaskName = "Demand analysis", Duration = "4",  ParentId = 6 },
+			new TaskData { TaskId = 8, TaskName = "Customer strength", StartDate = new DateTime(2021, 04, 09), EndDate = new DateTime(2021, 04, 12), Duration = "4",  ParentId = 7 },
+			new TaskData { TaskId = 9, TaskName = "Market opportunity analysis", StartDate = new DateTime(2021, 04, 09), EndDate = new DateTime(2021, 04, 12), Duration = "4", ParentId = 7, Predecessor = "8FS" },
+			new TaskData { TaskId = 10, TaskName = "Competitor analysis", StartDate = new DateTime(2021, 04, 15), EndDate = new DateTime(2021, 04, 18), Duration = "4",  ParentId = 6 },
+			new TaskData { TaskId = 11, TaskName = "Product strength analysis", StartDate = new DateTime(2021, 04, 15), EndDate = new DateTime(2021, 04, 18), Duration = "4",  ParentId = 6, Predecessor = "10FS" },
+			new TaskData { TaskId = 12, TaskName = "Research completed", StartDate = new DateTime(2021, 04, 18), EndDate = new DateTime(2021, 04, 18), Duration = "0", ParentId = 6, Predecessor = "11FS" },
+			new TaskData { TaskId = 13, TaskName = "Product design and development", StartDate = new DateTime(2021, 04, 19), EndDate = new DateTime(2021, 05, 16), Duration = "20" },
+			new TaskData { TaskId = 14, TaskName = "Functionality design", StartDate = new DateTime(2021, 04, 19), EndDate = new DateTime(2021, 04, 23), Duration = "3",  ParentId = 13 },
+			new TaskData { TaskId = 15, TaskName = "Quality design", StartDate = new DateTime(2021, 04, 19), EndDate = new DateTime(2021, 04, 23), Duration = "3", ParentId = 13, Predecessor = "14FS" },
+			new TaskData { TaskId = 16, TaskName = "Define reliability", StartDate = new DateTime(2021, 04, 24), EndDate = new DateTime(2021, 04, 25), Duration = "2",  ParentId = 13, Predecessor = "15FS" },
+			new TaskData { TaskId = 17, TaskName = "Identifying raw materials", StartDate = new DateTime(2021, 04, 24), EndDate = new DateTime(2021, 04, 25), Duration = "2", ParentId = 13, Predecessor = "16FS" },
+			new TaskData { TaskId = 18, TaskName = "Define cost plan", StartDate = new DateTime(2021, 04, 26), EndDate = new DateTime(2021, 04, 29), Duration = "2",  ParentId = 13, Predecessor = "17FS" },
+			new TaskData { TaskId = 19, TaskName = "Estimate manufacturing cost", StartDate = new DateTime(2021, 04, 26), EndDate = new DateTime(2021, 04, 29), Duration = "2", ParentId = 18 },
+			new TaskData { TaskId = 20, TaskName = "Estimate selling cost", StartDate = new DateTime(2021, 04, 26), EndDate = new DateTime(2021, 04, 29), Duration = "2",  ParentId = 18, Predecessor = "19FS" },
+			new TaskData { TaskId = 21, TaskName = "Development of final design", StartDate = new DateTime(2021, 04, 30), EndDate = new DateTime(2021, 05, 08), Duration = "7", ParentId = 13, Predecessor = "20FS" },
+			new TaskData { TaskId = 22, TaskName = "Develop dimensions and design", StartDate = new DateTime(2021, 04, 30), EndDate = new DateTime(2021, 05, 01), Duration = "2", ParentId = 21 },
+			new TaskData { TaskId = 23, TaskName = "Develop designs to meet industry", StartDate = new DateTime(2021, 05, 02), EndDate = new DateTime(2021, 05, 03), Duration = "2",  ParentId = 21, Predecessor = "22FS" },
+			new TaskData { TaskId = 24, TaskName = "Include all the details", StartDate = new DateTime(2021, 05, 06), EndDate = new DateTime(2021, 05, 08), Duration = "3",  ParentId = 21, Predecessor = "23FS" },
+			new TaskData { TaskId = 25, TaskName = "CAD - Computer Aided Design", StartDate = new DateTime(2021, 05, 09), EndDate = new DateTime(2021, 05, 13), Duration = "3", Predecessor = "24FS" },
+			new TaskData { TaskId = 26, TaskName = "CAM - Computer Aided Manufacturing", StartDate = new DateTime(2021, 05, 14), EndDate = new DateTime(2021, 05, 16), Duration = "3", Predecessor = "25FS", ParentId = 25 },
+			new TaskData { TaskId = 27, TaskName = "Finalize the design", StartDate = new DateTime(2021, 04, 16), EndDate = new DateTime(2021, 04, 16), Duration = "0",ParentId = 26,  Predecessor = "26FS" },
+			new TaskData { TaskId = 28, TaskName = "Prototype testing", StartDate = new DateTime(2021, 05, 17), EndDate = new DateTime(2021, 05, 22),ParentId = 27, Duration = "4" },
+			new TaskData { TaskId = 29, TaskName = "Include feedback", StartDate = new DateTime(2021, 05, 17), EndDate = new DateTime(2021, 05, 22),ParentId = 27, Duration = "4", Predecessor = "28FS" },
+			new TaskData { TaskId = 30, TaskName = "Manufacturing", StartDate = new DateTime(2021, 05, 23), EndDate = new DateTime(2021, 05, 29), Duration = "5",ParentId = 27, Predecessor = "29FS" },
+			new TaskData { TaskId = 31, TaskName = "Assembling material into finished goods", StartDate = new DateTime(2021, 05, 30), EndDate = new DateTime(2021, 06, 05),ParentId = 25, Duration = "5", Predecessor = "30FS" },
+			new TaskData { TaskId = 32, TaskName = "Final product development", StartDate = new DateTime(2021, 06, 06), EndDate = new DateTime(2021, 06, 13), Duration = "6"},
+			new TaskData { TaskId = 33, TaskName = "Important improvement", StartDate = new DateTime(2021, 06, 06), EndDate = new DateTime(2021, 06, 10), Duration = "3", ParentId = 32 },
+			new TaskData { TaskId = 34, TaskName = "Customer testing and feedback", StartDate = new DateTime(2021, 06, 11), EndDate = new DateTime(2021, 06, 13), Duration = "3", ParentId = 32, Predecessor = "33FS" },
+			new TaskData { TaskId = 35, TaskName = "Final product development", StartDate = new DateTime(2021, 06, 14), EndDate = new DateTime(2021, 06, 19), Duration = "4" },
+			new TaskData { TaskId = 36, TaskName = "Important improvement", StartDate = new DateTime(2021, 06, 14), EndDate = new DateTime(2021, 06, 19), Duration = "4", ParentId = 35 },
+			new TaskData { TaskId = 37, TaskName = "Address any unforeseen issues", StartDate = new DateTime(2021, 06, 14), EndDate = new DateTime(2021, 06, 19), Duration = "4", ParentId = 35, Predecessor = "36FS" },
+			new TaskData { TaskId = 38, TaskName = "Finalize the product", StartDate = new DateTime(2021, 06, 20), EndDate = new DateTime(2021, 07, 01), Duration = "8" },
+			new TaskData { TaskId = 39, TaskName = "Branding the product", StartDate = new DateTime(2021, 06, 20), EndDate = new DateTime(2021, 06, 25), Duration = "4", ParentId = 38 },
+			new TaskData { TaskId = 40, TaskName = "Marketing and presales", StartDate = new DateTime(2021, 06, 26), EndDate = new DateTime(2021, 07, 01), Duration = "4", ParentId = 38, Predecessor = "39FS" }
+
+		};
+		return Tasks;
+	}
+}

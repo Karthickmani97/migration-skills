@@ -1,0 +1,166 @@
+@page "/E2EMigration/Customzooming"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+<div>@messsage</div>
+<button @onclick="ZoomIn">Zoom In</button>
+<button @onclick="ZoomOut">Zoom Out</button>
+<button @onclick="ZoomToFit">ZoomToFit</button>
+<SfGantt id="CustomZooming" DataSource="@TaskCollection" @ref="Gantt" CustomZoomingLevels="@CustomZoomingLevels" Height="500px" Width="1400px" EnableContextMenu="true" Toolbar="@(new List<string>() { "Add","ZoomIn","ZoomOut","ZoomToFit" ,"Delete"})">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" Child="SubTasks">
+    </GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true"></GanttEditSettings>
+    <GanttEvents TValue="TaskData" Created="Created" OnActionFailure="ActionFailureHandler" ></GanttEvents>
+</SfGantt>
+
+@code{
+    public SfGantt<TaskData> Gantt;
+    public List<TaskData> TaskCollection { get; set; }
+    public string messsage{ get; set; }
+    public GanttZoomTimelineSettings[] CustomZoomingLevels { get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        this.CustomZoomingLevels = GetZoomingCollections();
+    }
+    public async Task Created()
+    {   
+     
+    }
+     public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+    public async void ZoomIn()
+    {
+        await this.Gantt.ZoomInAsync();
+    }
+    public async void ZoomOut()
+    {
+        this.Gantt.ZoomOutAsync();
+    }
+    public async void ZoomToFit()
+    {
+        this.Gantt.ZoomToFitAsync();
+    }
+
+
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? Duration { get; set; }
+        public int? Progress { get; set; }
+        public List<TaskData> SubTasks { get; set; }
+        public bool ExpandState { get; set; }
+    }
+    public static GanttZoomTimelineSettings[] GetZoomingCollections()
+    {
+        GanttZoomTimelineSettings[] zoomingLevels = {
+             new GanttZoomTimelineSettings  
+			 { 
+			 TopTier = new GanttTopTierSettings 
+			 { 
+			 Unit = TimelineViewMode.Month, Format="MMM yyyy", Count = 1 },
+			 BottomTier = new GanttBottomTierSettings { Unit = TimelineViewMode.Week, Format="dd MMM", Count = 1},
+             TimelineUnitSize = 99, TimelineViewMode = TimelineViewMode.Month, WeekStartDay = 0,UpdateTimescaleView = true,
+             WeekendBackground = null, ShowTooltip = true,Level = 0
+             },
+			 new GanttZoomTimelineSettings  
+			 {
+			 TopTier = new GanttTopTierSettings 
+			 {
+			 Unit = TimelineViewMode.Week, Format="MMM dd,yyyy", Count = 1 },
+             BottomTier = new GanttBottomTierSettings { Unit = TimelineViewMode.Day, Format="dd", Count = 1},
+             TimelineUnitSize = 33, TimelineViewMode = TimelineViewMode.Week, WeekStartDay = 0,UpdateTimescaleView = true,
+             WeekendBackground = null, ShowTooltip = true,Level = 1
+             },
+
+             new GanttZoomTimelineSettings  { TopTier = new GanttTopTierSettings { Unit = TimelineViewMode.Week, Format="MMM dd,yyyy", Count = 1 },
+             BottomTier = new GanttBottomTierSettings { Unit = TimelineViewMode.Day, Format="dd", Count = 1},
+             TimelineUnitSize = 66, TimelineViewMode = TimelineViewMode.Week, WeekStartDay = 0,UpdateTimescaleView = true,
+             WeekendBackground = null, ShowTooltip = true,Level = 2
+             },
+             new GanttZoomTimelineSettings  
+			 { 
+			 TopTier = new GanttTopTierSettings 
+			 { 
+			 Unit = TimelineViewMode.Week, Format="MMM dd,yyyy", Count = 1 },
+             BottomTier = new GanttBottomTierSettings { Unit = TimelineViewMode.Day, Format="dd", Count = 1},
+             TimelineUnitSize = 99, TimelineViewMode = TimelineViewMode.Week, WeekStartDay = 0,UpdateTimescaleView = true,
+             WeekendBackground = null, ShowTooltip = true,Level = 3
+             },
+        };
+        return zoomingLevels;
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+    new TaskData() {
+        TaskId = 1,
+        TaskName = "Project initiation",
+        StartDate = new DateTime(2019, 04, 02),
+        EndDate = new DateTime(2019, 04, 21),
+        //ExpandState=true,
+        SubTasks = (new List <TaskData> () {
+            new TaskData() {
+                TaskId = 2,
+                TaskName = "Identify Site location",
+                StartDate = new DateTime(2019, 04, 02),
+                Duration = "0",
+                Progress = 30,
+            },
+            new TaskData() {
+                TaskId = 3,
+                TaskName = "Perform soil test",
+                StartDate = new DateTime(2019, 04, 02),
+                Duration = "4",
+                Progress = 40,
+            },
+            new TaskData() {
+                TaskId = 4,
+                TaskName = "Soil test approval",
+                StartDate = new DateTime(2019, 04, 02),
+                Duration = "0",
+                Progress = 30
+            },
+        })
+    },
+    new TaskData() {
+        TaskId = 5,
+        TaskName = "Project estimation",
+        StartDate = new DateTime(2019, 04, 02),
+        EndDate = new DateTime(2019, 04, 21),
+        //ExpandState=false,
+        SubTasks = (new List <TaskData> () {
+            new TaskData() {
+                TaskId = 6,
+                TaskName = "Develop floor plan for estimation",
+                StartDate = new DateTime(2019, 04, 04),
+                Duration = "3",
+                Progress = 30,
+            },
+            new TaskData() {
+                TaskId = 7,
+                TaskName = "List materials",
+                StartDate = new DateTime(2019, 04, 04),
+                Duration = "3",
+                Progress = 40
+            },
+            new TaskData() {
+                TaskId = 8,
+                TaskName = "Estimation approval",
+                StartDate = new DateTime(2019, 04, 04),
+                Duration = "0",
+                Progress = 30,
+            }
+        })
+    }
+};
+        return Tasks;
+    }
+}

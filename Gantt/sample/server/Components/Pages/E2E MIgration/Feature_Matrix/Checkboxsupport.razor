@@ -1,0 +1,126 @@
+
+@page "/E2EMigration/Checkbox"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.TreeGrid
+<div>@messsage</div>
+<SfGantt ID="GanttCheckbox" DataSource="@TaskCollection" Toolbar="@(new List<string>() { "Add", "Cancel", "Update", "CollapseAll", "Delete", "Edit", "ExpandAll" })" Height="500px" Width="1400px" >
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate"
+                     Duration="Duration" Progress="Progress" Child="SubTasks">
+    </GanttTaskFields>
+    <GanttEditSettings AllowTaskbarEditing="true" AllowEditing="true" ShowDeleteConfirmDialog="true" AllowAdding="true" AllowDeleting="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Auto"></GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskId"></GanttColumn>
+        <GanttColumn Field="TaskName" ShowCheckbox="true"></GanttColumn>
+        <GanttColumn Field="StartDate"></GanttColumn>
+        <GanttColumn Field="EndDate"></GanttColumn>
+        <GanttColumn Field="Duration" ></GanttColumn>
+        <GanttColumn Field="App" DisplayAsCheckBox="true" EditType=Syncfusion.Blazor.Grids.EditType.BooleanEdit></GanttColumn> 
+    </GanttColumns>
+<GanttSplitterSettings Position="70%"></GanttSplitterSettings>
+<GanttEvents TValue="TaskData" Created="Created"OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+@code{ 
+   
+    public List<TaskData> TaskCollection { get; set; }
+    public string messsage{ get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    public async Task Created()
+    {   
+     
+    }
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? Duration { get; set; }
+        public int Progress { get; set; }
+        public bool App { get; set; }
+        public List<TaskData> SubTasks { get; set; }
+    }
+
+
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+            new TaskData() {
+                TaskId = 1,
+                TaskName = "Project initiation",
+                StartDate = new DateTime(2019, 04, 02),
+                EndDate = new DateTime(2019, 04, 21),
+                App=false,
+                SubTasks = (new List <TaskData> () {
+                    new TaskData() {
+                        TaskId = 2,
+                        TaskName = "Identify Site location",
+                        StartDate = new DateTime(2019, 04, 02),
+                        Duration = "0",
+                        Progress = 30,
+                        App=false,
+                    },
+                    new TaskData() {
+                        TaskId = 3,
+                        TaskName = "Perform soil test",
+                        StartDate = new DateTime(2019, 04, 02),
+                        Duration = "4",
+                        Progress = 40,
+                        App=true,
+                    },
+                    new TaskData() {
+                        TaskId = 4,
+                        TaskName = "Soil test approval",
+                        StartDate = new DateTime(2019, 04, 02),
+                        Duration = "0",
+                        Progress = 30,
+                        App=true,
+                    },
+                })
+            },
+            new TaskData() {
+                TaskId = 5,
+                TaskName = "Project estimation",
+                StartDate = new DateTime(2019, 04, 02),
+                EndDate = new DateTime(2019, 04, 21),
+                App=false,
+                SubTasks = (new List <TaskData> () {
+                    new TaskData() {
+                        TaskId = 6,
+                        TaskName = "Develop floor plan for estimation",
+                        StartDate = new DateTime(2019, 04, 04),
+                        Duration = "3",
+                        Progress = 30,
+                        App=true,
+                    },
+                    new TaskData() {
+                        TaskId = 7,
+                        TaskName = "List materials",
+                        StartDate = new DateTime(2019, 04, 04),
+                        Duration = "3",
+                        Progress = 40,
+                        App=true,
+                    },
+                    new TaskData() {
+                        TaskId = 8,
+                        TaskName = "Estimation approval",
+                        StartDate = new DateTime(2019, 04, 04),
+                        Duration = "0",
+                        Progress = 30,
+                        App=true
+                    }
+                })
+            }
+        };
+        return Tasks;
+    } }

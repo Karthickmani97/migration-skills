@@ -1,0 +1,69 @@
+@page "/Data-annotation"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using System.ComponentModel.DataAnnotations
+<div>@message</div>
+<SfGantt @ref="Gantt" TValue="TaskInfoModel" DataSource="@TaskCollection" Height="450px" Width="1400px" HighlightWeekends="true"
+         Toolbar="@(new List<string>(){ "Add", "Edit", "Update", "Delete", "Cancel"})" TreeColumnIndex="1">
+    <GanttTaskFields Id="TaskID" Name="ActivityName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                     ParentID="ParentID"></GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true"></GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskID" HeaderText="Task ID" IsPrimaryKey="true"
+                     Width="80" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+        </GanttColumn>
+        <GanttColumn Field="ActivityName" HeaderText="Task Name" Width="160" />
+        <GanttColumn Field="StartDate" HeaderText="Start Date" Width="150">
+        </GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date" Width="150" EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit">
+        </GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration" Width="100"
+                     TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+        </GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress" Width="100" EditType="Syncfusion.Blazor.Grids.EditType.NumericEdit"
+                     TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+        </GanttColumn>
+    </GanttColumns>
+    <GanttEvents TValue="TaskInfoModel" OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+
+@code {
+    private List<TaskInfoModel> TaskCollection { get; set; }
+    private SfGantt<TaskInfoModel> Gantt;
+    public string message{ get; set; } 
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = EditingData().ToList();
+    }
+    public class TaskInfoModel
+    {
+        public int TaskID { get; set; }
+        [Required(ErrorMessage = "ActivityName is required")]
+        [StringLength(50, MinimumLength = 5, ErrorMessage = "ActivityName must be between 5 and 50 characters")]
+        public string? ActivityName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public int? Duration { get; set; }
+        [Range(0, 100, ErrorMessage = "Progress must be between 0 and 100")]
+        public int Progress { get; set; }
+        public int? ParentID { get; set; }
+    }
+    public static List<TaskInfoModel> EditingData()
+    {
+        List<TaskInfoModel> Tasks = new List<TaskInfoModel>() {
+        new TaskInfoModel() { TaskID = 1, ActivityName = "Product concept", StartDate = new DateTime(2021, 04, 02), Duration = 5, Progress = 60, ParentID = null },
+        new TaskInfoModel() { TaskID = 2, ActivityName = "Defining the product usage", StartDate = new DateTime(2021, 04, 02), Duration = 3, Progress = 70, ParentID = 1 },
+        new TaskInfoModel() { TaskID = 3, ActivityName = "Defining the target audience", StartDate = new DateTime(2021, 04, 02), Duration = 3, Progress = 80, ParentID = 1 },
+        new TaskInfoModel() { TaskID = 4, ActivityName = "Prepare product sketch and notes", StartDate = new DateTime(2021, 04, 05), Duration = 2, Progress = 90, ParentID = 1 },
+        new TaskInfoModel() { TaskID = 5, ActivityName = "Concept approval", StartDate = new DateTime(2021, 04, 08), Duration = 0, Progress = 100, ParentID = 1 },
+        new TaskInfoModel() { TaskID = 6, ActivityName = "Market research", StartDate = new DateTime(2021, 04, 09), Duration = 4, Progress = 30, ParentID = null },
+        new TaskInfoModel() { TaskID = 7, ActivityName = "Demand analysis", StartDate = new DateTime(2021, 04, 09), Duration = 4, Progress = 40, ParentID = 6 }
+        };
+        return Tasks;
+    }
+}

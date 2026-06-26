@@ -1,0 +1,176 @@
+@page "/BLAZ-993746"
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Calendars
+@rendermode InteractiveServer
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor.Grids
+<span>@ErrorMessage</span>
+<SfGantt  ID="Gantt" @ref="mGanttRef" DataSource="@TaskCollection" Height="450px" Width="100%"
+                     CopyHierarchyMode="Syncfusion.Blazor.TreeGrid.CopyHierarchyType.None"
+                     TaskbarHeight="25"
+                     AllowReordering
+                     EnableRowHover
+                     AllowRowDragAndDrop
+                     EnableContextMenu
+                     Toolbar="@(new List<object>(){"Indent", "Outdent",
+                     new Syncfusion.Blazor.Navigations.ToolbarItem(){ TooltipText = "Add", Id = "CustomAdd" , PrefixIcon="e-icons e-plus"},
+                     new Syncfusion.Blazor.Navigations.ToolbarItem(){ TooltipText = "Edit", Id = "CustomEdit" , PrefixIcon="e-icons e-edit"},
+                     new Syncfusion.Blazor.Navigations.ToolbarItem(){ TooltipText = "Delete", Id = "CustomDelete" , PrefixIcon="e-icons e-trash"}})"
+                     AllowSelection
+                     AllowFiltering="true"
+                     TaskMode="ScheduleMode.Custom"
+                     HighlightWeekends="true"
+                     RenderBaseline="true"
+                     AllowUnscheduledTasks="true"
+                     AllowSorting="true"
+                     GridLines="Syncfusion.Blazor.Gantt.GridLine.Both"
+                     TreeColumnIndex="0"
+                     ShowColumnChooser="true"
+                     EnablePredecessorValidation="true"
+                     AllowResizing
+                     EnableRowVirtualization
+                     EnableTimelineVirtualization
+                     OverscanCount="-1"
+                     AllowPdfExport
+                     EnableCriticalPath
+                     >
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate"
+                                 EndDate="EndDate" Duration="Duration" Progress="Progress"
+                                 Dependency="Predecessor" ParentID="ParentId">
+                </GanttTaskFields>
+                <GanttTemplates TValue="DefaultData.TaskData"></GanttTemplates>
+                <GanttColumns>
+                    <GanttColumn AllowEditing Field="@nameof(DefaultData.TaskData.TaskId)">
+                    </GanttColumn>
+                    <GanttColumn AllowEditing Field="@nameof(DefaultData.TaskData.StartDate)" HeaderText="Start" Width="120px" Format="yyyy-MM-dd">
+                        <EditTemplate><SfDatePicker TValue="DateTime?" Value="@((context as DefaultData.TaskData)?.StartDate)" ValueChanged="v => (context as DefaultData.TaskData)!.StartDate = v"></SfDatePicker></EditTemplate>
+                    </GanttColumn>
+                    <GanttColumn AllowEditing Field="@nameof(DefaultData.TaskData.EndDate)" HeaderText="End" Width="120px" Format="yyyy-MM-dd">
+                        <EditTemplate><SfDatePicker TValue="DateTime?" Value="@((context as DefaultData.TaskData)?.EndDate)" ValueChanged="v => (context as DefaultData.TaskData)!.EndDate = v"></SfDatePicker></EditTemplate>
+                    </GanttColumn>
+                    <GanttColumn AllowEditing Field="@nameof(DefaultData.TaskData.TaskName)" HeaderText="Name" Width="120px" Format="yyyy-MM-dd"></GanttColumn>
+                </GanttColumns>
+                <GanttHolidays>
+                    @for (var i = 0; i < 5; i++)
+        {
+            <GanttHoliday Label="@string.Empty" CssClass="e-custom-holiday" From="@(new DateTime(2021, 04, 10).AddDays(i * 7))" To="@(new DateTime(2021, 04, 10).AddDays(i * 7))">
+            </GanttHoliday>
+        }
+    </GanttHolidays>
+    <GanttEvents TValue="DefaultData.TaskData" OnToolbarClick="OnToolbarClick" OnActionFailure="OnActionFailureHandler"></GanttEvents>
+    <GanttEditSettings AllowEditing AllowAdding AllowDeleting></GanttEditSettings>
+    <GanttSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple" AllowDragSelection />
+    <GanttSplitterSettings Position="70%"> </GanttSplitterSettings>
+</SfGantt>
+@code {
+    private SfGantt<DefaultData.TaskData>? mGanttRef;
+    private string? ErrorMessage { get; set; }
+	
+    public class DefaultData
+    {
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string? TaskName { get; set; }
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public DateTime? BaselineStartDate { get; set; }
+            public DateTime? BaselineEndDate { get; set; }
+            public string? Duration { get; set; }
+            public int Progress { get; set; }
+            public string? Predecessor { get; set; }
+            public object? ResourceId { get; set; }
+            public string? Notes { get; set; }
+            public string? TaskType { get; set; }
+            public int? ParentId { get; set; }
+            public string? CustomColumn1 { get; set; }
+        }
+        public class HolidayModel
+        {
+            public DateTime HolidayDate { get; set; }
+            public string? HolidayName { get; set; }
+        }
+        public static List<TaskData> ProjectNewData()
+        {
+            List<TaskData> Tasks = new List<TaskData>() {
+                new TaskData() { TaskId = 1, TaskName = "Product concept", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 08), Duration = "5days" },
+                new TaskData() { TaskId = 2, TaskName = "Define the product usage", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 08), Duration = "3", Progress = 30, ParentId = 1, BaselineStartDate = new DateTime(2021, 04, 02), BaselineEndDate = new DateTime(2021, 04, 02) },
+                new TaskData() { TaskId = 3, TaskName = "Define the target audience", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 04), Progress = 40, Duration = "2Days", ParentId = 1 },
+                new TaskData() { TaskId = 4, TaskName = "Prepare product sketch and notes", StartDate = new DateTime(2021, 04, 05), Duration = "4", Progress = 30, ParentId = 1, Predecessor = "2" },
+                new TaskData() { TaskId = 5, TaskName = "Concept approval", StartDate = new DateTime(2021, 04, 08), EndDate = new DateTime(2021, 04, 08), Duration = "0", ParentId = 1, Predecessor = "3,4" },
+                new TaskData() { TaskId = 6, TaskName = "Market research", StartDate = new DateTime(2021, 04, 09), EndDate = new DateTime(2021, 04, 18), BaselineStartDate = new DateTime(2021, 04, 09), BaselineEndDate = new DateTime(2021, 04, 09), Duration = "4", Progress = 30 },
+                new TaskData() { TaskId = 7, TaskName = "Demand analysis", Duration = "4", Progress = 40, ParentId = 6 },
+                new TaskData() { TaskId = 8, TaskName = "Customer strength", StartDate = new DateTime(2021, 04, 09), EndDate = new DateTime(2021, 04, 12), Duration = "4", Progress = 30, ParentId = 7, Predecessor = "5", BaselineStartDate = new DateTime(2021, 04, 12), BaselineEndDate = new DateTime(2021, 04, 13) },
+                new TaskData() { TaskId = 9, TaskName = "Market opportunity analysis", StartDate = new DateTime(2021, 04, 09), EndDate = new DateTime(2021, 04, 12), Duration = "4", ParentId = 7, Predecessor = "5" },
+                new TaskData() { TaskId = 10, TaskName = "Competitor analysis", StartDate = new DateTime(2021, 04, 15), EndDate = new DateTime(2021, 04, 18), Duration = "4", Progress = 30, ParentId = 6, Predecessor = "7,8" },
+                new TaskData() { TaskId = 11, TaskName = "Product strength analysis", StartDate = new DateTime(2021, 04, 15), EndDate = new DateTime(2021, 04, 18), Duration = "4", Progress = 40, ParentId = 6, Predecessor = "9" },
+                new TaskData() { TaskId = 12, TaskName = "Research completed", StartDate = new DateTime(2021, 04, 18), EndDate = new DateTime(2021, 04, 18), Duration = "0", Progress = 30, ParentId = 6, Predecessor = "10" },
+                new TaskData() { TaskId = 13, TaskName = "Product design and development", StartDate = new DateTime(2021, 04, 19), EndDate = new DateTime(2021, 05, 16), Duration = "20" },
+                new TaskData() { TaskId = 14, TaskName = "Functionality design", StartDate = new DateTime(2021, 04, 19), EndDate = new DateTime(2021, 04, 23), Duration = "4", Progress = 30, ParentId = 13, Predecessor = "12" },
+                new TaskData() { TaskId = 15, TaskName = "Quality design", StartDate = new DateTime(2021, 04, 19), EndDate = new DateTime(2021, 04, 23), Duration = "3", Progress = 40, ParentId = 13, Predecessor = "12" },
+                new TaskData() { TaskId = 16, TaskName = "Define reliability", StartDate = new DateTime(2021, 04, 24), EndDate = new DateTime(2021, 04, 25), Duration = "4", Progress = 30, ParentId = 13, Predecessor = "15" },
+                new TaskData() { TaskId = 17, TaskName = "Identifying raw materials", StartDate = new DateTime(2021, 04, 24), EndDate = new DateTime(2021, 04, 25), Duration = "2", ParentId = 13, Predecessor = "15" },
+                new TaskData() { TaskId = 18, TaskName = "Define cost plan", StartDate = new DateTime(2021, 04, 26), EndDate = new DateTime(2021, 04, 29), Duration = "2", Progress = 30, ParentId = 13, Predecessor = "17" },
+                new TaskData() { TaskId = 19, TaskName = "Estimate manufacturing cost", StartDate = new DateTime(2021, 04, 26), EndDate = new DateTime(2021, 04, 29), Duration = "3", Progress = 40, ParentId = 18, Predecessor = "17" },
+                new TaskData() { TaskId = 20, TaskName = "Estimate selling cost", StartDate = new DateTime(2021, 04, 26), EndDate = new DateTime(2021, 04, 29), Duration = "3", Progress = 30, ParentId = 18, Predecessor = "17" },
+                new TaskData() { TaskId = 21, TaskName = "Development of final design", StartDate = new DateTime(2021, 04, 30), EndDate = new DateTime(2021, 05, 08), Duration="7", ParentId=13 },
+                new TaskData() { TaskId = 22, TaskName = "Develop dimensions and design", StartDate = new DateTime(2021, 04, 30), EndDate = new DateTime(2021, 05, 01), Duration = "4", Progress = 30, ParentId=21, Predecessor="19,20" },
+                new TaskData() { TaskId = 23, TaskName = "Develop designs to meet industry", StartDate = new DateTime(2021, 05, 02), EndDate = new DateTime(2021, 05, 03), Duration = "3", Progress = 40, ParentId = 21, Predecessor="22" },
+                new TaskData() { TaskId = 24, TaskName = "Include all the details", StartDate = new DateTime(2021, 05, 06), EndDate = new DateTime(2021, 05, 08), Duration = "4", Progress = 30, ParentId = 21, Predecessor="23" },
+                new TaskData() { TaskId = 25, TaskName = "CAD - Computer Aided Design", StartDate = new DateTime(2021, 05, 09), EndDate = new DateTime(2021, 05, 13), Duration="3", Predecessor="24" },
+                new TaskData() { TaskId = 26, TaskName = "CAM - Computer Aided Manufacturing", StartDate = new DateTime(2021, 05, 14), EndDate = new DateTime(2021, 05, 16), Duration = "4", Progress = 30, Predecessor="25" },
+                new TaskData() { TaskId = 27, TaskName = "Finalize the design", StartDate = new DateTime(2021, 04, 16), EndDate = new DateTime(2021, 04, 16), Duration = "0", Progress = 40, Predecessor="26" },
+                new TaskData() { TaskId = 28, TaskName = "Prototype testing", StartDate = new DateTime(2021, 05, 17), EndDate = new DateTime(2021, 05, 22), Duration = "4", Progress = 30, Predecessor="27" },
+                new TaskData() { TaskId = 29, TaskName = "Include feedback", StartDate = new DateTime(2021, 05, 17), EndDate = new DateTime(2021, 05, 22), Duration="4", Predecessor="28ss" },
+                new TaskData() { TaskId = 30, TaskName = "Manufacturing", StartDate = new DateTime(2021, 05, 23), EndDate = new DateTime(2021, 05, 29), Duration = "5", Progress = 30, Predecessor="28,29" },
+                new TaskData() { TaskId = 31, TaskName = "Assembling material into finished goods", StartDate = new DateTime(2021, 05, 30), EndDate = new DateTime(2021, 06, 05), Duration = "5", Progress = 40, Predecessor="30" },
+                new TaskData() { TaskId = 32, TaskName = "Final product development", StartDate = new DateTime(2021, 06, 06), EndDate = new DateTime(2021, 06, 13), Duration = "6", Progress = 30 },
+                new TaskData() { TaskId = 33, TaskName = "Important improvement", StartDate = new DateTime(2021, 06, 06), EndDate = new DateTime(2021, 06, 10), Duration="3", ParentId=32, Predecessor="31" },
+                new TaskData() { TaskId = 34, TaskName = "Customer testing and feedback", StartDate = new DateTime(2021, 06, 11), EndDate = new DateTime(2021, 06, 13), Duration = "4", Progress = 30, ParentId=32, Predecessor="33" },
+                new TaskData() { TaskId = 35, TaskName = "Final product development", StartDate = new DateTime(2021, 06, 14), EndDate = new DateTime(2021, 06, 19), Duration = "4", Progress = 40 },
+                new TaskData() { TaskId = 36, TaskName = "Important improvement", StartDate = new DateTime(2021, 06, 14), EndDate = new DateTime(2021, 06, 19), Duration = "4", Progress = 30, ParentId = 35, Predecessor="34" },
+                new TaskData() { TaskId = 37, TaskName = "Address any unforeseen issues", StartDate = new DateTime(2021, 06, 14), EndDate = new DateTime(2021, 06, 19), Duration = "4", Progress = 30, Predecessor="36ss", ParentId=35 },
+                new TaskData() { TaskId = 38, TaskName = "Finalize the product ", StartDate = new DateTime(2021, 06, 20), EndDate = new DateTime(2021, 07, 01), Duration = "8", Progress = 40 },
+                new TaskData() { TaskId = 39, TaskName = "Branding the product", StartDate = new DateTime(2021, 06, 20), EndDate = new DateTime(2021, 06, 25), Duration = "4", Progress = 30, ParentId = 38, Predecessor="37" },
+                new TaskData() { TaskId = 40, TaskName="Marketing and presales", StartDate=new DateTime(2021,06,26), EndDate=new DateTime(2021,07,01), ParentId=38, Duration="4", Predecessor="39" }
+            };
+
+            for (var i = Tasks.Count + 1; i < 500; ++i)
+            {
+                Tasks.Add(new DefaultData.TaskData() { TaskId = i, TaskName = "New Task", StartDate = new DateTime(2021, 06, 26), EndDate = new DateTime(2021, 07, 01), Duration = "5" });
+            }
+
+            return Tasks;
+        }
+    }
+
+    private List<DefaultData.TaskData> TaskCollection { get; set; } = new List<DefaultData.TaskData>();
+    public DateTime ProjectStartDate { get; set; } = new DateTime(2021, 03, 25);
+    public DateTime ProjectEndDate { get; set; } = new DateTime(2021, 07, 17);
+
+    protected override void OnInitialized()
+    {
+        TaskCollection = DefaultData.ProjectNewData();
+    }
+    private async Task OnToolbarClick(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        if (mGanttRef is null)
+            return;
+        if (args.Item.Id.EndsWith("Add"))
+        {
+            var id = TaskCollection.Count > 0 ? TaskCollection.Max(t => t.TaskId) + 1 : 1;
+            var index = (await mGanttRef.GetSelectedRowIndexesAsync()).FirstOrDefault();
+            await mGanttRef.AddRecordAsync(new DefaultData.TaskData() { TaskId = id, TaskName = "New Task", StartDate = ProjectStartDate, EndDate = ProjectEndDate, Duration = "5" }, index, Syncfusion.Blazor.Gantt.RowPosition.Below);
+        }
+        else if (args.Item.Id.EndsWith("Delete"))
+        {
+            await mGanttRef.DeleteRecordAsync();
+        }
+    }
+	 private void OnActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+	 {
+		 ErrorMessage = args.Error.Message;
+	 }
+}

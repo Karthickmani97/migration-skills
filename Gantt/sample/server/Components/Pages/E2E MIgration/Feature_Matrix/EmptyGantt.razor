@@ -1,0 +1,120 @@
+@page "/E2EMigration/EmptyGantt"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+<div>@messsage</div>
+<div class="gantt">
+
+
+    <SfGantt @ref="@GanttRef"
+            DataSource="TaskCollection"
+            Width="100%"
+            Height="95%"
+            GridLines="Syncfusion.Blazor.Gantt.GridLine.Both"
+            TreeColumnIndex="1"
+            TaskMode="ScheduleMode.Custom"
+            EnableVirtualization="true"
+            EnableColumnVirtualization="true"
+            ScrollToTaskbarOnClick="true"
+            >
+
+
+        <GanttTaskFields Id="@nameof(TaskData.ActivityId)"
+                        Name="@nameof(TaskData.Name)"
+                        StartDate="@nameof(TaskData.StartDate)"
+                        EndDate="@nameof(TaskData.EndDate)"
+                        ParentID="@nameof(TaskData.ParentId)"
+                        Dependency="@nameof(TaskData.Dependency)"
+                        Manual="@nameof(TaskData.IsManual)"
+                        BaselineStartDate="@nameof(TaskData.PlannedStartDate)"
+                        BaselineEndDate="@nameof(TaskData.PlannedEndDate)" />
+    <GanttEvents TValue="TaskData" OnActionFailure="ActionFailureHandler"></GanttEvents>
+    </SfGantt>
+
+
+</div>
+<style>
+    .gantt{
+        height: 400px;
+        width: 700px;
+    }
+</style>
+
+@code
+{
+    public SfGantt<TaskData> GanttRef { get; set; }
+    public string messsage{ get; set; }
+    public List<TaskData> TaskCollection = new List<TaskData>();
+    public class TaskData
+    {
+        public decimal? ActivityId { get; set; }
+        public string Name { get; set; }
+        private DateTime? startDate;
+        public DateTime? StartDate
+        {
+            get
+            {
+                if (startDate.HasValue) return startDate;
+                return PlannedStartDate;
+            }
+            set
+            {
+                this.startDate = value;
+            }
+
+
+        }
+        public decimal? ParentId { get; set; }
+        private DateTime? endDate;
+        public DateTime? EndDate
+        {
+            get
+            {
+                if (endDate.HasValue) return endDate;
+                return PlannedEndDate;
+
+
+            }
+            set
+            {
+                this.endDate = value;
+            }
+
+
+        }
+        public string Dependency { get; set; }
+        public bool IsManual { get; set; }
+        public DateTime? PlannedStartDate { get; set; }
+        public DateTime? PlannedEndDate { get; set; }
+    }
+
+     public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+
+    protected override async System.Threading.Tasks.Task OnInitializedAsync()
+    {
+
+
+        TaskCollection = new List<TaskData>()
+        {
+            //new TaskData()
+            //{
+            //    ActivityId = 1,
+            //    Name = "Test 1",
+            //    IsManual = false,
+            //    PlannedStartDate = new DateTime(2022, 01, 01, 08, 00, 00),
+            //    PlannedEndDate = new DateTime(2022, 01, 11, 08, 00, 00)
+            //},
+            //new TaskData()
+            //{
+            //    ActivityId = 2,
+            //    Name = "Test 2",
+            //    IsManual = false,
+            //    PlannedStartDate = new DateTime(2022, 02, 01, 08, 00, 00),
+            //    PlannedEndDate = new DateTime(2022, 02, 11, 08, 00, 00)
+            //}
+        };
+        await base.OnInitializedAsync();
+    }
+}

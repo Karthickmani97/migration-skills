@@ -1,0 +1,201 @@
+@page "/BLAZ-977695"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Navigations
+<SfGantt @ref="GanttInstance" DataSource="@TaskCollection" EnableContextMenu="true" AllowPdfExport="true" Toolbar="@toolbarItems" TaskMode="ScheduleMode.Auto" DateFormat="d MMM yyyy hh:mm tt" IncludeWeekend="true" RenderBaseline="true" DurationUnit="DurationUnit.Hour" Height="550px" Timezone="@TimeZone" Width="100%" ProjectStartDate="@ProjectStartDate" ProjectEndDate="@ProjectEndDate"
+         AllowSelection="true" GridLines="GridLine.Both" TreeColumnIndex="1"
+         ScrollToTaskbarOnClick="true">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                     Dependency="Predecessor" ParentID="ParentId" Indicators="Indicators" BaselineEndDate="BaselineEndDate" BaselineStartDate="BaselineStartDate"></GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip">
+        </GanttColumn>
+        <GanttColumn Field="StartDate" EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit" HeaderText="Start Date"></GanttColumn>
+        <GanttColumn Field="EndDate" EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit" HeaderText="End Date"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+        <GanttColumn Field="BaselineStartDate" EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit" HeaderText="Baseline Start Date"></GanttColumn>
+        <GanttColumn Field="BaselineEndDate" EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit" HeaderText="Baseline End Date"></GanttColumn>
+        <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+    </GanttColumns>
+    <GanttDayWorkingTimeCollection>
+        <GanttDayWorkingTime From="0" To="23"></GanttDayWorkingTime>
+    </GanttDayWorkingTimeCollection>
+    <GanttEventMarkers>
+        <GanttEventMarker Day="new DateTime(2019, 3, 8, 12, 0, 0)" Label="Requirements Sign-Off"></GanttEventMarker>
+        <GanttEventMarker Day="new DateTime(2019, 3, 9, 16, 0, 0)" Label="UI Design Complete"></GanttEventMarker>
+        <GanttEventMarker Day="new DateTime(2019, 3, 11, 13, 0, 0)" Label="System Integration Started"></GanttEventMarker>
+    </GanttEventMarkers>
+    <GanttLabelSettings LeftLabel="TaskName" TaskLabel="Progress" TValue="GanttData.TaskData"></GanttLabelSettings>
+    <GanttSplitterSettings ColumnIndex="2"></GanttSplitterSettings>
+    <GanttTimelineSettings TimelineUnitSize="40">
+        <GanttTopTierSettings Unit="TimelineViewMode.Day" Format="MMM dd, yyyy"></GanttTopTierSettings>
+        <GanttBottomTierSettings Unit="TimelineViewMode.Hour" Count="1" Format="hh:mm"></GanttBottomTierSettings>
+    </GanttTimelineSettings>
+    <GanttEvents OnToolbarClick="HandleToolbarClick" TValue=GanttData.TaskData></GanttEvents>
+</SfGantt>
+@code {
+    private DateTime ProjectStartDate = new DateTime(2019, 3, 7);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2019, 3, 12);
+    private List<GanttData.TaskData> TaskCollection { get; set; }
+    private SfGantt<GanttData.TaskData> GanttInstance;
+    private List<Object> toolbarItems;
+    public string TimeZone { get; set; } = TimeZoneValues[0];
+    private static List<string> TimeZoneValues = new List<string> {
+        "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
+        "America/Phoenix", "America/Sao_Paulo", "Europe/London", "Europe/Paris", "Europe/Berlin",
+        "Europe/Moscow", "Africa/Johannesburg", "Africa/Cairo", "Asia/Jerusalem", "Asia/Dubai", "Asia/Amman",
+        "Asia/Kolkata", "Asia/Kathmandu", "Asia/Shanghai", "Asia/Tokyo", "Asia/Seoul",
+        "Asia/Singapore", "Australia/Sydney", "Australia/Perth", "Pacific/Auckland", "Pacific/Honolulu","UTC",
+    };
+    public string SelectedTimeZone { get; set; } = TimeZoneValues[0];
+    protected override void OnInitialized()
+    {
+        TaskCollection = GanttData.EditingData().ToList();
+        toolbarItems = new List<object>()
+        {
+            "Add",
+            "Edit",
+            "Update",
+            "Cancel",
+            "Delete",
+            "ZoomIn",
+            "ZoomOut",
+            "ZoomToFit",
+            "PrevTimeSpan",
+            "NextTimeSpan",
+            new ToolbarItem { Text = "PDF Export", TooltipText = "PDF Export", Id = "PdfExport", PrefixIcon = "e-pdfexport" },
+            new ItemModel
+            {
+                Id = "TimeZoneLabel",
+                Template = (RenderFragment)(builder =>
+                {
+                    builder.OpenElement(0, "label");
+                    builder.AddAttribute(1, "class", "showhide");
+                    builder.AddContent(2, "Current Timezone");
+                    builder.CloseElement();
+                })
+            },
+            new ItemModel
+            {
+                Id = "TimeZoneDropDown",
+                Template = (RenderFragment)(builder =>
+                {
+                    builder.OpenComponent<SfDropDownList<string, string>>(0);
+                    builder.AddAttribute(1, "Width", "175px");
+                    builder.AddAttribute(2, "DataSource", TimeZoneValues);
+                    builder.AddAttribute(3, "Value", SelectedTimeZone);
+                    builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<string>(this, v => SelectedTimeZone = v));
+                    builder.AddAttribute(5, "ChildContent", (RenderFragment)(childBuilder =>
+                    {
+                        childBuilder.OpenComponent<DropDownListEvents<string, string>>(0);
+                        childBuilder.AddAttribute(1, "ValueChange", EventCallback.Factory.Create<ChangeEventArgs<string, string>>(this, OnTimeZoneChanged));
+                        childBuilder.CloseComponent();
+                    }));
+                    builder.CloseComponent();
+                })
+            },
+        };
+    }
+    public async Task HandleToolbarClick(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        if (args.Item.Id == "GanttExport_excelexport")
+        {
+            await GanttInstance.ExportToExcelAsync();
+        }
+        else if (args.Item.Id == "GanttExport_csvexport")
+        {
+            await GanttInstance.ExportToCsvAsync();
+        }
+        else if (args.Item.Id == "PdfExport")
+        {
+            await GanttInstance.ExportToPdfAsync();
+        }
+    }
+    public async void OnTimeZoneChanged(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, string> args)
+    {
+        TimeZone = args.Value;
+        await Task.CompletedTask;
+    }
+    public class GanttData
+    {
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string TaskName { get; set; }
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public string Duration { get; set; }
+            public int Progress { get; set; }
+            public string Predecessor { get; set; }
+            public int? ParentId { get; set; }
+            public List<GanttIndicator> Indicators { get; set; }
+            public DateTime? BaselineStartDate { get; set; }
+            public DateTime? BaselineEndDate { get; set; }
+        }
+        public static List<TaskData> EditingData()
+        {
+            var Tasks = new List<TaskData>
+            {
+                // Project summary (Parent)
+                new TaskData { TaskId=1, TaskName="Website Redesign Project", StartDate=new DateTime(2019,3,8,8,0,0), EndDate=new DateTime(2019,3,11,17,0,0), Duration = "34", Progress = 0 },
+                // 08/03/2019
+                new TaskData { TaskId=2, TaskName="Kick-off Meeting", StartDate=new DateTime(2019,3,8,8,0,0), EndDate=new DateTime(2019,3,8,9,0,0), Duration = "1", Progress=100, ParentId=1 },
+                new TaskData { TaskId=3, TaskName="Requirement Analysis", StartDate=new DateTime(2019,3,8,9,0,0), EndDate=new DateTime(2019,3,8,12,0,0), Duration="3", Progress=80, ParentId=1,
+                    BaselineStartDate=new DateTime(2019,3,8,9,0,0), BaselineEndDate=new DateTime(2019,3,8,12,0,0),
+                    Indicators = new List<GanttIndicator> { new GanttIndicator { Name="Analysis Complete", Date=new DateTime(2019,3,8,12,0,0), IconClass="e-notes-info", Tooltip="Analysis approved" } }
+                },
+                new TaskData { TaskId=4, TaskName="Stakeholder Interview", StartDate=new DateTime(2019,3,8,12,0,0), EndDate=new DateTime(2019,3,8,14,0,0), Duration="2", Progress=60, ParentId=1, Predecessor="3FS" },
+                new TaskData { TaskId=5, TaskName="Draft Requirement Document", StartDate=new DateTime(2019,3,8,14,0,0), EndDate=new DateTime(2019,3,8,16,0,0), Duration="2", Progress=75, ParentId=1, Predecessor="4FS" },
+                new TaskData { TaskId=6, TaskName="Requirements Review", StartDate=new DateTime(2019,3,8,16,0,0), EndDate=new DateTime(2019,3,8,17,0,0), Duration="1", Progress=30, ParentId=1, Predecessor="5FS",
+                    Indicators=new List<GanttIndicator>{ new GanttIndicator{ Name="Review Complete", Date=new DateTime(2019,3,8,17,0,0), IconClass="e-notes-info", Tooltip="Review signed off"} }
+                },
+                // 09/03/2019
+                new TaskData { TaskId=7, TaskName="Create Wireframes", StartDate=new DateTime(2019,3,9,8,0,0), EndDate=new DateTime(2019,3,9,10,0,0), Duration="2", Progress=20, ParentId=1, Predecessor="6FS" },
+                new TaskData { TaskId=8, TaskName="Wireframe Review", StartDate=new DateTime(2019,3,9,10,0,0), EndDate=new DateTime(2019,3,9,11,0,0), Duration="1", Progress=35, ParentId=1, Predecessor="7FS" },
+                new TaskData { TaskId=9, TaskName="UI Design - Home", StartDate=new DateTime(2019,3,9,11,0,0), EndDate=new DateTime(2019,3,9,13,0,0), Duration="2", Progress=60, ParentId=1, Predecessor="8FS" },
+                new TaskData { TaskId=10, TaskName="UI Design - About", StartDate=new DateTime(2019,3,9,13,0,0), EndDate=new DateTime(2019,3,9,15,0,0), Duration="2", Progress=45, ParentId=1, Predecessor="9FS" },
+                new TaskData { TaskId=11, TaskName="UI Design Review", StartDate=new DateTime(2019,3,9,15,0,0), EndDate=new DateTime(2019,3,9,16,0,0), Duration="1", Progress=25, ParentId=1, Predecessor="10FS",
+                    Indicators = new List<GanttIndicator> { new GanttIndicator { Name="UI Approved", Date=new DateTime(2019,3,9,16,0,0), IconClass="e-notes-info", Tooltip="UI approved" } }
+                },
+                new TaskData { TaskId=12, TaskName="Logo Design", StartDate=new DateTime(2019,3,9,16,0,0), EndDate=new DateTime(2019,3,9,18,0,0), Duration="2", Progress=70, ParentId=1 },
+                new TaskData { TaskId=13, TaskName="Front-End Dev Kickoff", StartDate=new DateTime(2019,3,9,18,0,0), EndDate=new DateTime(2019,3,9,19,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="12FS" },
+                // 10/03/2019
+                new TaskData { TaskId=14, TaskName="Setup Dev Environment", StartDate=new DateTime(2019,3,10,8,0,0), EndDate=new DateTime(2019,3,10,10,0,0), Duration="2", Progress=40, ParentId=1, Predecessor="13FS" },
+                new TaskData { TaskId=15, TaskName="Build Home Page", StartDate=new DateTime(2019,3,10,10,0,0), EndDate=new DateTime(2019,3,10,12,0,0), Duration="2", Progress=25, ParentId=1, Predecessor="14FS" },
+                new TaskData { TaskId=16, TaskName="Build About Page", StartDate=new DateTime(2019,3,10,12,0,0), EndDate=new DateTime(2019,3,10,13,0,0), Duration="1", Progress=30, ParentId=1 },
+                new TaskData { TaskId=17, TaskName="Build Contact Page", StartDate=new DateTime(2019,3,10,13,0,0), EndDate=new DateTime(2019,3,10,15,0,0), Duration="2", Progress=20, ParentId=1 },
+                new TaskData { TaskId=18, TaskName="Sprint Planning Meeting", StartDate=new DateTime(2019,3,10,15,0,0), EndDate=new DateTime(2019,3,10,16,0,0), Duration="1", Progress=100, ParentId=1 },
+                new TaskData { TaskId=19, TaskName="Functional Testing", StartDate=new DateTime(2019,3,10,16,0,0), EndDate=new DateTime(2019,3,10,18,0,0), Duration="2", Progress=0, ParentId=1, Predecessor="17FS,18FS" },
+                new TaskData { TaskId=20, TaskName="Bugfix Cycle 1", StartDate=new DateTime(2019,3,10,18,0,0), EndDate=new DateTime(2019,3,10,20,0,0), Duration="2", Progress=0, ParentId=1, Predecessor="19FS" },
+                new TaskData { TaskId=21, TaskName="Bug Review Meeting", StartDate=new DateTime(2019,3,10,20,0,0), EndDate=new DateTime(2019,3,10,21,0,0), Duration="1", Progress=0, ParentId=1 },
+                // 11/03/2019
+                new TaskData { TaskId=22, TaskName="Backend API Design", StartDate=new DateTime(2019,3,11,8,0,0), EndDate=new DateTime(2019,3,11,10,0,0), Duration="2", Progress=0, ParentId=1 },
+                new TaskData { TaskId=23, TaskName="Backend Implementation", StartDate=new DateTime(2019,3,11,10,0,0), EndDate=new DateTime(2019,3,11,12,0,0), Duration="2", Progress=0, ParentId=1, Predecessor="22FS" },
+                new TaskData { TaskId=24, TaskName="API Integration", StartDate=new DateTime(2019,3,11,12,0,0), EndDate=new DateTime(2019,3,11,13,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="23FS" },
+                new TaskData { TaskId=25, TaskName="System Integration Testing", StartDate=new DateTime(2019,3,11,13,0,0), EndDate=new DateTime(2019,3,11,15,0,0), Duration="2", Progress=0, ParentId=1, Predecessor="24FS" },
+                new TaskData { TaskId=26, TaskName="Performance Tuning", StartDate=new DateTime(2019,3,11,15,0,0), EndDate=new DateTime(2019,3,11,16,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="25FS" },
+                new TaskData { TaskId=27, TaskName="Bugfix Cycle 2", StartDate=new DateTime(2019,3,11,16,0,0), EndDate=new DateTime(2019,3,11,17,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="26FS" },
+                new TaskData { TaskId=28, TaskName="UAT Preparation", StartDate=new DateTime(2019,3,11,17,0,0), EndDate=new DateTime(2019,3,11,18,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="27FS" },
+                new TaskData { TaskId=29, TaskName="UAT Execution", StartDate=new DateTime(2019,3,11,18,0,0), EndDate=new DateTime(2019,3,11,20,0,0), Duration="2", Progress=0, ParentId=1, Predecessor="28FS" },
+                new TaskData { TaskId=30, TaskName="Go-Live & Project Closeout", StartDate=new DateTime(2019,3,11,20,0,0), EndDate=new DateTime(2019,3,11,21,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="29FS" },
+            };
+            return Tasks;
+        }
+    }
+}
+<style>
+    .showhide {
+        font-size: 14px;
+        font-weight: 400;
+        padding: 10px 15px 10px 10px;
+        margin-bottom: 0px;
+    }
+    .e-bigger .showhide {
+        font-size: 16px;
+        padding: 10px 15px 10px 10px
+    }
+</style>

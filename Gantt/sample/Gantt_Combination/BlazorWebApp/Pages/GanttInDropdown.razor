@@ -1,0 +1,350 @@
+@page "/gantt-dropdown"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Gantt
+
+<h3>Gantt per Project (Dropdown)</h3>
+
+<div class="mb-3">
+    <p class="text-muted">Select a project from the dropdown to view its Gantt chart. The dropdown includes a live timeline preview in the popup!</p>
+</div>
+
+<div class="mb-3" style="max-width:1000px">
+    <label class="form-label"><strong>Select Project:</strong></label>
+    <SfDropDownList ID="projectDropdown" 
+                    TValue="int" 
+                    TItem="Project" 
+                    DataSource="@Projects" 
+                    Placeholder="Select a project to view timeline"
+                    Value="@SelectedProjectId"
+                    ValueChanged="@OnProjectChanged"
+                    PopupHeight="650px"
+                    PopupWidth="1000px">
+        <DropDownListFieldSettings Value="Id" Text="Name"></DropDownListFieldSettings>
+        
+        <DropDownListTemplates TItem="Project">
+            <ItemTemplate Context="project">
+                <div class="d-flex align-items-center">
+                    <i class="e-icons e-file-new me-2"></i>
+                    <div>
+                        <div class="fw-bold">@project.Name</div>
+                        <small class="text-muted">@project.Tasks.Count task(s), @GetProjectProgress(project)% complete</small>
+                    </div>
+                </div>
+            </ItemTemplate>
+            
+            <FooterTemplate>
+                <div style="padding: 10px; background-color: #f8f9fa; border-top: 1px solid #dee2e6;">
+                    <h6 class="mb-2">
+                        <i class="e-icons e-schedule me-2"></i>Live Timeline Preview
+                    </h6>
+                    @if (SelectedGanttData.Any())
+                    {
+                        <div style="background-color: white; border: 1px solid #dee2e6; border-radius: 4px; padding: 5px;">
+                            <SfGantt DataSource="@SelectedGanttData" 
+                                     Height="500px" 
+                                     Width="950px"
+                                     Toolbar="@(new List<string>() { "ExpandAll", "CollapseAll", "ZoomIn", "ZoomOut", "ZoomToFit" })">
+                                <GanttTaskFields Id="TaskId" 
+                                               Name="TaskName" 
+                                               StartDate="StartDate" 
+                                               Duration="Duration" 
+                                               Progress="Progress" 
+                                               Child="SubTasks"
+                                               Dependency="Predecessor">
+                                </GanttTaskFields>
+                                <GanttColumns>
+                                    <GanttColumn Field="TaskId" Width="60"></GanttColumn>
+                                    <GanttColumn Field="TaskName" Width="200"></GanttColumn>
+                                    <GanttColumn Field="StartDate" Width="110" Format="d"></GanttColumn>
+                                    <GanttColumn Field="Duration" Width="80"></GanttColumn>
+                                    <GanttColumn Field="Progress" Width="90"></GanttColumn>
+                                </GanttColumns>
+                            </SfGantt>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="e-icons e-schedule" style="font-size: 48px; color: #ccc;"></i>
+                            <p class="text-muted mt-2">Select a project to preview timeline</p>
+                        </div>
+                    }
+                </div>
+            </FooterTemplate>
+        </DropDownListTemplates>
+    </SfDropDownList>
+</div>
+
+@if (SelectedGanttData.Any())
+{
+    <div class="row">
+        <div class="col-md-8">
+            <div id="projectInfo" class="alert alert-info mb-3">
+                <i class="e-icons e-info me-2"></i>
+                Showing <strong>@SelectedGanttData.Count</strong> task(s) for <strong>@Projects.FirstOrDefault(p => p.Id == SelectedProjectId)?.Name</strong>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div id="progressCard" class="card mb-3">
+                <div class="card-body py-2">
+                    <small class="text-muted">Project Progress</small>
+                    <h5 class="mb-0">@GetCurrentProjectProgress()%</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div id="mainGanttContainer" style="background-color: white; border: 1px solid #dee2e6; border-radius: 4px; padding: 10px;">
+    <SfGantt DataSource="@SelectedGanttData" 
+             Height="520px" 
+             Width="1000px"
+             Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll", "ZoomIn", "ZoomOut", "ZoomToFit" })">
+        <GanttTaskFields Id="TaskId" 
+                       Name="TaskName" 
+                       StartDate="StartDate" 
+                       Duration="Duration" 
+                       Progress="Progress" 
+                       Child="SubTasks" 
+                       Dependency="Predecessor">
+        </GanttTaskFields>
+        <GanttEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true"></GanttEditSettings>
+        <GanttColumns>
+            <GanttColumn Field="TaskId" HeaderText="ID" Width="80"></GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Task Name" Width="250"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date" Width="150" Format="d"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration" Width="100"></GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress %" Width="120"></GanttColumn>
+        </GanttColumns>
+    </SfGantt>
+</div>
+
+@code {
+    private List<Project> Projects = new();
+
+    private int _selectedProjectId;
+    private int SelectedProjectId
+    {
+        get => _selectedProjectId;
+        set
+        {
+            if (_selectedProjectId == value) return;
+            _selectedProjectId = value;
+            UpdateGanttData();
+        }
+    }
+
+    // Make Gantt data a concrete list so the component has a stable reference to render
+    private List<GanttTask> SelectedGanttData { get; set; } = new();
+
+    private void OnProjectChanged(int newProjectId)
+    {
+        _selectedProjectId = newProjectId;
+        UpdateGanttData();
+    }
+
+    private void UpdateGanttData()
+    {
+        var selectedProject = Projects.FirstOrDefault(p => p.Id == _selectedProjectId);
+        if (selectedProject != null && selectedProject.Tasks != null)
+        {
+            SelectedGanttData = new List<GanttTask>(selectedProject.Tasks);
+        }
+        else
+        {
+            SelectedGanttData = new List<GanttTask>();
+        }
+        StateHasChanged();
+    }
+
+    private int GetProjectProgress(Project project)
+    {
+        if (project?.Tasks == null || !project.Tasks.Any()) return 0;
+        return (int)project.Tasks.Average(t => t.Progress);
+    }
+
+    private int GetCurrentProjectProgress()
+    {
+        if (!SelectedGanttData.Any()) return 0;
+        return (int)SelectedGanttData.Average(t => t.Progress);
+    }
+
+    protected override void OnInitialized()
+    {
+        Projects = GetSampleProjects();
+        if (Projects.Any())
+        {
+            SelectedProjectId = Projects[0].Id;
+        }
+    }
+
+    private List<Project> GetSampleProjects()
+    {
+        return new List<Project>
+        {
+            new Project
+            {
+                Id = 1,
+                Name = "Website Redesign",
+                Tasks = new List<GanttTask>
+                {
+                    new GanttTask 
+                    { 
+                        TaskId=1, 
+                        TaskName="Planning Phase", 
+                        StartDate=DateTime.Today, 
+                        Duration=5, 
+                        Progress=90, 
+                        Predecessor = "", 
+                        SubTasks=new List<GanttTask>
+                        { 
+                            new GanttTask{ TaskId=2, TaskName="Requirements Gathering", StartDate=DateTime.Today, Duration=2, Progress=100, Predecessor = "" },
+                            new GanttTask{ TaskId=3, TaskName="Feasibility Study", StartDate=DateTime.Today.AddDays(2), Duration=3, Progress=80, Predecessor = "2FS" }
+                        } 
+                    },
+                    new GanttTask 
+                    { 
+                        TaskId=4, 
+                        TaskName="Design Phase", 
+                        StartDate=DateTime.Today.AddDays(5), 
+                        Duration=7, 
+                        Progress=60,
+                        Predecessor = "1FS",
+                        SubTasks=new List<GanttTask>
+                        {
+                            new GanttTask{ TaskId=5, TaskName="Wireframes", StartDate=DateTime.Today.AddDays(5), Duration=3, Progress=100, Predecessor = "" },
+                            new GanttTask{ TaskId=6, TaskName="UI/UX Design", StartDate=DateTime.Today.AddDays(8), Duration=4, Progress=50, Predecessor = "5FS" }
+                        }
+                    },
+                    new GanttTask 
+                    { 
+                        TaskId=7, 
+                        TaskName="Development", 
+                        StartDate=DateTime.Today.AddDays(12), 
+                        Duration=10, 
+                        Progress=30,
+                        Predecessor = "4FS",
+                        SubTasks=new List<GanttTask>
+                        {
+                            new GanttTask{ TaskId=8, TaskName="Frontend Development", StartDate=DateTime.Today.AddDays(12), Duration=5, Progress=50, Predecessor = "" },
+                            new GanttTask{ TaskId=9, TaskName="Backend Development", StartDate=DateTime.Today.AddDays(12), Duration=5, Progress=40, Predecessor = "" },
+                            new GanttTask{ TaskId=10, TaskName="Integration", StartDate=DateTime.Today.AddDays(17), Duration=5, Progress=10, Predecessor = "8FS,9FS" }
+                        }
+                    },
+                    new GanttTask { TaskId=11, TaskName="Testing & QA", StartDate=DateTime.Today.AddDays(22), Duration=5, Progress=0, Predecessor = "7FS" },
+                    new GanttTask { TaskId=12, TaskName="Deployment", StartDate=DateTime.Today.AddDays(27), Duration=2, Progress=0, Predecessor = "11FS" }
+                }
+            },
+            new Project
+            {
+                Id = 2,
+                Name = "Mobile App",
+                Tasks = new List<GanttTask>
+                {
+                    new GanttTask 
+                    { 
+                        TaskId=20, 
+                        TaskName="Requirements", 
+                        StartDate=DateTime.Today.AddDays(-2), 
+                        Duration=4, 
+                        Progress=100,
+                        SubTasks=new List<GanttTask>
+                        {
+                            new GanttTask{ TaskId=21, TaskName="User Stories", StartDate=DateTime.Today.AddDays(-2), Duration=2, Progress=100 },
+                            new GanttTask{ TaskId=22, TaskName="Technical Specs", StartDate=DateTime.Today, Duration=2, Progress=100, Predecessor = "21FS" }
+                        }
+                    },
+                    new GanttTask 
+                    { 
+                        TaskId=23, 
+                        TaskName="Design", 
+                        StartDate=DateTime.Today.AddDays(2), 
+                        Duration=5, 
+                        Progress=80,
+                        Predecessor = "20FS",
+                        SubTasks=new List<GanttTask>
+                        {
+                            new GanttTask{ TaskId=24, TaskName="Mockups", StartDate=DateTime.Today.AddDays(2), Duration=3, Progress=100 },
+                            new GanttTask{ TaskId=25, TaskName="Prototype", StartDate=DateTime.Today.AddDays(5), Duration=2, Progress=60, Predecessor = "24FS" }
+                        }
+                    },
+                    new GanttTask 
+                    { 
+                        TaskId=26, 
+                        TaskName="Implementation", 
+                        StartDate=DateTime.Today.AddDays(7), 
+                        Duration=12, 
+                        Progress=40,
+                        Predecessor = "23FS",
+                        SubTasks=new List<GanttTask>
+                        {
+                            new GanttTask{ TaskId=27, TaskName="iOS Development", StartDate=DateTime.Today.AddDays(7), Duration=8, Progress=50 },
+                            new GanttTask{ TaskId=28, TaskName="Android Development", StartDate=DateTime.Today.AddDays(7), Duration=8, Progress=45 },
+                            new GanttTask{ TaskId=29, TaskName="Backend API", StartDate=DateTime.Today.AddDays(7), Duration=6, Progress=70 },
+                            new GanttTask{ TaskId=30, TaskName="Testing", StartDate=DateTime.Today.AddDays(15), Duration=4, Progress=20, Predecessor = "27FS,28FS,29FS" }
+                        }
+                    },
+                    new GanttTask { TaskId=31, TaskName="Beta Release", StartDate=DateTime.Today.AddDays(19), Duration=3, Progress=0, Predecessor = "26FS" },
+                    new GanttTask { TaskId=32, TaskName="Final Release", StartDate=DateTime.Today.AddDays(22), Duration=2, Progress=0, Predecessor = "31FS" }
+                }
+            },
+            new Project
+            {
+                Id = 3,
+                Name = "Cloud Migration",
+                Tasks = new List<GanttTask>
+                {
+                    new GanttTask { TaskId=40, TaskName="Assessment", StartDate=DateTime.Today, Duration=3, Progress=100 },
+                    new GanttTask 
+                    { 
+                        TaskId=41, 
+                        TaskName="Planning", 
+                        StartDate=DateTime.Today.AddDays(3), 
+                        Duration=5, 
+                        Progress=70,
+                        Predecessor = "40FS",
+                        SubTasks=new List<GanttTask>
+                        {
+                            new GanttTask{ TaskId=42, TaskName="Architecture Design", StartDate=DateTime.Today.AddDays(3), Duration=3, Progress=90 },
+                            new GanttTask{ TaskId=43, TaskName="Cost Analysis", StartDate=DateTime.Today.AddDays(6), Duration=2, Progress=50, Predecessor = "42FS" }
+                        }
+                    },
+                    new GanttTask 
+                    { 
+                        TaskId=44, 
+                        TaskName="Migration Execution", 
+                        StartDate=DateTime.Today.AddDays(8), 
+                        Duration=10, 
+                        Progress=30,
+                        Predecessor = "41FS",
+                        SubTasks=new List<GanttTask>
+                        {
+                            new GanttTask{ TaskId=45, TaskName="Database Migration", StartDate=DateTime.Today.AddDays(8), Duration=4, Progress=60 },
+                            new GanttTask{ TaskId=46, TaskName="Application Migration", StartDate=DateTime.Today.AddDays(12), Duration=4, Progress=30, Predecessor = "45FS" },
+                            new GanttTask{ TaskId=47, TaskName="Data Validation", StartDate=DateTime.Today.AddDays(16), Duration=2, Progress=0, Predecessor = "46FS" }
+                        }
+                    },
+                    new GanttTask { TaskId=48, TaskName="Optimization", StartDate=DateTime.Today.AddDays(18), Duration=4, Progress=0, Predecessor = "44FS" },
+                    new GanttTask { TaskId=49, TaskName="Go Live", StartDate=DateTime.Today.AddDays(22), Duration=1, Progress=0, Predecessor = "48FS" }
+                }
+            }
+        };
+    }
+
+    private class Project
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public List<GanttTask> Tasks { get; set; } = new();
+    }
+
+    private class GanttTask
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; } = string.Empty;
+        public DateTime StartDate { get; set; }
+        public int Duration { get; set; }
+        public int Progress { get; set; }        public string Predecessor { get; set; } = string.Empty;        public List<GanttTask>? SubTasks { get; set; } = new();
+    }
+}

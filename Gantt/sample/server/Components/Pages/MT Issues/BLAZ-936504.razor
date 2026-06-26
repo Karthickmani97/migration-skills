@@ -1,0 +1,76 @@
+@page "/BLAZ-936504"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt DataSource="@TaskCollection" Height="450px" Width="100%"
+                     Toolbar="@(new List<string>{ "ZoomIn","ZoomOut","ZoomToFit"})" TreeColumnIndex="1"
+                     ProjectStartDate="@ProjectStartDate" ProjectEndDate="@ProjectEndDate" ScrollToTaskbarOnClick="true">
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                                 Dependency="Predecessor" ParentID="ParentId"></GanttTaskFields>
+                <GanttColumns>
+                    <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+                    <GanttColumn Field="TaskName" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+                    <GanttColumn Field="StartDate" HeaderText="Start Date" MinWidth="120"></GanttColumn>
+                    <GanttColumn Field="EndDate" HeaderText="End Date" MinWidth="120"></GanttColumn>
+                    <GanttColumn Field="Duration" HeaderText="Duration" MinWidth="120"></GanttColumn>
+                    <GanttColumn Field="Progress" HeaderText="Progress" MinWidth="120"></GanttColumn>
+                    <GanttColumn Field="Predecessor" HeaderText="Dependency" MinWidth="200"></GanttColumn>
+                </GanttColumns>
+                <GanttLabelSettings LeftLabel="TaskName" TValue="ZoomingData.TaskData">
+                </GanttLabelSettings>
+                <GanttSplitterSettings Position="28%"></GanttSplitterSettings>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+@code {
+    private DateTime ProjectStartDate { get; set; } = new DateTime(2021, 3, 24);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2021, 4, 28);
+    private List<ZoomingData.TaskData> TaskCollection { get; set; }
+    protected override void OnInitialized()
+    {
+        TaskCollection = ZoomingData.ZoomData();
+    }
+    public class ZoomingData
+    {
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string TaskName { get; set; }
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public DateTime? BaselineStartDate { get; set; }
+            public DateTime? BaselineEndDate { get; set; }
+            public string Duration { get; set; }
+            public int Progress { get; set; }
+            public string Predecessor { get; set; }
+            public List<TaskData> SubTasks { get; set; }
+            public object ResourceId { get; set; }
+            public int? ParentId { get; set; }
+            public string Notes { get; set; }
+            public string TaskType { get; set; }
+        }
+        public static List<TaskData> ZoomData()
+        {
+            List<TaskData> Tasks = new List<TaskData>()
+            {
+                new TaskData() { TaskId = 1, TaskName = "Product concept", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 08), Duration = "5days" },
+                new TaskData() { TaskId = 2, TaskName = "Defining the product usage", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 08), Duration = "3", Progress = 30, ParentId = 1 },
+                new TaskData() { TaskId = 3, TaskName = "Defining the target audience", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 04), Duration = "3", Progress = 40, ParentId = 1 },
+                new TaskData() { TaskId = 4, TaskName = "Prepare product sketch and notes", StartDate = new DateTime(2021, 04, 05), EndDate = new DateTime(2021, 04, 08), Duration = "2", Progress = 30, ParentId = 1, Predecessor = "2" },
+                new TaskData() { TaskId = 5, TaskName = "Concept approval", StartDate = new DateTime(2021, 04, 08), EndDate = new DateTime(2021, 04, 08), Duration = "0", Predecessor = "3,4" },
+                new TaskData() { TaskId = 6, TaskName = "Market research", StartDate = new DateTime(2021, 04, 09), EndDate = new DateTime(2021, 04, 18), Duration = "4", Progress = 30 },
+                new TaskData() { TaskId = 7, TaskName = "Demand analysis", StartDate = new DateTime(2021, 04, 09), EndDate = new DateTime(2021, 04, 12), Duration = "4", Progress = 40, ParentId = 6 },
+                new TaskData() { TaskId = 8, TaskName = "Customer strength", StartDate = new DateTime(2021, 04, 09), EndDate = new DateTime(2021, 04, 12), Duration = "4", Progress = 30, ParentId = 7, Predecessor = "5" },
+                new TaskData() { TaskId = 9, TaskName = "Market opportunity analysis", StartDate = new DateTime(2021, 04, 09), EndDate = new DateTime(2021, 04, 12), Duration = "4", ParentId = 7, Predecessor = "5" },
+                new TaskData() { TaskId = 10, TaskName = "Competitor analysis", StartDate = new DateTime(2021, 04, 15), EndDate = new DateTime(2021, 04, 18), Duration = "4", Progress = 30, ParentId = 6, Predecessor = "7,8" },
+                new TaskData() { TaskId = 11, TaskName = "Product strength analysis", StartDate = new DateTime(2021, 04, 15), EndDate = new DateTime(2021, 04, 18), Duration = "4", Progress = 40, ParentId = 6, Predecessor = "9" },
+                new TaskData() { TaskId = 12, TaskName = "Research completed", StartDate = new DateTime(2021, 04, 18), EndDate = new DateTime(2021, 04, 18), Duration = "0", Progress = 30, ParentId = 6, Predecessor = "10" }
+            };
+            return Tasks;
+        }
+    }
+}
+}

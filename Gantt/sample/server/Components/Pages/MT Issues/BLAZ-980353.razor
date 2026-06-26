@@ -1,0 +1,853 @@
+@page "/BLAZ-980353"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Gantt.Internal
+<button @onclick="Add">Add Record</button>
+<button @onclick="CollapseAll">CollapseAll Record</button>
+<button @onclick="ExpandAll">ExpandAll</button>
+<button @onclick="GetSelectedRow">GetSelectedRow</button>
+<button @onclick="AddPredecessor">Add Predecessor</button>
+<button @onclick="UpdatePredecessorHandler">Update Predecessor</button>
+<button @onclick="RemovePredecessorFunc">Remove Predecessor</button>
+<SfGantt @ref="Gantt" ShowColumnChooser="true" @onkeydown="KeyDownHandler" AutoCalculateDateScheduling="true" ConnectorLineBackground="@connectorLine" DataSource="@TaskCollection" Height="450px" Width="100%" ProjectStartDate="@ProjectStart" ProjectEndDate="@ProjectEnd" WorkUnit="WorkUnit.Hour" WorkWeek=Days
+Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll","Indent","Outdent" })" AllowFiltering="true" AllowSorting="true" AllowSelection="true" AllowReordering="true" AllowUnscheduledTasks="true" AllowExcelExport="true" AllowRowDragAndDrop="true" RenderBaseline="true" HighlightWeekends="true" TaskMode="@taskMode" EnableContextMenu="true" RowHeight=@rowHeight EnableRowHover="true">
+    <GanttTaskFields Id="ProjectId" Name="ProjectName" StartDate="ProjectStartDate" EndDate="ProjectEndDate" Duration="ProjectDuration" Progress="ProjectProgress" Dependency="Predecessor"
+    ParentID="ParentId" Work="ProjectWork" TaskType="ProjectTaskType" BaselineStartDate="BaselineStartDate" BaselineEndDate="BaselineEndDate" Manual="IsManual" Indicators="Indicators">
+    </GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowEditing="@allowediting" AllowDeleting="true" AllowTaskbarEditing="allowtaskbarediting" Mode="EditMode" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+    <GanttSelectionSettings Type="Syncfusion.Blazor.Grids.SelectionType.Multiple" Mode="SelectionModeType"></GanttSelectionSettings>
+    <GanttFilterSettings HierarchyMode="FilterHierarchyMode.Parent"></GanttFilterSettings>
+    <GanttColumns>
+        <GanttColumn Field="ProjectId" HeaderText="ID"></GanttColumn>
+        <GanttColumn Field="ProjectName" HeaderText="Event Name"></GanttColumn>
+        <GanttColumn Field="ProjectResources" Width="@width" Visible="@visible" HeaderText="Event Resources"></GanttColumn>
+        <GanttColumn Field="ProjectWork" HeaderText="Work"></GanttColumn>
+        <GanttColumn Field="ProjectDuration" HeaderText="Duration"></GanttColumn>
+        <GanttColumn Field="ProjectTaskType" HeaderText="Task Type"></GanttColumn>
+        <GanttColumn Field="ProjectStartDate" HeaderText="Start Date"></GanttColumn>
+        <GanttColumn Field="ProjectEndDate" HeaderText="End Date"></GanttColumn>
+        <GanttColumn Field="ProjectProgress" HeaderText="Progress"></GanttColumn>
+        <GanttColumn Field="Predecessor" HeaderText="Predecessor"></GanttColumn>
+    </GanttColumns>
+    <GanttKeySettings MoveLeftCell="Shift+LeftArrow" MoveRightCell="Tab" MoveUpCell="UpArrow" MoveDownCell="" IndentRow="LeftArrow" OutdentRow=""></GanttKeySettings>
+    <GanttEventMarkers>
+        <GanttEventMarker Day="@Event1" Label="Research phase"
+        CssClass="e-custom-event-marker"></GanttEventMarker>
+        <GanttEventMarker Day="@Event2" Label="Design phase"
+        CssClass="e-custom-event-marker"></GanttEventMarker>
+        <GanttEventMarker Day="@Event3" Label="Production phase"
+        CssClass="e-custom-event-marker"></GanttEventMarker>
+        <GanttEventMarker Day="@Event4" Label="Sales and marketing phase"
+        CssClass="e-custom-event-marker"></GanttEventMarker>
+    </GanttEventMarkers>
+    <GanttHolidays>
+        <GanttHoliday From="new DateTime(2019, 04, 03)" To="new DateTime(2019, 04, 05)" Label="Public holiday" CssClass="e-custom-holiday"></GanttHoliday>
+    </GanttHolidays>
+    <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" TValue="TaskData" TResources="ResourceData"></GanttResource>
+    <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="PrimaryId" TaskID="TaskId" ResourceID="ResourceId" Units="Unit" TValue="TaskData" TAssignment="AssignmentModel">
+    </GanttAssignmentFields>
+    <GanttLabelSettings LeftLabel="ProjectName" TValue="TaskData"></GanttLabelSettings>
+    <GanttEvents TValue="TaskData" DataBound="DataBoundHandler" OnCellEdit="BeforeCellEditHandler" TaskbarEditing="TaskbarEditing" OnCellSave="CellSaveHandler" QueryCellInfo="CellInfo" OnActionBegin="ActionBeginHandler" OnActionComplete="ActionCompleteHandler"
+    Sorting="Sorting" Sorted="Sorted"
+    Searching="Searching" Searched="Searched"
+    Filtering="Filtering" Filtered="Filtered"
+    RowCreating="RowCreating" RowCreated="RowCreated"
+    RowUpdating="RowUpdating" RowUpdated="RowUpdated"
+    RowDeleting="RowDeleting" RowDeleted="RowDeleted" 
+    CellSaved="CellSaved" IndentationChanging="IndentationChangingHandler" IndentationChanged="IndentationChangedHandler"
+    GanttDialogOpening="GanttDialogOpening" GanttDialogOpened="GanttDialogOpened"></GanttEvents>
+    <GanttSplitterSettings Position="30%"> </GanttSplitterSettings>
+    <GanttTimelineSettings TimelineUnitSize="@DefaultUnitWidth" WeekStartDay="@WeekStartDay">
+        <GanttTopTierSettings Unit="@TopTierUnit" Count="@TopTierCount" Format="@TopTierFormat"></GanttTopTierSettings>
+        <GanttBottomTierSettings Count="@BottomTierCount" Unit="@BottomTierUnit" Format="@BottomTierFormat"></GanttBottomTierSettings>
+    </GanttTimelineSettings>
+    <GanttSearchSettings Fields="@Searchfields"></GanttSearchSettings>
+</SfGantt>
+<br />
+<button id="ColumnChooser" @onclick="OpenColumnChooser">Open ColumnChooser</button>
+
+@code {
+    public string connectorLine = "red";
+    public Syncfusion.Blazor.Gantt.EditMode EditMode = Syncfusion.Blazor.Gantt.EditMode.Auto;
+    public bool allowediting = true;
+    public bool allowtaskbarediting = true;
+    public SfGantt<TaskData> Gantt;
+    public DateTime Event1 = new DateTime(2021, 04, 07);
+    public DateTime Event2 = new DateTime(2021, 04, 30);
+    public DateTime Event3 = new DateTime(2021, 05, 22);
+    public DateTime Event4 = new DateTime(2021, 06, 19);
+    public DateTime ProjectStart = new DateTime(2021, 3, 28);
+    public DateTime ProjectEnd = new DateTime(2021, 7, 28);
+    public List<TaskData> TaskCollection { get; set; }
+    public List<ResourceData> ResourceCollection { get; set; }
+    public List<AssignmentModel> AssignmentCollection { get; set; } = new();
+    public int BeforeZoominLevel { get; set; }
+    public int AfterZoominLevel { get; set; }
+    public int BeforeZoomOutLevel { get; set; }
+    public int AfterZoomOutLevel { get; set; }
+    public int BeforeZoomToFitLevel { get; set; }
+    public int AfterZoomToFitLevel { get; set; }
+    public int rowHeight { get; set; } = 36;
+    public ScheduleMode taskMode = ScheduleMode.Auto;
+    public int DefaultUnitWidth = 33;
+    public int TopTierCount = 1;
+    public int BottomTierCount = 1;
+    public string TopTierFormat = "MMM dd, yyyy";
+    public string BottomTierFormat = "";
+    public int WeekStartDay = 0;
+    public TimelineViewMode TopTierUnit = TimelineViewMode.Week;
+    public TimelineViewMode BottomTierUnit = TimelineViewMode.Day;
+    public int SelectedRowIndex { get; set; } = -1;
+    public Syncfusion.Blazor.Grids.SelectionMode SelectionModeType { get; set; } = Syncfusion.Blazor.Grids.SelectionMode.Row;
+    public string[] Days = new string[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+    public string ErrorMessage = "";
+    public bool edit = false;
+    public string BeforeAddProjectName { get; set; }
+    public string BeforeAddProjectDuration { get; set; }
+    public string key { get; set; }
+    public string[] Searchfields = new string[] { "ProjectId", "ProjectName" };
+    public string width = "200px";
+    public bool visible = true;
+    public bool isEventTrigger = false;
+    public bool isRowAdd = false;
+    public bool isActionBeginTrigger = false;
+    public bool isActionCompleteTrigger = false;
+    private async Task OpenColumnChooser()
+    {
+        await Gantt.OpenColumnChooser();
+    }
+    private async Task KeyDownHandler(KeyboardEventArgs args)
+    {
+        key = args.Key;
+        await Task.CompletedTask;
+    }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = TaskDataCollection.SelfData();
+        this.ResourceCollection = ResourceDataCollection.GetResources();
+        this.AssignmentCollection = AssignmentDataCollection.GetAssignmentCollection();
+    }
+    private async Task GetSelectedRow()
+    {
+        // var a = await Gantt.GetSelectedRowIndexesAsync();
+        // Console.WriteLine(a);
+        //SelectedRowIndex = 4;
+        await Gantt.OutdentAsync();
+    }
+    public void CellEditHandler(CellEditArgs<TaskData> args)
+    {
+        //args.Cancel = true;
+    }
+    public void AddPredecessor()
+    {
+        this.Gantt.AddPredecessor(3, "2FF");
+    }
+    private void UpdatePredecessorHandler()
+    {
+        Gantt.UpdatePredecessor(4, "3FF");
+    }
+    public void RemovePredecessorFunc()
+    {
+        Gantt.RemovePredecessor(3);
+    }
+    public async Task CellInfo(Syncfusion.Blazor.Grids.QueryCellInfoEventArgs<TaskData> args)
+    {
+        IGanttTaskModel<TaskData> data = Gantt.GetRowTaskModel(args.Data);
+        if ((data.Level == 0) && args.Column.Field == "ProjectName")
+        {
+            args.Cell.AddClass(new string[] { "yellow-cell" });
+        }
+        await Task.CompletedTask;
+    }
+    public async void Add()
+    {
+         var record = new TaskData() { ProjectId = 100, ProjectName = "New Record", ProjectStartDate = new DateTime(2021, 04, 02), ProjectDuration = "3", ProjectProgress = 50, Predecessor = "1" };
+         await Gantt.AddRecordAsync(record, 0);
+        //await Gantt.SelectRowAsync(2);
+    }
+    public async void ExpandAll()
+    {
+        // var record = new TaskData() { ProjectId = 100, ProjectName = "New Record", ProjectStartDate = new DateTime(2021, 04, 02), ProjectDuration = "3", ProjectProgress = 50, Predecessor = "1" };
+        // await Gantt.AddRecordAsync(record, 2, Syncfusion.Blazor.Gantt.RowPosition.Above);
+        await Gantt.ExpandAllAsync();
+    }
+    public async void CollapseAll()
+    {
+        // var record = new TaskData() { ProjectId = 100, ProjectName = "New Record", ProjectStartDate = new DateTime(2021, 04, 02), ProjectDuration = "3", ProjectProgress = 50, Predecessor = "1" };
+        // await Gantt.AddRecordAsync(record, 2, Syncfusion.Blazor.Gantt.RowPosition.Above);
+        await Gantt.CollapseAllAsync();
+    }
+    public async Task ContextMenuItemClickedHandler(ContextMenuClickEventArgs<TaskData> args)
+    {
+        await Task.CompletedTask;
+    }
+    public async Task ActionBeginHandler(GanttActionEventArgs<TaskData> args)
+    {
+        isActionBeginTrigger = true;
+        // if (args.Action == "ZoomIn" && args.RequestType == Syncfusion.Blazor.Gantt.Action.BeforeZoomIn)
+        // {
+        //     BeforeZoominLevel = args.CurrentZoomingLevel.Level;
+        // }
+        // if (args.Action == "ZoomOut" && args.RequestType == Syncfusion.Blazor.Gantt.Action.BeforeZoomOut)
+        // {
+        //     BeforeZoomOutLevel = args.CurrentZoomingLevel.Level;
+        // }
+        // if (args.Action == "ZoomToFit" && args.RequestType == Syncfusion.Blazor.Gantt.Action.BeforeZoomToFit)
+        // {
+        //     BeforeZoomToFitLevel = args.CurrentZoomingLevel.Level;
+        // }
+        // var data = new Dictionary<string, object>();
+        // data.Add("data", args.Data);
+
+        // args.EditEventArgs = new Syncfusion.Blazor.Gantt.Internal.EditedArgs()
+        //     {
+        //         Action = args.Action,
+        //         ColumnName = args.ColumnName,
+        //         PreviousData = args.PreviousData,
+        //         //Data = data
+        //     };
+
+        // var editEventArgs = new EditedArgs();
+        // editEventArgs.Action = args.EditEventArgs.Action;
+        // editEventArgs.ColumnName = args.EditEventArgs.ColumnName;
+        // editEventArgs.PreviousData = args.EditEventArgs.PreviousData;
+        // editEventArgs.Data = args.EditEventArgs.Data;
+
+        await Task.CompletedTask;
+    }
+    public async Task ActionCompleteHandler(GanttActionEventArgs<TaskData> args)
+    {
+        isActionCompleteTrigger = true;
+        if (args.Action == "ZoomIn" && args.RequestType == Syncfusion.Blazor.Gantt.Action.AfterZoomIn)
+        {
+            AfterZoominLevel = args.CurrentZoomingLevel.Level;
+        }
+        if (args.Action == "ZoomOut" && args.RequestType == Syncfusion.Blazor.Gantt.Action.AfterZoomOut)
+        {
+            AfterZoomOutLevel = args.CurrentZoomingLevel.Level;
+        }
+        if (args.Action == "ZoomToFit" && args.RequestType == Syncfusion.Blazor.Gantt.Action.BeforeZoomToFit)
+        {
+            AfterZoomToFitLevel = args.CurrentZoomingLevel.Level;
+        }
+        await Task.CompletedTask;
+    }
+
+    public async Task TaskbarEditing(TaskbarEditingEventArgs<TaskData> args)
+    {
+        await Task.CompletedTask;
+    }
+
+    public async Task DataBoundHandler()
+    {
+        this.edit = true;
+        await Task.CompletedTask;
+    }
+
+
+    public async Task BeforeCellEditHandler(Syncfusion.Blazor.Grids.CellEditArgs<TaskData> args)
+    {
+        //this.edit = true;
+        //args.Cancel = true;
+        await Task.CompletedTask;
+    }
+
+    private async Task Sorting(Syncfusion.Blazor.Grids.SortingEventArgs args)
+    {
+        isEventTrigger = true;
+        await Task.CompletedTask;
+    }
+    private async Task Sorted(Syncfusion.Blazor.Grids.SortedEventArgs args)
+    {
+        isEventTrigger = true;
+        await Task.CompletedTask;
+    }
+    private async Task Searching(Syncfusion.Blazor.Grids.SearchingEventArgs args)
+    {
+        isEventTrigger = true;
+        await Task.CompletedTask;
+    }
+    private async Task Searched(Syncfusion.Blazor.Grids.SearchedEventArgs args)
+    {
+        isEventTrigger = true;
+        await Task.CompletedTask;
+    }
+    private async Task Filtering(Syncfusion.Blazor.Grids.FilteringEventArgs args)
+    {
+        isEventTrigger = true;
+        await Task.CompletedTask;
+    }
+    private async Task Filtered(Syncfusion.Blazor.Grids.FilteredEventArgs args)
+    {
+        isEventTrigger = true;
+        await Task.CompletedTask;
+    }
+    private async Task RowCreated(Syncfusion.Blazor.Gantt.GanttRowCreatedEventArgs<TaskData> args)
+    {
+        isRowAdd = true;
+        await Task.CompletedTask;
+    }
+    private async Task RowCreating(Syncfusion.Blazor.Gantt.GanttRowCreatingEventArgs<TaskData> args)
+    {
+        isRowAdd = true;
+        BeforeAddProjectName = args.Data.ProjectName;
+        BeforeAddProjectDuration = args.Data.ProjectDuration;
+        await Task.CompletedTask;
+    }
+    private async Task RowUpdated(Syncfusion.Blazor.Gantt.GanttRowUpdatedEventArgs<TaskData> args)
+    {
+        isEventTrigger = true;
+        await Task.CompletedTask;
+    }
+    private async Task RowUpdating(Syncfusion.Blazor.Gantt.GanttRowUpdatingEventArgs<TaskData> args)
+    {
+        isEventTrigger = true;
+        await Task.CompletedTask;
+    }
+    private async Task RowDeleting(Syncfusion.Blazor.Gantt.GanttRowDeletingEventArgs<TaskData> args)
+    {
+        isEventTrigger = true;
+        await Task.CompletedTask;
+    }
+    private async Task RowDeleted(Syncfusion.Blazor.Gantt.GanttRowDeletedEventArgs<TaskData> args)
+    {
+        isEventTrigger = true;
+        await Task.CompletedTask;
+    }
+    private async Task GanttDialogOpening(Syncfusion.Blazor.Gantt.GanttDialogOpenEventArgs<TaskData> args)
+    {
+        isEventTrigger = true;
+        await Task.CompletedTask;
+    }
+    private async Task GanttDialogOpened(Syncfusion.Blazor.Gantt.GanttDialogOpenedEventArgs<TaskData> args)
+    {
+        isEventTrigger = true;
+        await Task.CompletedTask;
+    }
+    private async Task CellSaveHandler(Syncfusion.Blazor.Grids.CellSaveArgs<TaskData> args)
+    {
+        // if (args.ColumnName == "ProjectName")
+        // {
+        //     args.Value = "Updated Task";
+        // }
+        // if (args.ColumnName == "ProjectDuration")
+        // {
+        //     args.Value = "Three Days";
+        // }
+        // if (args.ColumnName == "Predecessor")
+        // {
+        //     args.Value = "@#$%";
+        // }
+        // if (args.ColumnName == "ProjectProgress")
+        // {
+        //     args.Value = 50;
+        // }
+        await Task.CompletedTask;
+    }
+    public void CellSaved(CellSavedArgs<TaskData> args)
+    {
+        isEventTrigger = true;
+    }
+    public void IndentationChangingHandler(Syncfusion.Blazor.TreeGrid.IndentationChangingEventArgs<TaskData> args)
+    {
+        isEventTrigger = true;
+    }
+    public void IndentationChangedHandler(Syncfusion.Blazor.TreeGrid.IndentationChangedEventArgs<TaskData> args)
+    {
+        isEventTrigger = true;
+    }
+    public class TaskData
+    {
+        public int ProjectId { get; set; }
+        public string ProjectName { get; set; }
+        public string ProjectType { get; set; }
+        public DateTime? BaselineStartDate { get; set; }
+        public DateTime? BaselineEndDate { get; set; }
+        public DateTime? ProjectStartDate { get; set; }
+        public DateTime? ProjectEndDate { get; set; }
+        public string ProjectDuration { get; set; }
+        public int? ProjectProgress { get; set; }
+        public int? ParentId { get; set; }
+        public double? ProjectWork { get; set; }
+        public string IsManual { get; set; }
+        public string Predecessor { get; set; }
+        public string ProjectTaskType { get; set; }
+        public List<GanttIndicator> Indicators { get; set; }
+        public string Field1 { get; set; }
+        public int FIELD2 { get; set; }
+        public int FIELD3 { get; set; }
+        public int FIELD4 { get; set; }
+        public int FIELD5 { get; set; }
+        public int FIELD6 { get; set; }
+        public int Field7 { get; set; }
+        public int Field8 { get; set; }
+        public int Field9 { get; set; }
+        public int Field10 { get; set; }
+        public int Field11 { get; set; }
+        public int Field12 { get; set; }
+    }
+    public class ResourceData
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public double? Unit { get; set; }
+        public string Role { get; set; }
+        public string Team { get; set; }
+
+    }
+
+    public class AssignmentModel
+    {
+        public int PrimaryId { get; set; }
+        public int TaskId { get; set; }
+        public int ResourceId { get; set; }
+        public double? Unit { get; set; }
+    }
+
+    public class HierarchicalData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public string Predecessor { get; set; }
+        public List<HierarchicalData> SubTasks { get; set; }
+    }
+
+    public class ResourceDataCollection
+    {
+        public static List<ResourceData> GetResources()
+        {
+            List<ResourceData> resource = new List<ResourceData>() {
+            new ResourceData() { Id = 21, Name = "Martin Tamer" ,Unit = 70},
+            new ResourceData() { Id = 22, Name = "Rose Fuller" },
+            new ResourceData() { Id = 23, Name = "Margaret Buchanan" },
+            new ResourceData() { Id = 24, Name = "Fuller King" },
+            new ResourceData() { Id = 25, Name = "Davolio Fuller" },
+            new ResourceData() { Id = 26, Name = "Van Jack" },
+            new ResourceData() { Id = 27, Name = "Fuller Buchanan" },
+            new ResourceData() { Id = 28, Name = "Jack Davolio" },
+            new ResourceData() { Id = 29, Name = "Tamer Vinet" },
+            new ResourceData() { Id = 30, Name = "Vinet Fuller" },
+            new ResourceData() { Id = 31, Name = "Bergs Anton" },
+            new ResourceData() { Id = 32, Name = "Construction Supervisor" }
+            };
+            return resource;
+        }
+    }
+
+    public class AssignmentDataCollection
+    {
+        public static List<AssignmentModel> GetAssignmentCollection()
+        {
+            List<AssignmentModel> assignments = new List<AssignmentModel>()
+            {
+                new AssignmentModel(){ PrimaryId = 1, TaskId = 2, ResourceId = 21, Unit = 70},
+                new AssignmentModel(){ PrimaryId = 2, TaskId = 3, ResourceId = 23, Unit = 70},
+                new AssignmentModel(){ PrimaryId = 3, TaskId = 3, ResourceId = 25},
+            };
+            return assignments;
+        }
+    }
+
+    public class TaskDataCollection
+    {
+
+        public static List<TaskData> SelfData()
+        {
+            List<TaskData> Tasks = new List<TaskData>() {
+        new TaskData() {
+            ProjectId = 1,
+            ProjectName = "Product concept",
+            ProjectStartDate = new DateTime(2021, 04, 02),
+            ProjectEndDate = new DateTime(2021, 04, 08),
+            ProjectDuration = "5 days",
+            BaselineStartDate = new DateTime(2021, 04, 01),
+            BaselineEndDate = new DateTime(2021, 04, 06),
+            Indicators=(new List<GanttIndicator>()
+            {
+                new GanttIndicator() { Name="product", IconClass="e-btn-icon e-notes-info e-icons e-icon-left e-gantt e-notes-info::before", Date=new DateTime(2021, 04, 9), Tooltip="sales"}
+            })
+        },
+        new TaskData() {
+            ProjectId = 2,
+            ProjectName = "Defining the product usage",
+            ProjectStartDate = new DateTime(2021, 04, 02),
+            ProjectEndDate = new DateTime(2021, 04, 08),
+            ProjectDuration = "3",
+            ProjectProgress = 30,
+            ParentId = 1
+        },
+        new TaskData() {
+            ProjectId = 3,
+            ProjectName = "Defining the target audience",
+            ProjectStartDate = new DateTime(2021, 04, 02),
+            ProjectEndDate = new DateTime(2021, 04, 04),
+            ProjectDuration = "3",
+            ProjectProgress = 40,
+            ParentId = 1
+        },
+        new TaskData() {
+            ProjectId = 4,
+            ProjectName = "Prepare product sketch and notes",
+            ProjectStartDate = new DateTime(2021, 04, 05),
+            ProjectEndDate = new DateTime(2021, 04, 08),
+            ProjectDuration = "2",
+            ProjectProgress = 30,
+            ParentId = 1,
+            Predecessor="2",
+            BaselineStartDate = new DateTime(2021, 04, 02),
+            BaselineEndDate = new DateTime(2021, 04, 04)
+        },
+        new TaskData() {
+            ProjectId = 5,
+            ProjectName = "Concept approval",
+            ProjectStartDate = new DateTime(2021, 04, 08),
+            ProjectEndDate = new DateTime(2021, 04, 08),
+            ProjectDuration="0",
+            Predecessor="3,4"
+        },
+        new TaskData() {
+            ProjectId = 6,
+            ProjectName = "Market research",
+            ProjectStartDate = new DateTime(2021, 04, 09),
+            ProjectEndDate = new DateTime(2021, 04, 18),
+            Predecessor="2",
+            ProjectDuration = "4",
+            ProjectProgress = 30
+        },
+        new TaskData() {
+            ProjectId = 7,
+            ProjectName = "Demand analysis",
+            ProjectStartDate = new DateTime(2021, 04, 09),
+            ProjectEndDate = new DateTime(2021, 04, 12),
+            ProjectDuration = "4",
+            ProjectProgress = 40,
+            ParentId = 6,
+            Predecessor="5FS+2"
+        },
+        new TaskData() {
+            ProjectId = 8,
+            ProjectName = "Customer strength",
+            ProjectStartDate = new DateTime(2021, 04, 09),
+            ProjectEndDate = new DateTime(2021, 04, 12),
+            ProjectDuration = "4",
+            ProjectProgress = 30,
+            ParentId = 7,
+            Predecessor="5"
+        }, new TaskData() {
+            ProjectId = 9,
+            ProjectName = "Market opportunity analysis",
+            ProjectStartDate = new DateTime(2021, 04, 09),
+            ProjectEndDate = new DateTime(2021, 04, 012),
+            ProjectDuration="4",
+            ParentId= 7,
+            Predecessor="5"
+        },
+        new TaskData() {
+            ProjectId = 10,
+            ProjectName = "Competitor analysis",
+            ProjectStartDate = new DateTime(2021, 04, 15),
+            ProjectEndDate = new DateTime(2021, 04, 18),
+            ProjectDuration = "4",
+            ProjectProgress = 30,
+            ParentId= 6,
+            Predecessor="7,8"
+        },
+        new TaskData() {
+            ProjectId = 11,
+            ProjectName = "Product strength analysis",
+            ProjectStartDate = new DateTime(2021, 04, 15),
+            ProjectEndDate = new DateTime(2021, 04, 18),
+            ProjectDuration = "4",
+            ProjectProgress = 40,
+            ParentId = 6,
+            Predecessor="9"
+        },
+        new TaskData() {
+            ProjectId = 12,
+            ProjectName = "Research completed",
+            ProjectStartDate = new DateTime(2021, 04, 18),
+            ProjectEndDate = new DateTime(2021, 04, 18),
+            ProjectDuration = "0",
+            ProjectProgress = 30,
+            ParentId = 6,
+            Predecessor="10",
+            BaselineStartDate = new DateTime(2021, 04, 19),
+            BaselineEndDate = new DateTime(2021, 04, 20),
+        },
+         new TaskData() {
+            ProjectId = 13,
+            ProjectName = "Product design and development",
+            ProjectStartDate = new DateTime(2021, 04, 19),
+            ProjectEndDate = new DateTime(2021, 05, 16),
+            ProjectDuration="20",
+            Predecessor="6"
+         },
+        new TaskData() {
+            ProjectId = 14,
+            ProjectName = "Functionality design",
+            ProjectStartDate = new DateTime(2021, 04, 19),
+            ProjectEndDate = new DateTime(2021, 04, 23),
+            ProjectDuration = "3",
+            ProjectProgress = 30,
+            ParentId = 13,
+            Predecessor="12"
+        },
+        new TaskData() {
+            ProjectId = 15,
+            ProjectName = "Quality design",
+            ProjectStartDate = new DateTime(2021, 04, 19),
+            ProjectEndDate = new DateTime(2021, 04, 23),
+            ProjectDuration = "3",
+            ProjectProgress = 40,
+            ParentId = 13,
+            Predecessor="12"
+        },
+        new TaskData() {
+            ProjectId = 16,
+            ProjectName = "Define reliability",
+            ProjectStartDate = new DateTime(2021, 04, 24),
+            ProjectEndDate = new DateTime(2021, 04, 25),
+            ProjectDuration = "2",
+            ProjectProgress = 30,
+            ParentId = 13,
+            Predecessor="15"
+        },
+         new TaskData() {
+            ProjectId = 17,
+            ProjectName = "Identifying raw materials",
+            ProjectStartDate = new DateTime(2021, 04, 24),
+            ProjectEndDate = new DateTime(2021, 04, 25),
+            ProjectDuration="2",
+            ParentId=13,
+            Predecessor="15"
+        },
+        new TaskData() {
+            ProjectId = 18,
+            ProjectName = "Define cost plan",
+            ProjectStartDate = new DateTime(2021, 04, 26),
+            ProjectEndDate = new DateTime(2021, 04, 29),
+            ProjectDuration = "2",
+            ProjectProgress = 30,
+            ParentId=13,
+            Predecessor="17"
+        },
+        new TaskData() {
+            ProjectId = 19,
+            ProjectName = "Manufacturing cost",
+            ProjectStartDate = new DateTime(2021, 04, 26),
+            ProjectEndDate = new DateTime(2021, 04, 29),
+            ProjectDuration = "2",
+            ProjectProgress = 40,
+            ParentId = 18,
+            Predecessor="17"
+        },
+        new TaskData() {
+            ProjectId = 20,
+            ProjectName = "Selling cost",
+            ProjectStartDate = new DateTime(2021, 04, 26),
+            ProjectEndDate = new DateTime(2021, 04, 29),
+            ProjectDuration = "2",
+            ProjectProgress = 30,
+            ParentId = 18,
+            Predecessor="17"
+        },
+         new TaskData() {
+            ProjectId = 21,
+            ProjectName = "Development of final design",
+            ProjectStartDate = new DateTime(2021, 04, 30),
+            ProjectEndDate = new DateTime(2021, 05, 08),
+            ProjectDuration="7",
+            ParentId=13
+        },
+        new TaskData() {
+            ProjectId = 22,
+            ProjectName = "Develop dimensions and design",
+            ProjectStartDate = new DateTime(2021, 04, 30),
+            ProjectEndDate = new DateTime(2021, 05, 01),
+            ProjectDuration = "2",
+            ProjectProgress = 30,
+            ParentId=21,
+            Predecessor="19,20"
+        },
+        new TaskData() {
+            ProjectId = 23,
+            ProjectName = "Develop designs to meet industry",
+            ProjectStartDate = new DateTime(2021, 05, 02),
+            ProjectEndDate = new DateTime(2021, 05, 03),
+            ProjectDuration = "2",
+            ProjectProgress = 40,
+            ParentId = 21,
+            Predecessor="22"
+        },
+        new TaskData() {
+            ProjectId = 24,
+            ProjectName = "Include all the details",
+            ProjectStartDate = new DateTime(2021, 05, 06),
+            ProjectEndDate = new DateTime(2021, 05, 08),
+            ProjectDuration = "3",
+            ProjectProgress = 30,
+            ParentId = 21,
+            Predecessor="23"
+        },
+         new TaskData() {
+            ProjectId = 25,
+            ProjectName = "CAD - Computer Aided Design",
+            ProjectStartDate = new DateTime(2021, 05, 09),
+            ProjectEndDate = new DateTime(2021, 05, 13),
+            ProjectDuration="3",
+            Predecessor="24"
+        },
+        new TaskData() {
+            ProjectId = 26,
+            ProjectName = "CAM - Computer Aided Manufacturing",
+            ProjectStartDate = new DateTime(2021, 05, 14),
+            ProjectEndDate = new DateTime(2021, 05, 16),
+            ProjectDuration = "3",
+            ProjectProgress = 30,
+            Predecessor="25"
+        },
+        new TaskData() {
+            ProjectId = 27,
+            ProjectName = "Finalize the design",
+            ProjectStartDate = new DateTime(2021, 04, 16),
+            ProjectEndDate = new DateTime(2021, 04, 16),
+            ProjectDuration = "0",
+            ProjectProgress = 40,
+            Predecessor="26"
+        },
+        new TaskData() {
+            ProjectId = 28,
+            ProjectName = "Prototype testing",
+            ProjectStartDate = new DateTime(2021, 05, 17),
+            ProjectEndDate = new DateTime(2021, 05, 22),
+            ProjectDuration = "4",
+            ProjectProgress = 30,
+            Predecessor="27"
+        },
+        new TaskData() {
+            ProjectId = 29,
+            ProjectName = "Include feedback",
+            ProjectStartDate = new DateTime(2021, 05, 17),
+            ProjectEndDate = new DateTime(2021, 05, 22),
+            ProjectDuration="4",
+            Predecessor="28ss"
+        },
+        new TaskData() {
+            ProjectId = 30,
+            ProjectName = "Manufacturing",
+            ProjectStartDate = new DateTime(2021, 05, 23),
+            ProjectEndDate = new DateTime(2021, 05, 29),
+            ProjectDuration = "5",
+            ProjectProgress = 30,
+            Predecessor="28,29"
+        },
+        new TaskData() {
+            ProjectId = 31,
+            ProjectName = "Assembling material to finished goods",
+            ProjectStartDate = new DateTime(2021, 05, 30),
+            ProjectEndDate = new DateTime(2021, 06, 05),
+            ProjectDuration = "5",
+            ProjectProgress = 40,
+            Predecessor="30"
+        },
+        new TaskData() {
+            ProjectId = 32,
+            ProjectName = "Final product development",
+            ProjectStartDate = new DateTime(2021, 06, 06),
+            ProjectEndDate = new DateTime(2021, 06, 13),
+            ProjectDuration = "6",
+            ProjectProgress = 30
+        }, new TaskData() {
+            ProjectId =33,
+            ProjectName = "Important improvement",
+            ProjectStartDate = new DateTime(2021, 06, 06),
+            ProjectEndDate = new DateTime(2021, 06, 10),
+            ProjectDuration="3",
+            ParentId=32,
+            Predecessor="31"
+        },
+        new TaskData() {
+            ProjectId = 34,
+            ProjectName = "Customer testing and feedback",
+            ProjectStartDate = new DateTime(2021, 06, 11),
+            ProjectEndDate = new DateTime(2021, 06, 13),
+            ProjectDuration = "3",
+            ProjectProgress = 30,
+            ParentId=32,
+            Predecessor="33"
+        },
+        new TaskData() {
+            ProjectId = 35,
+            ProjectName = "Final product development",
+            ProjectStartDate = new DateTime(2021, 06, 14),
+            ProjectEndDate = new DateTime(2021, 06, 19),
+            ProjectDuration = "4",
+            ProjectProgress = 40
+        },
+        new TaskData() {
+            ProjectId = 36,
+            ProjectName = "Important improvement",
+            ProjectStartDate = new DateTime(2021, 06, 14),
+            ProjectEndDate = new DateTime(2021, 06, 19),
+            ProjectDuration = "4",
+            ProjectProgress = 30,
+            ParentId = 35,
+            Predecessor="34"
+        },
+         new TaskData() {
+            ProjectId = 37,
+            ProjectName = "Address any unforeseen issue",
+            ProjectStartDate = new DateTime(2021, 06, 14),
+            ProjectEndDate = new DateTime(2021, 06, 19),
+            ProjectDuration = "4",
+            ProjectProgress = 30,
+            Predecessor="36ss",
+            ParentId=35
+        },
+        new TaskData() {
+            ProjectId = 38,
+            ProjectName = "Final product",
+            ProjectStartDate = new DateTime(2021, 06, 20),
+            ProjectEndDate = new DateTime(2021, 07, 01),
+            ProjectDuration = "8",
+            ProjectProgress = 40
+        },
+        new TaskData() {
+            ProjectId = 39,
+            ProjectName = "Branding product",
+            ProjectStartDate = new DateTime(2021, 06, 20),
+            ProjectEndDate = new DateTime(2021, 06, 25),
+            ProjectDuration = "4",
+            ProjectProgress = 30,
+            ParentId = 38,
+            Predecessor="37"
+        },
+        new TaskData()
+        {
+            ProjectId=40,
+            ProjectName="Marketing and Presales",
+            ProjectStartDate=new DateTime(2021,06,26),
+            ProjectEndDate=new DateTime(2021,07,01),
+            ParentId=38,
+            ProjectDuration="4",
+            Predecessor="39"
+        }
+    };
+            return Tasks;
+        }
+    }
+}
+<style>
+    .e-gantt .e-gantt-chart .e-custom-holiday {
+        background-color: #e82869;
+    }
+
+    .yellow-cell {
+        background-color: #FFFF00;
+    }
+</style>

@@ -1,0 +1,378 @@
+﻿@page "/Predecessor/AlphaNumeric"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.DropDowns
+<SfGantt @ref="GanttObj" DataSource="@TaskCollection" Height="550px" Width="100%" HighlightWeekends="true"
+Toolbar="@(new List<string>(){ "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll","Indent","Outdent"})"
+AllowSelection="true" GridLines="GridLine.Both" TreeColumnIndex="1"
+ProjectStartDate="@ProjectStart" ProjectEndDate="@ProjectEnd">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+    Dependency="Predecessor" ParentID="ParentId" Notes="Notes"></GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" Mode="EditMode" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+        <GanttColumn Field="Predecessor" HeaderText="Dependency" ClipMode="Syncfusion.Blazor.Grids.ClipMode.Ellipsis"></GanttColumn>
+    </GanttColumns>
+    <GanttLabelSettings LeftLabel="TaskName" TValue="TaskInfoModel">
+    </GanttLabelSettings>
+    <GanttSplitterSettings Position="40%"> </GanttSplitterSettings>
+    @if (IsEvents) 
+    {
+        <GanttEvents TValue="TaskInfoModel" OnCellSave="CellSaveHandler" CellSaved="CellSaved" TaskbarEditing="OnTaskbarEditingHandler" TaskbarEdited="OnTaskbarEditedHandler" TaskConnectorChanging="ConnectorLineDrawHandler" TaskConnectorChanged="ConnectorLineDrawCompletedHandler"></GanttEvents>
+    }
+    else
+    {
+        <GanttEvents TValue="TaskInfoModel" TaskbarEditing="OnTaskbarEditingHandler" TaskbarEdited="OnTaskbarEditedHandler" TaskConnectorChanging="ConnectorLineDrawHandler" TaskConnectorChanged="ConnectorLineDrawCompletedHandler"></GanttEvents>
+    }
+</SfGantt>
+<div>
+    <SfDropDownList @bind-Value="selectedMethod" DataSource="methods" Placeholder="Select a collection type" Width="300px">
+        <DropDownListEvents TItem="DropdownData" TValue="string" ValueChange="HandleMethodChange"></DropDownListEvents>
+        <DropDownListFieldSettings Text="Text" Value="Value"></DropDownListFieldSettings>
+    </SfDropDownList>
+    <button @onclick="DisableEvents">Events</button>
+</div>     
+@code{
+    private SfGantt<TaskInfoModel> GanttObj;
+    public EditMode EditMode = EditMode.Auto;
+    private DateTime ProjectStart = new DateTime(2021, 3, 25);
+    private DateTime ProjectEnd = new DateTime(2021, 7, 28);
+    private List<TaskInfoModel> TaskCollection { get; set; }
+    private string selectedMethod { get; set; } = "";
+    public bool IsEvents { get; set; } = true;
+    private List<DropdownData> methods = new List<DropdownData>
+    {
+        new DropdownData{ Text = "Add Predecessor", Value = "AddPredecessor" },
+        new DropdownData{ Text = "Update Predecessor", Value = "UpdatePredecessor" },
+        new DropdownData{ Text = "Remove Predecessor", Value = "RemovePredecessor" },
+    };
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = EditingData().ToList();
+    }
+    private void HandleMethodChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, DropdownData> args)
+    {
+        selectedMethod = args.Value;
+        SwitchMethods();
+    }
+    private void DisableEvents()
+    {
+        IsEvents = IsEvents ? false : true;
+    }
+    private void SwitchMethods()
+    {
+        switch (selectedMethod)
+        {
+            case "AddPredecessor":
+                this.GanttObj.AddPredecessor("2Aaa", "3Bbb FF-2");
+                break;
+            case "UpdatePredecessor":
+                GanttObj.UpdatePredecessor("5Ddd", "2Aaa FF+3");
+                break;
+            case "RemovePredecessor":
+                GanttObj.RemovePredecessor("5Ddd");
+                break;
+        }
+    }
+    private async Task CellSaveHandler(Syncfusion.Blazor.Grids.CellSaveArgs<TaskInfoModel> args)
+    {
+        if (args.ColumnName == "Predecessor")
+        {
+            args.Value = "2Aaa FF";
+        }
+        await Task.CompletedTask;
+    }
+    public async Task CellSaved(Syncfusion.Blazor.Grids.CellSavedArgs<TaskInfoModel> args)
+    {
+        await Task.CompletedTask;
+    }
+    private async Task BeforeTooltipHandler(BeforeTooltipRenderEventArgs<TaskInfoModel> args)
+    {
+        await Task.CompletedTask;
+    }
+    public async Task ConnectorLineDrawHandler(TaskConnectorChangeEventArgs<TaskInfoModel> args)
+    {
+        await Task.CompletedTask;
+    }
+    public async Task ConnectorLineDrawCompletedHandler(TaskConnectorChangedEventArgs<TaskInfoModel> args)
+    {
+        await Task.CompletedTask;
+    }
+    private async Task OnTaskbarEditingHandler(TaskbarEditingEventArgs<TaskInfoModel> args)
+    {
+        await Task.CompletedTask;
+    }
+    private async Task OnTaskbarEditedHandler(TaskbarEditedEventArgs<TaskInfoModel> args)
+    {
+        await Task.CompletedTask;
+    }
+    public class DropdownData
+    {
+        public string? Text { get; set; }
+        public string? Value { get; set; }
+    }
+    public class TaskInfoModel
+    {
+        public string TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public string Predecessor { get; set; }
+        public string Notes { get; set; }
+        public string ParentId { get; set; }
+    }
+    public static List<TaskInfoModel> EditingData()
+    {
+        List<TaskInfoModel> Tasks = new List<TaskInfoModel>() {
+    new TaskInfoModel() {
+        TaskId = "1Abc",
+        TaskName = "Product concept",
+        StartDate = new DateTime(2021, 04, 02),
+        EndDate = new DateTime(2021, 04, 08),
+        Duration = "5 days"
+    },
+    new TaskInfoModel() {
+        TaskId = "2Aaa",
+        TaskName = "Defining the product usage",
+        StartDate = new DateTime(2021, 04, 02),
+        EndDate = new DateTime(2021, 04, 08),
+        Duration = "3",
+        Progress = 30,
+        ParentId = "1Abc"
+    },
+    new TaskInfoModel() {
+        TaskId = "3Bbb",
+        TaskName = "Defining the target audience",
+        StartDate = new DateTime(2021, 04, 02),
+        EndDate = new DateTime(2021, 04, 04),
+        Duration = "3",
+        Progress = 40,
+        ParentId = "1Abc"
+    },
+    new TaskInfoModel() {
+        TaskId = "4Ccc",
+        TaskName = "Prepare product sketch and notes",
+        StartDate = new DateTime(2021, 04, 05),
+        EndDate = new DateTime(2021, 04, 08),
+        Duration = "2",
+        Progress = 30,
+        ParentId = "1Abc",
+        Predecessor="2 Aaa"
+    },
+    new TaskInfoModel() {
+        TaskId = "5Ddd",
+        TaskName = "Concept approval",
+        StartDate = new DateTime(2021, 04, 08),
+        EndDate = new DateTime(2021, 04, 08),
+        Duration="0",
+        Predecessor="3Bbb  FF,4Ccc    SS+2"
+    },
+    new TaskInfoModel() {
+        TaskId = "6Eee",
+        TaskName = "Market research",
+        StartDate = new DateTime(2021, 04, 09),
+        EndDate = new DateTime(2021, 04, 18),
+        Predecessor="2Aaa",
+        Duration = "4",
+        Progress = 30
+    },
+    new TaskInfoModel() {
+        TaskId = "7Fff",
+        TaskName = "Demand analysis",
+        StartDate = new DateTime(2021, 04, 09),
+        EndDate = new DateTime(2021, 04, 12),
+        Duration = "4",
+        Progress = 40,
+        ParentId = "6Eee"
+    },
+    new TaskInfoModel() {
+        TaskId = "8Ggg",
+        TaskName = "Customer strength",
+        StartDate = new DateTime(2021, 04, 09),
+        EndDate = new DateTime(2021, 04, 12),
+        Duration = "4",
+        Progress = 30,
+        ParentId = "7Fff",
+        Predecessor="5Ddd"
+    }, new TaskInfoModel() {
+        TaskId = "9Hhh",
+        TaskName = "Market opportunity analysis",
+        StartDate = new DateTime(2021, 04, 09),
+        EndDate = new DateTime(2021, 04, 012),
+        Duration="4",
+        ParentId= "7Fff",
+        Predecessor="5Ddd"
+    },
+    new TaskInfoModel() {
+        TaskId = "10Iii",
+        TaskName = "Competitor analysis",
+        StartDate = new DateTime(2021, 04, 15),
+        EndDate = new DateTime(2021, 04, 18),
+        Duration = "4",
+        Progress = 30,
+        ParentId= "6Eee",
+        Predecessor="7Fff,8Ggg"
+    },
+    new TaskInfoModel() {
+        TaskId = "11Jjj",
+        TaskName = "Product strength analysis",
+        StartDate = new DateTime(2021, 04, 15),
+        EndDate = new DateTime(2021, 04, 18),
+        Duration = "4",
+        Progress = 40,
+        ParentId = "6Eee",
+        Predecessor="9Hhh"
+    },
+    new TaskInfoModel() {
+        TaskId = "12Kkk",
+        TaskName = "Research completed",
+        StartDate = new DateTime(2021, 04, 18),
+        EndDate = new DateTime(2021, 04, 18),
+        Duration = "0",
+        Progress = 30,
+        ParentId = "6Eee",
+        Predecessor="10Iii"
+    },
+        new TaskInfoModel() {
+        TaskId = "13Lll",
+        TaskName = "Product design and development",
+        StartDate = new DateTime(2021, 04, 19),
+        EndDate = new DateTime(2021, 05, 16),
+        Duration="20",
+        Predecessor="6Eee"
+        },
+    new TaskInfoModel() {
+        TaskId = "14Mmm",
+        TaskName = "Functionality design",
+        StartDate = new DateTime(2021, 04, 19),
+        EndDate = new DateTime(2021, 04, 23),
+        Duration = "3",
+        Progress = 30,
+        ParentId = "13Lll",
+        Predecessor="12Kkk"
+    },
+    new TaskInfoModel() {
+        TaskId = "15Nnn",
+        TaskName = "Quality design",
+        StartDate = new DateTime(2021, 04, 19),
+        EndDate = new DateTime(2021, 04, 23),
+        Duration = "3",
+        Progress = 40,
+        ParentId = "13Lll",
+        Predecessor="12Kkk"
+    },
+    new TaskInfoModel() {
+        TaskId = "16Ooo",
+        TaskName = "Define reliability",
+        StartDate = new DateTime(2021, 04, 24),
+        EndDate = new DateTime(2021, 04, 25),
+        Duration = "2",
+        Progress = 30,
+        ParentId = "13Lll",
+        Predecessor="15Nnn"
+    },
+        new TaskInfoModel() {
+        TaskId = "17Ppp",
+        TaskName = "Identifying raw materials",
+        StartDate = new DateTime(2021, 04, 24),
+        EndDate = new DateTime(2021, 04, 25),
+        Duration="2",
+        ParentId = "13Lll",
+        Predecessor="15Nnn"
+    },
+    new TaskInfoModel() {
+        TaskId = "18Qqq",
+        TaskName = "Define cost plan",
+        StartDate = new DateTime(2021, 04, 26),
+        EndDate = new DateTime(2021, 04, 29),
+        Duration = "2",
+        Progress = 30,
+        ParentId="13Lll",
+        Predecessor="17Ppp"
+    },
+    new TaskInfoModel() {
+        TaskId = "19Sss",
+        TaskName = "Manufacturing cost",
+        StartDate = new DateTime(2021, 04, 26),
+        EndDate = new DateTime(2021, 04, 29),
+        Duration = "2",
+        Progress = 40,
+        ParentId = "18Qqq",
+        Predecessor="17Ppp"
+    },
+    new TaskInfoModel() {
+        TaskId = "20Ttt",
+        TaskName = "Selling cost",
+        StartDate = new DateTime(2021, 04, 26),
+        EndDate = new DateTime(2021, 04, 29),
+        Duration = "2",
+        Progress = 30,
+        ParentId = "18Qqq",
+        Predecessor="17Ppp"
+    },
+        new TaskInfoModel() {
+        TaskId = "21Vvv",
+        TaskName = "Development of final design",
+        StartDate = new DateTime(2021, 04, 30),
+        EndDate = new DateTime(2021, 05, 08),
+        Duration="7",
+        ParentId= "13Lll"
+    },
+    new TaskInfoModel() {
+        TaskId = "22Uuu",
+        TaskName = "Develop dimensions and design",
+        StartDate = new DateTime(2021, 04, 30),
+        EndDate = new DateTime(2021, 05, 01),
+        Duration = "2",
+        Progress = 30,
+        ParentId="21Vvv",
+        Predecessor="19Sss,20Ttt"
+    },
+    new TaskInfoModel() {
+        TaskId = "23Www",
+        TaskName = "Develop designs to meet industry",
+        StartDate = new DateTime(2021, 05, 02),
+        EndDate = new DateTime(2021, 05, 03),
+        Duration = "2",
+        Progress = 40,
+        ParentId = "21Vvv",
+        Predecessor="22Uuu"
+    },
+    new TaskInfoModel() {
+        TaskId = "24Xxx",
+        TaskName = "Include all the details",
+        StartDate = new DateTime(2021, 05, 06),
+        EndDate = new DateTime(2021, 05, 08),
+        Duration = "3",
+        Progress = 30,
+        ParentId = "21Vvv",
+        Predecessor="23Www"
+    },
+        new TaskInfoModel() {
+        TaskId = "25.1",
+        TaskName = "CAD - Computer Aided Design",
+        StartDate = new DateTime(2021, 05, 09),
+        EndDate = new DateTime(2021, 05, 13),
+        Duration="3",
+        Predecessor="24Xxx"
+    },
+    new TaskInfoModel() {
+        TaskId = "26.1",
+        TaskName = "CAM - Computer Aided Manufacturing",
+        StartDate = new DateTime(2021, 05, 14),
+        EndDate = new DateTime(2021, 05, 16),
+        Duration = "3",
+        Progress = 30,
+        Predecessor="25.1"
+    },
+};
+        return Tasks;
+    }
+}

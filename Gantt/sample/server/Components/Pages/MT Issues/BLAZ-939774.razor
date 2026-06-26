@@ -1,0 +1,216 @@
+@page "/BLAZ-939774"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Navigations
+<button @onclick="Timeline">Timeline Change</button>
+<button @onclick="TimelineTier">TimelineTier</button>
+<SfGantt DataSource="@EditingData" @ref="Gantt" ID="GanttExport" Height="450px" Width="700px" AllowPdfExport="true" AllowSelection="true" ProjectEndDate="@ProjectEndDate" ProjectStartDate="@ProjectStartDate" HighlightWeekends="true" Toolbar="ToolbarActions"
+TreeColumnIndex="1" DateFormat="dd/MM/yyyy" AllowUnscheduledTasks="true" EnableContextMenu="true" AllowRowDragAndDrop="true" TaskType="TaskType.FixedDuration">
+    <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" Dependency="Predecessor" Child="SubTasks" Notes="Info">
+    </GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskID" Width="80"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+        <GanttColumn Field="StartDate"></GanttColumn>
+        <GanttColumn Field="EndDate"></GanttColumn>
+        <GanttColumn Field="Duration"></GanttColumn>
+        <GanttColumn Field="Hours"></GanttColumn>
+        <GanttColumn Field="Custom"></GanttColumn>
+        <GanttColumn Field="Progress"></GanttColumn>
+        <GanttColumn Field="Predecessor"></GanttColumn>
+    </GanttColumns>
+    <GanttTimelineSettings>
+        <GanttTopTierSettings Unit="TimelineViewMode.Week" Format="MMM dd, y"></GanttTopTierSettings>
+        <GanttBottomTierSettings Unit="TimelineViewMode.Day"></GanttBottomTierSettings>
+    </GanttTimelineSettings>
+    @* <GanttDayWorkingTimeCollection>
+                    <GanttDayWorkingTime From="9" To="17"></GanttDayWorkingTime>
+                </GanttDayWorkingTimeCollection> *@
+    <GanttEditDialogFields>
+        <GanttEditDialogField Type="GanttDialogFieldType.General" HeaderText="General"></GanttEditDialogField>
+        <GanttEditDialogField Type="GanttDialogFieldType.Dependency"></GanttEditDialogField>
+        <GanttEditDialogField Type="GanttDialogFieldType.Notes"></GanttEditDialogField>
+    </GanttEditDialogFields>
+    <GanttLabelSettings LeftLabel="TaskName" TaskLabel="Progress" TValue="TaskData">
+
+    </GanttLabelSettings>
+    <GanttEvents RowUpdating="RowUpdatingHandler" OnToolbarClick="HandleToolbarClick" ContextMenuOpen="ContextMenuOpenHandler" OnActionBegin="ActionBeginHandler" TValue="TaskData"></GanttEvents>
+</SfGantt>
+
+@code {
+    private List<TaskData> EditingData { get; set; }
+    private bool isContextMenuAdd = false;
+    private bool isAddRecordMethod = false;
+    private int ids = 1;
+    private List<object> ToolbarActions { get; set; } = new List<object>
+    {
+        "ZoomIn", "ZoomOut", "ZoomToFit", "ExcelExport", "CsvExport",
+        new ToolbarItem { Text = "PDF Export", TooltipText = "PDF Export", Id = "PdfExport", PrefixIcon = "e-pdfexport" }
+    };
+    public async Task HandleToolbarClick(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        if (args.Item.Id == "GanttExport_excelexport")
+        {
+            await Gantt.ExportToExcelAsync();
+        }
+        else if (args.Item.Id == "GanttExport_csvexport")
+        {
+            await Gantt.ExportToCsvAsync();
+        }
+        else if (args.Item.Id == "PdfExport")
+        {
+            await Gantt.ExportToPdfAsync();
+        }
+    }
+    private SfGantt<TaskData> Gantt { get; set; }
+    private DateTime ProjectStartDate { get; set; } = new DateTime(2024, 3, 01);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2024, 7, 28);
+    protected override void OnInitialized()
+    {
+        EditingData = GetEditingData();
+    }
+    private async void TimelineTier()
+    {
+        this.Gantt.TimelineSettings.TopTier.Unit = TimelineViewMode.Year;
+        this.Gantt.TimelineSettings.BottomTier.Unit = TimelineViewMode.Month;
+        await Gantt.RefreshAsync();
+    }
+    private async void Timeline()
+    {
+        this.Gantt.ProjectEndDate = new DateTime(2024, 8, 01);
+        await Gantt.RefreshAsync();
+    }
+    public void ContextMenuOpenHandler(ContextMenuOpenEventArgs<TaskData> args)
+    {
+        //isContextMenuAdd = true;
+    }
+    public async Task ActionBeginHandler(GanttActionEventArgs<TaskData> args)
+    {
+        // if (args.RequestType == Syncfusion.Blazor.Gantt.Action.BeforeOpenEditDialog)
+        // {
+        //     args.Cancel = true;
+        // }
+        await Task.CompletedTask;
+    }
+    // public void AddRecord()
+    // {
+    //     isAddRecordMethod = true;
+
+    //     // Assuming you have a reference to the Gantt instance
+    //     Gantt.AddRecord();
+    // }
+    public class TaskData
+    {
+        public int TaskID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public string Hours { get; set; }
+        public string Custom { get; set; }
+        public int Progress { get; set; }
+        public List<TaskData> SubTasks { get; set; }
+        public string Predecessor { get; set; }
+        public string Info { get; set; }
+    }
+
+
+    private List<TaskData> GetEditingData()
+    {
+        return new List<TaskData>
+        {
+            new TaskData
+            {
+                TaskID = 1,
+                TaskName = "Project initiation",
+                StartDate = new DateTime(2024, 4, 2),
+                EndDate = new DateTime(2024, 4, 21),
+                SubTasks = new List<TaskData>
+                {
+                    new TaskData
+                    {
+                        TaskID = 2,
+                        TaskName = "Identify site location",
+                        StartDate = new DateTime(2024, 4, 2),
+                        Duration = "0.5",
+                        Progress = 30,
+                        Info = "Measure the total property area alloted for construction",
+                        Custom="<i>jjjj</i>"
+                    },
+                    new TaskData
+                    {
+                        TaskID = 3,
+                        TaskName = "Perform soil test",
+                        StartDate = new DateTime(2024, 4, 2),
+                        Duration = "4.5",
+                        Predecessor = "2",
+                        Info = "Obtain an engineered soil test of lot where construction is planned.",
+                    },
+                    new TaskData
+                    {
+                        TaskID = 4,
+                        TaskName = "Soil test approval",
+                        StartDate = new DateTime(2024, 4, 2),
+                        Duration = "0.5",
+                        Predecessor = "3",
+                        Progress = 50,
+                    }
+                }
+            },
+            new TaskData
+            {
+                TaskID = 5,
+                TaskName = "Project estimation",
+                StartDate = new DateTime(2024, 4, 2),
+                EndDate = new DateTime(2024, 4, 21),
+                SubTasks = new List<TaskData>
+                {
+                    new TaskData
+                    {
+                        TaskID = 6,
+                        TaskName = "Develop floor plan for estimation",
+                        StartDate = new DateTime(2024, 4, 4),
+                        Duration = "3",
+                        Predecessor = "4",
+                        Progress = 45,
+                        Info = "Develop floor plans and obtain a materials list for estimations"
+                    },
+                    new TaskData
+                    {
+                        TaskID = 7,
+                        TaskName = "List materials",
+                        StartDate = new DateTime(2024, 4, 4),
+                        Duration = "3",
+                        Predecessor = "6",
+                        Info = ""
+                    },
+                    new TaskData
+                    {
+                        TaskID = 8,
+                        TaskName = "Estimation approval",
+                        StartDate = new DateTime(2024, 4, 4),
+                        Duration = "0",
+                        Predecessor = "7",
+                        Info = ""
+                    }
+                }
+            },
+            new TaskData
+                    {
+                        TaskID = 9,
+                        TaskName = "Estimation approval",
+                        StartDate = new DateTime(2024, 4, 4),
+                        Duration = "2",
+                        Predecessor = "7",
+                        Info = "",
+                        Progress = 45,
+                    }
+        };
+    }
+    public void RowUpdatingHandler(GanttRowUpdatingEventArgs<TaskData> args)
+    {
+        
+    }
+}

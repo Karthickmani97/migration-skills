@@ -1,0 +1,161 @@
+@page "/BLAZ-959988"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+
+<SfGantt @ref="Gantt" TValue="TaskDataModel" DataSource="@TaskCollection" Height="450px" Width="100%" ViewType="@viewType" GridLines="@gridLine" TreeColumnIndex="1" Toolbar="@(new List<Object>() { "ZoomIn", "ZoomOut", "ZoomToFit", "NextTimeSpan", "PrevTimeSpan" })"   RowHeight="37" ProjectStartDate="ProjectStartDate" ProjectEndDate="ProjectEndDate" ScrollToTaskbarOnClick="true">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor"></GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+    <GanttLabelSettings LeftLabel="TaskName" TValue="TaskDataModel"></GanttLabelSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Width="100" Visible="false"></GanttColumn>
+        <GanttColumn Field="TaskName" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+        <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+    </GanttColumns>
+    <GanttTimelineSettings>
+        <GanttTopTierSettings Unit="@TopTierUnit"></GanttTopTierSettings>
+    </GanttTimelineSettings>
+    <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" MaxUnits="MaxUnit" Group="Group" TValue="TaskDataModel" TResources="ResourceInfoModel"></GanttResource>
+    <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="Id" TaskID="TaskId" ResourceID="ResourceId" TValue="TaskDataModel" TAssignment="AssignmentModel"></GanttAssignmentFields>
+    <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="TaskDataModel" TSegments="SegmentModel" DataSource="SegmentCollection"></GanttSegmentFields>
+    <GanttSplitterSettings Position="28%"></GanttSplitterSettings>
+</SfGantt>
+
+@code {
+    private SfGantt<TaskDataModel> Gantt;
+    private static List<TaskDataModel> TaskCollection { get; set; }
+    private static List<AssignmentModel> AssignmentCollection { get; set; }
+    private List<ResourceInfoModel> ResourceCollection { get; set; }
+    private List<SegmentModel> SegmentCollection { get; set; }
+    private DateTime ProjectStartDate = new DateTime(2022, 03, 28);
+    private DateTime ProjectEndDate = new DateTime(2022, 07, 28);
+    private Syncfusion.Blazor.Gantt.ViewType viewType = Syncfusion.Blazor.Gantt.ViewType.ProjectView;
+    private Syncfusion.Blazor.Gantt.GridLine gridLine = Syncfusion.Blazor.Gantt.GridLine.Horizontal;
+    private TimelineViewMode TopTierUnit { get; set; } = TimelineViewMode.Week;
+    public class TaskDataModel
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; }
+    }
+
+    public class SegmentModel
+    {
+        public int id { get; set; }
+        public int TaskId { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+    }
+
+    public class ResourceInfoModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public double MaxUnit { get; set; }
+        public string? Group { get; set; }
+    }
+
+    public class AssignmentModel
+    {
+        public int Id { get; set; }
+        public int TaskId { get; set; }
+        public int ResourceId { get; set; }
+        public double Unit { get; set; }
+    }
+    protected override void OnInitialized()
+    {
+        TaskCollection = GetTaskCollection();
+        SegmentCollection = GetSegmentCollection();
+        ResourceCollection = GetResources;
+        AssignmentCollection = GetAssignmentCollection();
+    }
+    private List<TaskDataModel> GetTaskCollection()
+    {
+        return new List<TaskDataModel>
+        {
+            new TaskDataModel() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 03, 28), EndDate = new DateTime(2022, 07, 28), Duration="4" },
+            new TaskDataModel() { TaskId = 2, TaskName = "Identify site location", StartDate = new DateTime(2022, 03, 29), Progress = 30, ParentId = 1, Duration="8", },
+            new TaskDataModel() { TaskId = 3, TaskName = "Site analyze", StartDate = new DateTime(2022, 03, 29),  Progress = 50, ParentId = 1, Duration="8"},
+            new TaskDataModel() { TaskId = 4, TaskName = "Perform soil test", StartDate = new DateTime(2022, 03, 29), ParentId = 1, Duration="5", Predecessor="2FS", Progress=40, },
+            new TaskDataModel() { TaskId = 5, TaskName = "Soil test approval", StartDate = new DateTime(2022, 03, 29), Duration="4", Progress = 30 },
+            new TaskDataModel() { TaskId = 6, TaskName = "Project estimation", StartDate = new DateTime(2022, 04, 08), Duration="8", Progress=40, ParentId=1 },
+            new TaskDataModel() { TaskId = 7, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 03, 29), Duration = "0", Progress = 30, ParentId = 5, Predecessor= "4FS" },
+            new TaskDataModel() { TaskId = 8, TaskName = "List materials", StartDate = new DateTime(2022, 04, 01), Duration = "6", Progress = 30, ParentId = 5 },
+            new TaskDataModel() { TaskId = 9, TaskName = "Estimation approval",Progress=30, StartDate = new DateTime(2022, 04, 01), Duration = "4", ParentId = 5, Predecessor="8FS" },
+            new TaskDataModel() { TaskId = 10, TaskName = "Building approval", StartDate = new DateTime(2022, 04, 12), Duration = "5", ParentId = 5 },
+            new TaskDataModel() { TaskId = 11, TaskName = "Construction initiation", StartDate = new DateTime(2022, 04, 01), Duration = "5", Progress=40 },
+            new TaskDataModel() { TaskId = 12, TaskName = "Ground floor initiation", StartDate = new DateTime(2022, 04, 05), Duration = "5", ParentId = 11, Progress=40},
+            new TaskDataModel() { TaskId = 13, TaskName = "First floor initiation", StartDate = new DateTime(2022, 04, 05), Duration = "7",ParentId = 11, Progress=40},
+            new TaskDataModel() { TaskId = 14, TaskName = "Electric work initiation", StartDate = new DateTime(2022, 04, 01), Duration = "5", ParentId = 11, Progress=40, },
+            new TaskDataModel() { TaskId = 15, TaskName = "Plumbing work", StartDate = new DateTime(2022, 04, 02), Duration = "5", ParentId = 11, Progress=40 },
+        };
+    }
+    private List<SegmentModel> GetSegmentCollection()
+    {
+        List<SegmentModel> segments = new List<SegmentModel>();
+        segments.Add(new SegmentModel() { id = 1, TaskId = 2, StartDate = new DateTime(2022, 04, 01), Duration = "1" });
+        segments.Add(new SegmentModel() { id = 2, TaskId = 2, StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { id = 3, TaskId = 3, StartDate = new DateTime(2022, 04, 01), Duration = "2" });
+        segments.Add(new SegmentModel() { id = 4, TaskId = 3, StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { id = 5, TaskId = 3, StartDate = new DateTime(2022, 04, 04), Duration = "3" });
+        segments.Add(new SegmentModel() { id = 6, TaskId = 4, StartDate = new DateTime(2022, 04, 01), Duration = "1" });
+        segments.Add(new SegmentModel() { id = 7, TaskId = 4, StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { id = 8, TaskId = 8, StartDate = new DateTime(2022, 04, 01), EndDate = new DateTime(2022, 04, 03) });
+        segments.Add(new SegmentModel() { id = 9, TaskId = 8, StartDate = new DateTime(2022, 04, 05), Duration = "1" });
+        segments.Add(new SegmentModel() { id = 10, TaskId = 9, StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { id = 11, TaskId = 9, StartDate = new DateTime(2022, 04, 01), Duration = "1" });
+        segments.Add(new SegmentModel() { id = 12, TaskId = 12, StartDate = new DateTime(2022, 04, 05), Duration = "1" });
+        segments.Add(new SegmentModel() { id = 13, TaskId = 12, StartDate = new DateTime(2022, 04, 07), Duration = "1" });
+        segments.Add(new SegmentModel() { id = 14, TaskId = 14, StartDate = new DateTime(2022, 04, 01), EndDate = new DateTime(2022, 04, 02) });
+        segments.Add(new SegmentModel() { id = 15, TaskId = 14, StartDate = new DateTime(2022, 04, 04), Duration = "2" });
+        return segments;
+    }
+
+    public static List<ResourceInfoModel> GetResources = new List<ResourceInfoModel>()
+     {
+         new ResourceInfoModel() { Id= 1, Name= "Martin Tamer", Group="Planning Team"},
+         new ResourceInfoModel() { Id= 2, Name= "Rose Fuller", Group="Testing Team" },
+         new ResourceInfoModel() { Id= 3, Name= "Margaret Buchanan", Group="Approval Team" },
+         new ResourceInfoModel() { Id= 4, Name= "Fuller King", Group="Development Team" },
+         new ResourceInfoModel() { Id= 5, Name= "Davolio Fuller", Group="Approval Team" },
+         new ResourceInfoModel() { Id= 6, Name= "Fuller Buchanan", Group="Development Team" },
+         new ResourceInfoModel() { Id= 7, Name= "Jack Davolio", Group="Planning Team" },
+         new ResourceInfoModel() { Id= 8, Name= "Tamer Vinet", Group="Testing Team" },
+         new ResourceInfoModel() { Id= 9, Name= "Vinet Fuller", Group="Development Team" },
+         new ResourceInfoModel() { Id= 10, Name= "Bergs Anton", Group="Testing Team" },
+         new ResourceInfoModel() { Id= 11, Name= "Construction Supervisor", Group="Testing Team" },
+     };
+
+    public static List<AssignmentModel> GetAssignmentCollection()
+    {
+        List<AssignmentModel> assignments = new List<AssignmentModel>()
+         {
+             new AssignmentModel(){ Id=1, TaskId = 2 , ResourceId=1, Unit=70},
+             new AssignmentModel(){ Id=2, TaskId = 3 , ResourceId=1, Unit=70},
+             new AssignmentModel(){ Id=3, TaskId = 4 , ResourceId=3},
+             new AssignmentModel(){ Id=4, TaskId = 5 , ResourceId=8},
+             new AssignmentModel(){ Id=5, TaskId = 6 , ResourceId=2},
+             new AssignmentModel(){ Id=6, TaskId = 7 , ResourceId=4, Unit=30},
+             new AssignmentModel(){ Id=7, TaskId = 8 , ResourceId=8},
+             new AssignmentModel(){ Id=8, TaskId = 9 , ResourceId=11},
+             new AssignmentModel(){ Id=9, TaskId = 12 , ResourceId=2},
+             new AssignmentModel(){ Id=10, TaskId = 13 , ResourceId=6},
+             new AssignmentModel(){ Id=11, TaskId = 14 , ResourceId=7},
+             new AssignmentModel(){ Id=12, TaskId = 15 , ResourceId=9},
+             new AssignmentModel(){ Id=13, TaskId = 16 , ResourceId=10},
+             new AssignmentModel(){ Id=14, TaskId = 17 , ResourceId=7},
+             new AssignmentModel(){ Id=15, TaskId = 18 , ResourceId=5},
+             new AssignmentModel(){ Id=16, TaskId = 19 , ResourceId=5}
+         };
+        return assignments;
+    }
+}

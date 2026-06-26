@@ -1,0 +1,298 @@
+@page "/BLAZ-1018749"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Navigations
+@using System.Collections.ObjectModel
+@using System.ComponentModel
+@using System.Runtime.CompilerServices
+<SfButton OnClick="SetTaskName">Set Task Name</SfButton>
+@if (IsGanttVisible)
+{
+    <SfGantt @ref="Gantt" class="gantt" ID="ScheduleBuilder" DataSource="@TaskCollection" Height="500px" Width="100%" TreeColumnIndex="0" CopyHierarchyMode="Syncfusion.Blazor.TreeGrid.CopyHierarchyType.None"
+             TaskbarHeight="30"
+             RowHeight="30"
+             EnableContextMenu="true"
+             EnableRowHover
+             TaskMode="ScheduleMode.Custom"
+             AllowFiltering="true"
+             HighlightWeekends="true"
+             RenderBaseline="true"
+             GridLines="Syncfusion.Blazor.Gantt.GridLine.Both"
+             ScrollToTaskbarOnClick
+             EnablePredecessorValidation="true"
+             AutoUpdatePredecessorOffset="false"
+             AllowResizing
+             AllowRowDragAndDrop="@true"
+             EnableRowVirtualization
+             EnableTimelineVirtualization
+             OverscanCount="-1"
+             AllowPdfExport
+             EnableCriticalPath
+             ProjectStartDate="new DateTime(2024, 04, 05)">
+        <GanttColumns>
+            <GanttColumn Field="TaskID" HeaderText="ID" Width="120">
+                <Template>
+                    @{
+                        var data = context as TaskData;
+                    }
+                    <span>@($"#{data?.TaskID}")</span>
+                </Template>
+            </GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Task Name" Width="250"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date" Format="yyyy-MM-dd" Width="150"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date" Format="yyyy-MM-dd" Width="150"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration" Width="80"></GanttColumn>
+            <GanttColumn Field="Predecessor" HeaderText="Predecessors" Width="80"></GanttColumn>
+
+        </GanttColumns>
+        <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Work="Work" TaskType="TaskType" Dependency="Predecessor" Manual="IsManual" ExpandState="IsExpanded" Notes="Notes">
+        </GanttTaskFields><GanttTooltipSettings TValue="TaskData" ShowTooltipOnEditing="false"></GanttTooltipSettings>
+        <GanttEditSettings AllowSchedulingOnDrag="@true" AllowAdding="@true" AllowDeleting="false" AllowEditing="@true" AllowTaskbarEditing="@true" ShowDeleteConfirmDialog="false" Mode="Syncfusion.Blazor.Gantt.EditMode.Auto">
+        </GanttEditSettings>
+        <GanttHolidays>
+            @for (var i = 0; i < 24; ++i)
+            {
+                var exceptionDate = new DateTime(2023, 04, 05).AddDays(i * 28);
+                <GanttHoliday Label="@($"Holiday {i}")" From="exceptionDate" To="exceptionDate"></GanttHoliday>
+            }
+        </GanttHolidays>
+        <GanttEvents TValue="TaskData" ContextMenuOpen="() => { }" RowSelected="OnRowSelected" DataBound="DataBoundEvent"></GanttEvents>
+        <GanttSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Both" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple" AllowDragSelection EnableToggle />
+    </SfGantt>
+
+
+}
+@code {
+    public int SelectedRowIndex { get; set; } = -1;
+    public bool IsGanttVisible { get; set; } = true;
+    public SfGantt<TaskData> Gantt;
+    public int scrollIndex = 0;
+    public bool dataReassign = false;
+
+
+    private ObservableCollection<TaskData> TaskCollection { get; set; }
+
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+
+    public class TaskData : INotifyPropertyChanged
+    {
+        private int _taskID;
+        private string _taskName = string.Empty;
+        private DateTime _startDate;
+        private DateTime? _endDate;
+        private string _duration = string.Empty;
+        private int _progress;
+        private int? _parentId;
+        private string? _predecessor;
+        private bool _isManual;
+        private bool _isExpanded = true;
+        private double? _work;
+        private string? _taskType;
+        private string? _notes;
+
+        public int TaskID
+        {
+            get => _taskID;
+            set => SetProperty(ref _taskID, value);
+        }
+
+        public string TaskName
+        {
+            get => _taskName;
+            set => SetProperty(ref _taskName, value);
+        }
+
+        public DateTime StartDate
+        {
+            get => _startDate;
+            set => SetProperty(ref _startDate, value);
+        }
+
+        public DateTime? EndDate
+        {
+            get => _endDate;
+            set => SetProperty(ref _endDate, value);
+        }
+
+        public string Duration
+        {
+            get => _duration;
+            set => SetProperty(ref _duration, value);
+        }
+
+        public int Progress
+        {
+            get => _progress;
+            set => SetProperty(ref _progress, value);
+        }
+
+        public int? ParentId
+        {
+            get => _parentId;
+            set => SetProperty(ref _parentId, value);
+        }
+
+        public string? Predecessor
+        {
+            get => _predecessor;
+            set => SetProperty(ref _predecessor, value);
+        }
+
+        public bool IsManual
+        {
+            get => _isManual;
+            set => SetProperty(ref _isManual, value);
+        }
+
+        public bool IsExpanded
+        {
+            get => _isExpanded;
+            set => SetProperty(ref _isExpanded, value);
+        }
+
+        public double? Work
+        {
+            get => _work;
+            set => SetProperty(ref _work, value);
+        }
+
+        public string? TaskType
+        {
+            get => _taskType;
+            set => SetProperty(ref _taskType, value);
+        }
+
+        public string? Notes
+        {
+            get => _notes;
+            set => SetProperty(ref _notes, value);
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        /// <summary>
+        /// Sets the field to the provided value and raises PropertyChanged if the value changed.
+        /// Returns true if the value was changed; otherwise false.
+        /// </summary>
+        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+    }
+
+    public async Task OnRowSelected(RowSelectEventArgs<TaskData> args)
+    {
+        SelectedRowIndex = args.RowIndex;
+        await Gantt.ZoomToFitAsync();
+    }
+
+    public async Task SetTaskName()
+    {
+        if (SelectedRowIndex < 0 || SelectedRowIndex >= TaskCollection.Count)
+        {
+            return;
+        }
+
+        var task = TaskCollection[SelectedRowIndex];
+        task.TaskName = "Hello World";
+
+        await Gantt.UpdateRecordByIDAsync(task);
+    }
+
+    public async Task DataBoundEvent()
+    {
+        if (this.dataReassign)
+        {
+            this.Gantt.ScrollIntoViewAsync(0, this.scrollIndex);
+            this.dataReassign = false;
+        }
+    }
+
+    public static ObservableCollection<TaskData> GetTaskCollection()
+    {
+        var tasks = new ObservableCollection<TaskData>();
+
+        DateTime projectStart = new DateTime(2026, 1, 5);
+        DateTime currentStart = projectStart;
+
+        Random rng = new Random(42);
+
+        for (int i = 1; i <= 100; i++)
+        {
+            // Duration between 1 and 5 days
+            int durationDays = rng.Next(1, 6);
+            DateTime start = currentStart;
+            DateTime end = start.AddDays(durationDays);
+
+            string? predecessor = null;
+
+            if (i > 1)
+            {
+                // Mostly Finish-to-Start to preserve critical path
+                if (i % 15 == 0)
+                {
+                    // Start-to-Start with previous task
+                    predecessor = $"{i - 1}SS";
+
+                    // Keep same start date
+                    start = tasks[i - 2].StartDate;
+                    end = start.AddDays(durationDays);
+                }
+                else if (i % 20 == 0)
+                {
+                    // Finish-to-Finish with previous task
+                    predecessor = $"{i - 1}FF";
+
+                    // Align finish
+                    end = tasks[i - 2].EndDate ?? end;
+                    start = end.AddDays(-durationDays);
+                }
+                else
+                {
+                    // Standard Finish-to-Start
+                    predecessor = $"{i - 1}FS";
+                }
+            }
+
+            var task = new TaskData
+            {
+                TaskID = i,
+                TaskName = $"Task {i:D3}",
+                StartDate = start,
+                EndDate = end,
+                Duration = $"{durationDays}d",
+                Progress = Math.Min(i, 100),
+                ParentId = null,
+                Predecessor = predecessor,
+                IsManual = false,
+                IsExpanded = true,
+                Work = durationDays * 8, // 8 hours per day
+                TaskType = "Fixed Duration",
+                Notes = i == 1
+                    ? "Project start milestone"
+                    : $"Depends on Task {i - 1}"
+            };
+
+            tasks.Add(task);
+
+            // Advance the current start only for FS links
+            if (predecessor?.EndsWith("FS") == true)
+            {
+                currentStart = end;
+            }
+        }
+
+        return tasks;
+    }
+}

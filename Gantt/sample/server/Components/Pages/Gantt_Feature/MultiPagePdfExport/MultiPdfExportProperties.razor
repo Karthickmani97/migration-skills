@@ -1,0 +1,611 @@
+﻿@page "/multipage-pdf-customization"
+
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Navigations
+@using System.Collections.Generic
+@using Syncfusion.PdfExport
+
+<div class="control-section">
+    <div>
+        <SfComboBox @ref="@CustomListPdf" TItem="CustomData" TValue="string" Placeholder="Custom DataSource" 
+        DataSource="@CustomListPdfData" FloatLabelType="FloatLabelType.Always" Width="250px">
+            <ComboBoxFieldSettings Text="Name" Value="Value"></ComboBoxFieldSettings>
+            <ComboBoxEvents TItem="CustomData" TValue="string" ValueChange="ChangeExportProperties"></ComboBoxEvents>
+        </SfComboBox>
+    </div>
+    <div>
+        <SfComboBox @ref="@ExportPropertiesComboBox" TItem="ExportPropertyData" TValue="string" Placeholder="Select Export Property"
+        DataSource="@ExportPropertiesData" FloatLabelType="FloatLabelType.Always" Width="250px">
+            <ComboBoxFieldSettings Text="Name" Value="Value"></ComboBoxFieldSettings>
+            <ComboBoxEvents TItem="ExportPropertyData" TValue="string" ValueChange="OnExportPropertyChange"></ComboBoxEvents>
+        </SfComboBox>
+    </div>
+    <div id="ganttpdfcustomization">
+        <SfGantt @ref="@Gantt" ID="GanttPdfCustomization" Height="450px" TValue="GanttTask" DataSource="ProjectNewData"
+        AllowSorting="true" AllowReordering="true" EnableContextMenu="true"
+        AllowExcelExport="true" AllowPdfExport="true" AllowRowDragAndDrop="true"
+        HighlightWeekends="true" AllowResizing="true" AllowFiltering="true"
+        GridLines="@gridLines" ShowColumnMenu="true"
+        EnableCriticalPath="@enableCriticalPath" TaskMode="@TaskModeType"
+        Toolbar="@ToolbarItems" RenderBaseline="true">
+
+            <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate"
+            EndDate="EndDate" Duration="Duration" Progress="Progress"
+            Dependency="Predecessor" BaselineStartDate="BaselineStartDate"
+            BaselineEndDate="BaselineEndDate" Child="Subtasks"
+            Indicators="Indicators" Manual="IsManual">
+            </GanttTaskFields>
+
+            <GanttEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true"
+            AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true">
+            </GanttEditSettings>
+
+            <GanttColumns>
+                <GanttColumn Field="TaskID" HeaderText="Task ID"></GanttColumn>
+                <GanttColumn Field="TaskName" HeaderText="Task Name" AllowReordering="false"></GanttColumn>
+                <GanttColumn Field="StartDate" HeaderText="Start Date" AllowSorting="false"></GanttColumn>
+                <GanttColumn Field="Duration" HeaderText="Duration" AllowEditing="false"></GanttColumn>
+                <GanttColumn Field="Progress" HeaderText="Progress" AllowFiltering="false"></GanttColumn>
+            </GanttColumns>
+
+            <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+
+            <GanttTimelineSettings>
+                <GanttTopTierSettings Unit="TimelineViewMode.Week"></GanttTopTierSettings>
+                <GanttBottomTierSettings Unit="TimelineViewMode.Day"></GanttBottomTierSettings>
+            </GanttTimelineSettings>
+            @if (eventMarkers.Count > 0)
+            {
+                <GanttEventMarkers>
+                    @foreach (var events in eventMarkers)
+                    {
+                        <GanttEventMarker Day="@events.Day" Label="@events.Label"></GanttEventMarker>
+                    }
+                </GanttEventMarkers>
+            }
+            <GanttLabelSettings LeftLabel="TaskID" RightLabel="TaskName" TaskLabel="Progress" TValue="GanttTask"></GanttLabelSettings>
+            <GanttEvents TValue="GanttTask" OnToolbarClick="OnToolbarClick" PdfExporting=" PdfExportingHandler"></GanttEvents>
+        </SfGantt>
+    </div>
+</div>
+<style>
+    .control-section{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    }
+</style>
+@code {
+    private SfGantt<GanttTask> Gantt;
+    private SfComboBox<string, CustomData> CustomListPdf;
+    private GanttPdfExportProperties ExportProperties = new GanttPdfExportProperties();
+
+    private DateTime ProjectStartDate = new DateTime(2019, 4, 2);
+    private DateTime ProjectEndDate = new DateTime(2019, 5, 5);
+    private ScheduleMode TaskModeType = ScheduleMode.Auto;
+    private Syncfusion.Blazor.Gantt.GridLine gridLines = Syncfusion.Blazor.Gantt.GridLine.Both;
+    private bool enableCriticalPath = false;
+    private List<GanttEventMarker> eventMarkers = new List<GanttEventMarker>();
+    private List<GanttHoliday> holidays = new List<GanttHoliday>();
+    private bool isTaskFieldsManual = false;
+    private bool isCurrentViewExport = false;
+    private List<GanttTask> ProjectNewData = new List<GanttTask>();
+    private List<CustomData> CustomListPdfData = new List<CustomData>();
+    private string[] CustomItems = new[]
+    {
+        "InitialPlanningData", "ResourceAllocationData", "ZeroDurationTaskData", "PhaseOneData", "VehicleJobCardData", "ProjectInitiationData",
+        "EnableCriticalPath", "ProductConceptData", "ManualParentTaskData", "UnscheduledTaskDataOne",
+        "GridLinesBoth", "GridLinesNone", "GridLinesHorizontal", "GridLinesVertical", "EventMarkerApproval",
+        "EventMarkerKickoff", "ChineseParenthesisData", "SplitTaskData", "TrueTypeData", "ManualTaskMode"
+    };
+    private SfComboBox<string, ExportPropertyData> ExportPropertiesComboBox;
+    private List<ExportPropertyData> ExportPropertiesData = new List<ExportPropertyData>
+    {
+        new ExportPropertyData { Name = "Disable Footer", Value = "disablefooter" },
+        new ExportPropertyData { Name = "Export Type - Current View", Value = "exporttype-CurrentViewData" },
+        new ExportPropertyData { Name = "Export Type - All Data", Value = "exporttype-AllData" },
+        new ExportPropertyData { Name = "File Name", Value = "filename" },
+        new ExportPropertyData { Name = "Header", Value = "header" },
+        new ExportPropertyData { Name = "Footer", Value = "footer" },
+        new ExportPropertyData { Name = "Column Header Style", Value = "ganttStyle-columnHeader" },
+        new ExportPropertyData { Name = "Cell Style", Value = "ganttStyle-cell" },
+        new ExportPropertyData { Name = "Taskbar Style", Value = "ganttStyle-taskbar" },
+        new ExportPropertyData { Name = "Label Style", Value = "ganttStyle-taskbar" },
+        new ExportPropertyData { Name = "Timeline Style", Value = "ganttStyle-timeline" },
+        new ExportPropertyData { Name = "Connector Line Color", Value = "ganttStyle-connectorLineColor" },
+        new ExportPropertyData { Name = "Critical Connector Line Color", Value = "ganttStyle-criticalConnectorLineColor" },
+        new ExportPropertyData { Name = "Event Marker Style", Value = "ganttStyle-eventmarkers" },
+        new ExportPropertyData { Name = "Holiday Style", Value = "ganttStyle-holiday" }
+    };
+
+    void OnExportPropertyChange(ChangeEventArgs<string, ExportPropertyData> args)
+    {
+        if (args.Value != null)
+        {
+            // Call HandleExportProperties with the selected value
+            ExportProperties = HandleExportProperties(args.Value);
+            // Apply exportProps as needed
+        }
+    }
+
+    public class ExportPropertyData
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
+    protected override void OnInitialized()
+    {
+        InitializeBaseData();
+        InitializeCustomDataSource();
+    }
+
+    private void InitializeBaseData()
+    {
+        ProjectNewData = new List<GanttTask> {
+            new GanttTask {
+                TaskID = 1,
+                TaskName = "Product Concept",
+                StartDate = new DateTime(2019, 4, 2),
+                EndDate = new DateTime(2019, 4, 21),
+                Subtasks = new List<GanttTask> {
+                    new GanttTask {
+                        TaskID = 2,
+                        TaskName = "Defining the product and its usage",
+                        BaselineStartDate = new DateTime(2019, 4, 2),
+                        BaselineEndDate = new DateTime(2019, 4, 6),
+                        StartDate = new DateTime(2019, 4, 2),
+                        Duration = 3,
+                        Progress = 30
+                    },
+                    new GanttTask {
+                        TaskID = 3,
+                        TaskName = "Defining target audience",
+                        StartDate = new DateTime(2019, 4, 2),
+                        Duration = 3,
+                        Indicators = new List<GanttIndicator> {
+                            new GanttIndicator {
+                                Date = new DateTime(2019, 4, 10),
+                                Name = "Indicator title",
+                                Tooltip = "tooltip"
+                            }
+                        }
+                    },
+                    new GanttTask {
+                        TaskID = 4,
+                        TaskName = "Prepare product sketch and notes",
+                        StartDate = new DateTime(2019, 4, 2),
+                        Duration = 3,
+                        Predecessor = "2",
+                        Progress = 30
+                    }
+                }
+            },
+            new GanttTask {
+                TaskID = 5,
+                TaskName = "Concept Approval",
+                StartDate = new DateTime(2019, 4, 2),
+                Duration = 0,
+                Predecessor = "3,4"
+            },
+            // Complete nested structure matching original TS data
+            new GanttTask {
+                TaskID = 6,
+                TaskName = "Market Research",
+                StartDate = new DateTime(2019, 4, 2),
+                EndDate = new DateTime(2019, 4, 21),
+                Subtasks = new List<GanttTask> {
+                    new GanttTask {
+                        TaskID = 7,
+                        TaskName = "Demand Analysis",
+                        StartDate = new DateTime(2019, 4, 4),
+                        EndDate = new DateTime(2019, 4, 21),
+                        Subtasks = new List<GanttTask> {
+                            new GanttTask {
+                                TaskID = 8,
+                                TaskName = "Customer strength",
+                                BaselineStartDate = new DateTime(2019, 4, 8),
+                                BaselineEndDate = new DateTime(2019, 4, 12),
+                                StartDate = new DateTime(2019, 4, 4),
+                                Duration = 4,
+                                Predecessor = "5",
+                                Progress = 30
+                            },
+                            new GanttTask {
+                                TaskID = 9,
+                                TaskName = "Market opportunity analysis",
+                                StartDate = new DateTime(2019, 4, 4),
+                                Duration = 4,
+                                Predecessor = "5"
+                            }
+                        }
+                    },
+                    // Continue all nested levels...
+                }
+            }
+        };
+    }
+
+    private void InitializeCustomDataSource()
+    {
+        foreach (var item in CustomItems)
+        {
+            CustomListPdfData.Add(new CustomData { Name = item, Value = item });
+        }
+    }
+
+
+    private void ChangeExportProperties(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, CustomData> args)
+    {
+        switch (args.Value)
+        {
+            case "InitialPlanningData":
+                ProjectNewData = new List<GanttTask>
+            {
+                new GanttTask { TaskID = 1, TaskName = "Initial Planning", StartDate = new DateTime(2024, 1, 10), EndDate = new DateTime(2024, 1, 15), BaselineStartDate = new DateTime(2024, 01, 10), BaselineEndDate = new DateTime(2024, 01, 15) }
+            };
+                break;
+            case "ResourceAllocationData":
+                ProjectNewData = new List<GanttTask>
+            {
+                new GanttTask { TaskID = 2, TaskName = "Resource Allocation", StartDate = new DateTime(2024, 1, 20), EndDate = new DateTime(2024, 1, 25), BaselineStartDate = new DateTime(2024, 01, 15), BaselineEndDate = new DateTime(2024, 01, 20) }
+            };
+                break;
+            case "ZeroDurationTaskData":
+                ProjectNewData = new List<GanttTask>
+            {
+                new GanttTask { TaskID = 3, TaskName = "Resource Allocation", StartDate = new DateTime(2024, 1, 20), Duration = 0, BaselineStartDate = new DateTime(2024, 01, 21), BaselineEndDate = new DateTime(2024, 01, 20) }
+            };
+                break;
+            case "PhaseOneData":
+                ProjectNewData = new List<GanttTask>
+            {
+                new GanttTask { TaskID = 1, TaskName = "Phase 1", StartDate = new DateTime(2019, 4, 1), Duration = 40, Progress = 20, BaselineStartDate = new DateTime(2024, 04, 01), BaselineEndDate = new DateTime(2024, 06, 01) }
+            };
+                break;
+            case "VehicleJobCardData":
+                ProjectNewData = new List<GanttTask>
+            {
+                new GanttTask { TaskID = 1, TaskName = "Receive vehicle and create job card", StartDate = new DateTime(2024, 3, 5), EndDate = new DateTime(2024, 12, 3), BaselineStartDate = new DateTime(2024, 03, 05), BaselineEndDate = new DateTime(2024, 12, 05) }
+            };
+                ProjectStartDate = new DateTime(2025, 1, 1);
+                ProjectEndDate = new DateTime(2026, 10, 5);
+                break;
+            case "ProjectInitiationData":
+                ProjectNewData = new List<GanttTask>
+            {
+                new GanttTask { TaskID = 1, TaskName = "Project initiation", StartDate = new DateTime(2019, 4, 2), EndDate = new DateTime(2019, 4, 21), Subtasks = new List<GanttTask> { new GanttTask { TaskID = 2, TaskName = "Identify site location", StartDate = new DateTime(2019, 4, 2) } } }
+            };
+                break;
+            case "EnableCriticalPath":
+                InitializeBaseData();
+                enableCriticalPath = true;
+                ProjectStartDate = new DateTime(2019, 4, 2);
+                ProjectEndDate = new DateTime(2019, 5, 5);
+                break;
+            case "ProductConceptData":
+                ProjectNewData = new List<GanttTask>
+            {
+                new GanttTask { TaskID = 1, TaskName = "Product Concept", StartDate = new DateTime(2019, 4, 2), EndDate = new DateTime(2019, 4, 21) }
+            };
+                enableCriticalPath = true;
+                ProjectStartDate = new DateTime(2019, 3, 2);
+                ProjectEndDate = new DateTime(2019, 10, 5);
+                break;
+            case "ManualParentTaskData":
+                ProjectNewData = new List<GanttTask>
+            {
+                new GanttTask { TaskID = 1, TaskName = "Parent Task 1", StartDate = new DateTime(2017, 2, 27), EndDate = new DateTime(2017, 3, 3), IsManual = true, Subtasks = new List<GanttTask> { 
+                    new GanttTask { TaskID = 2, TaskName = "Child Task 1", StartDate = new DateTime(2017, 2, 27), EndDate =  new DateTime(2017, 3, 3), Progress = 40}, 
+                    new GanttTask { TaskID = 3, TaskName = "Child Task 2", StartDate = new DateTime(2017, 2, 26), EndDate =  new DateTime(2017, 3, 3), Progress = 40, IsManual = true},
+                    new GanttTask { TaskID = 4, TaskName = "Child Task 3", StartDate = new DateTime(2017, 2, 27), EndDate =  new DateTime(2017, 3, 3), Progress = 40},
+                } }
+            };
+                isTaskFieldsManual = true;
+                TaskModeType = ScheduleMode.Custom;
+                ProjectStartDate = new DateTime(2017, 2, 20);
+                ProjectEndDate = new DateTime(2017, 3, 30);
+                break;
+            case "GridLinesBoth":
+                InitializeBaseData();
+                gridLines = Syncfusion.Blazor.Gantt.GridLine.Both;
+                break;
+            case "GridLinesNone":
+                InitializeBaseData();
+                gridLines = Syncfusion.Blazor.Gantt.GridLine.None;
+                break;
+            case "GridLinesHorizontal":
+                InitializeBaseData();
+                gridLines = Syncfusion.Blazor.Gantt.GridLine.Horizontal;
+                break;
+            case "GridLinesVertical":
+                InitializeBaseData();
+                gridLines = Syncfusion.Blazor.Gantt.GridLine.Vertical;
+                break;
+            case "EventMarkerApproval":
+                InitializeBaseData();
+                eventMarkers = new List<GanttEventMarker>
+            {
+                new GanttEventMarker { Day = new DateTime(2019, 4, 10), Label = "Project approval and kick-off" }
+            };
+                break;
+            case "EventMarkerKickoff":
+                InitializeBaseData();
+                eventMarkers = new List<GanttEventMarker>
+            {
+                new GanttEventMarker { Day = new DateTime(2019, 4, 29), Label = "Project approval and kick-off" }
+            };
+                break;
+            case "ChineseParenthesisData":
+                ProjectNewData = new List<GanttTask>
+            {
+                new GanttTask { TaskID = 1, TaskName = "（这是中文）括号", StartDate = new DateTime(2019, 4, 2), EndDate = new DateTime(2019, 4, 21) }
+            };
+                eventMarkers = new List<GanttEventMarker>
+            {
+                new GanttEventMarker { Day = new DateTime(2019, 4, 10), Label = "Project approval and kick-off" }
+            };
+                holidays = new List<GanttHoliday>
+            {
+                new GanttHoliday { From = new DateTime(2019, 4, 4), To = new DateTime(2019, 4, 5) }
+            };
+                ProjectStartDate = new DateTime(2019, 1, 30);
+                ProjectEndDate = new DateTime(2019, 3, 4);
+                break;
+            case "ManualTaskMode":
+                ProjectNewData = new List<GanttTask>
+            {
+                new GanttTask { TaskID = 1, TaskName = "Parent Task 1", StartDate = new DateTime(2017, 2, 27), EndDate = new DateTime(2017, 3, 3), IsManual = true }
+            };
+                isTaskFieldsManual = true;
+                TaskModeType = ScheduleMode.Custom;
+                ProjectStartDate = new DateTime(2017, 2, 20);
+                ProjectEndDate = new DateTime(2018, 3, 30);
+                break;
+        }
+    }
+
+    private GanttPdfExportProperties HandleExportProperties(string propertyId)
+    {
+        var pdfExportProps = new GanttPdfExportProperties();
+
+        switch (propertyId)
+        {
+            case "disablefooter":
+                pdfExportProps.Footer = null;
+                break;
+
+            case "exporttype-CurrentViewData":
+                // Adjust according to the actual implementation in your PdfExportPropertiesBase,
+                // assuming it should set IsCurrentViewExport to true
+                isCurrentViewExport = true;
+                break;
+
+            case "exporttype-AllData":
+                isCurrentViewExport = false;
+                break;
+
+            case "filename":
+                pdfExportProps.FileName = "GanttExport.pdf";
+                break;
+
+            case "header":
+                pdfExportProps.Header = new PdfHeader
+                    {
+                        Left = 0, // Adjust property name to Left
+                        Height = 50,
+                        Contents = new List<PdfHeaderFooterContent>
+                {
+                    new PdfHeaderFooterContent
+                    {
+                        Type = ContentType.Text,
+                        Value = "Gantt Chart Header",
+                        Position = new PdfPosition { X = 0, Y = 25 },
+                    }
+                }
+                    };
+                break;
+
+            case "footer":
+                pdfExportProps.Footer = new PdfFooter
+                    {
+                        Left = 0, // Adjust property name to Left
+                        Height = 50,
+                        FromBottom = 25,
+                        Contents = new List<PdfHeaderFooterContent>
+                {
+                    new PdfHeaderFooterContent
+                    {
+                        Type = ContentType.Text,
+                        Value = "Page 1 of 1",
+                    }
+                }
+                    };
+                break;
+
+            case "ganttStyle-columnHeader":
+                pdfExportProps.Style ??= new PdfGanttStyle();
+                pdfExportProps.Style.HeaderStyle = new PdfElementStyle
+                    {
+                        Font = new PdfGridFont { TextColor = "#000000", FontFamily = "Arial", FontSize = 12, FontStyle = PdfFontStyle.Bold } // Adjust to use PdfGridFont
+                    };
+                break;
+
+            case "ganttStyle-cell":
+                pdfExportProps.Style ??= new PdfGanttStyle();
+                pdfExportProps.Style.CellStyle = new PdfElementStyle
+                    {
+                        Font = new PdfGridFont { TextColor = "#333333", FontSize = 11 } // Adjust to use PdfGridFont
+                    };
+                break;
+
+            case "ganttStyle-taskbar":
+                pdfExportProps.Theme = GanttPdfTheme.Fluent;
+                pdfExportProps.Style = new PdfGanttStyle
+                {
+                    TaskbarColor = new PdfTaskbarColor
+                    {
+                        ChildTaskbarColor = new PdfColor(13, 143, 224), // Adjust for instantiation
+                        ParentTaskbarColor = new PdfColor(10, 110, 180) // Adjust for instantiation
+                    }
+                };
+                break;
+            case "ganttStyle-label":
+                PdfStringFormat stringFormat = new PdfStringFormat();
+                stringFormat.Alignment = PdfTextAlignment.Center;
+
+                PdfStringFormat vertical = new PdfStringFormat();
+                vertical.Alignment = PdfTextAlignment.Center;
+
+                pdfExportProps.Style = new PdfGanttStyle
+                {
+                    LabelStyleSettings = new PdfLabelSettings
+                    {
+                        LeftLabel = new PdfElementStyle
+                        {
+                            Padding = new PdfPaddings { Left = 0.5f, Right = 0.5f, Top = 0.4f, Bottom = 0.5f },
+                            Font = new PdfGridFont { FontSize = 3, TextColor = "#000000", FontStyle = PdfFontStyle.Strikeout, TextHighlightColor = "#FFC0CB" },
+                            StringFormat = stringFormat,
+                            FillBackgroundColor = "#FFC0CB"
+                        },
+                        RightLabel = new PdfElementStyle
+                        {
+                            Padding = new PdfPaddings { Left = 0.5f, Right = 0.5f, Top = 0.4f, Bottom = 0.5f },
+                            Font = new PdfGridFont { FontSize = 3, TextColor = "#000000", FontStyle = PdfFontStyle.Strikeout, TextHighlightColor = "#FFC0CB" },
+                            StringFormat = stringFormat,
+                            FillBackgroundColor = "#FFC0CB"
+                        },
+                        TaskLabel = new PdfElementStyle
+                        {
+                            Padding = new PdfPaddings { Left = 0.5f, Right = 0.5f, Top = 0.4f, Bottom = 0.5f },
+                            Font = new PdfGridFont { FontSize = 3, TextColor = "#000000", FontStyle = PdfFontStyle.Strikeout, TextHighlightColor = "#FFC0CB" },
+                            StringFormat = stringFormat,
+                            FillBackgroundColor = "#FFC0CB"
+                        }
+
+                    }
+                };
+                break;
+            case "ganttStyle-timeline":
+                PdfStringFormat timelineStringFormat = new PdfStringFormat();
+                timelineStringFormat.Alignment = PdfTextAlignment.Center;
+
+                PdfStringFormat timelineVertical = new PdfStringFormat();
+                timelineVertical.Alignment = PdfTextAlignment.Center;
+
+                PdfBorder timelinePdfBorders = new PdfBorder(){ Color = "#c0c0c0", DashStyle = Syncfusion.Blazor.Grids.PdfDashStyle.Dash, Width = 1};
+                pdfExportProps.Style = new PdfGanttStyle
+                    {
+                        TimelineTopTierStyle = new PdfElementStyle
+                        {
+                            Padding = new PdfPaddings { Left = 0.5f, Right = 0.5f, Top = 0.4f, Bottom = 0.5f },
+                            Font = new PdfGridFont { FontSize = 3, TextColor = "#6495ed", FontStyle = PdfFontStyle.Strikeout, TextHighlightColor = "#FFC0CB" },
+                            StringFormat = timelineStringFormat,
+                            FillBackgroundColor = "#FFC0CB",
+                            Border = timelinePdfBorders
+                        },
+                        TimelineBottomTierStyle = new PdfElementStyle
+                        {
+                            Padding = new PdfPaddings { Left = 0.5f, Right = 0.5f, Top = 0.4f, Bottom = 0.5f },
+                            Font = new PdfGridFont { FontSize = 3, TextColor = "#6495ed", FontStyle = PdfFontStyle.Strikeout, TextHighlightColor = "#FFC0CB" },
+                            StringFormat = timelineStringFormat,
+                            FillBackgroundColor = "#FFC0CB",
+                            Border = timelinePdfBorders
+                        }
+                    };
+                break;
+            case "ganttStyle-connectorLineColor":
+                pdfExportProps.Style ??= new PdfGanttStyle();
+                pdfExportProps.Style.ConnectorLine = new PdfBorder
+                    {
+                        Color = "#000000",
+                        Width = 1
+                    };
+                break;
+
+            case "ganttStyle-criticalConnectorLineColor":
+                pdfExportProps.Style ??= new PdfGanttStyle();
+                pdfExportProps.Style.CriticalPathConnectorLine = new PdfBorder
+                    {
+                        Color = "#FF0000",
+                        Width = 1
+                    };
+                break;
+
+            case "ganttStyle-eventmarkers":
+                pdfExportProps.Style ??= new PdfGanttStyle();
+                pdfExportProps.Style.EventMarkerStyle = new PdfElementStyle
+                    {
+                        Border = new PdfBorder { Color = "#FFFF00" }, // Adjust name for color
+                    };
+                break;
+
+            case "ganttStyle-holiday":
+                pdfExportProps.Style ??= new PdfGanttStyle();
+                pdfExportProps.Style.HolidayStyle = new PdfElementStyle
+                    {
+                        FillBackgroundColor = "#FFC0CB", // Adjust name for color
+                    };
+                break;
+        }
+
+        return pdfExportProps;
+    }
+
+    private async Task OnToolbarClick(ClickEventArgs args)
+    {
+        if (args.Item.Id == "GanttPdfCustomization_PdfExport")
+        {
+            await Gantt.ExportToPdfAsync(ExportProperties,true);
+        }
+    }
+    private async Task PdfExportingHandler(PdfExportEventArgs args)
+    {
+        args.IsCurrentViewExport = isCurrentViewExport;
+        await Task.CompletedTask;
+    }
+    public class GanttTask
+    {
+        public int TaskID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public double Progress { get; set; }
+        public int Duration { get; set; }
+        public string Predecessor { get; set; }
+        public DateTime? BaselineStartDate { get; set; }
+        public DateTime? BaselineEndDate { get; set; }
+        public List<GanttTask> Subtasks { get; set; }
+        public List<GanttIndicator> Indicators { get; set; }
+        public bool IsManual { get; set; }
+    }
+
+    public class GanttIndicator
+    {
+        public DateTime Date { get; set; }
+        public string Name { get; set; }
+        public string Tooltip { get; set; }
+    }
+
+    public class GanttSegment
+    {
+        public DateTime StartDate { get; set; }
+        public int Duration { get; set; }
+    }
+
+    public class CustomData
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
+
+    
+    private List<object> ToolbarItems = new List<object> {
+        "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll",
+        "Search", "ZoomIn", "ZoomOut", "ZoomToFit", "PrevTimeSpan", "NextTimeSpan", new ToolbarItem{ Id = "GanttPdfCustomization_PdfExport", Text = "PdfExport", PrefixIcon="e-pdfexport"}
+    };
+
+}

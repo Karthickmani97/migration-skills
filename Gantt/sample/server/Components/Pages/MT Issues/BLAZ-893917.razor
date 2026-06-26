@@ -1,0 +1,1192 @@
+@page "/BLAZ-893917"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.TreeGrid
+@using Syncfusion.Blazor.Buttons
+
+<PageTitle>Self Reference</PageTitle>
+<button @onclick="AddPredecessor">Add Predecessor</button>
+<button @onclick="AddRow">Add Row</button>
+<button @onclick="CancelEdit">Cancel Edit</button>
+<button @onclick="ClearFiltering">Clear Filtering</button>
+<button @onclick="ClearSelecting">Clear Selecting</button>
+<button @onclick="ClearSorting">Clear Sorting</button>
+<button @onclick="CollapseHandler">Collapse All</button>
+<button @onclick="CollapseLevel">CollapseLevel</button>
+<button @onclick="CollapseKey">CollapseKey</button>
+<button @onclick="ConvertToMilestone">Convert To MileStones</button>
+<button @onclick="CopyHandler">Copy</button>
+<button @onclick="DeleteRecord">Delete Record</button>
+<button @onclick="EnableItem">Enable Items</button>
+<button @onclick="ExpandAll">Expand All</button>
+<button @onclick="ExpandLevel">ExpandLevel</button>
+<button @onclick="ExpandKey">ExpandKey</button>
+<button @onclick="ExportToCsv">Export to CSV</button>
+<button @onclick="ExportToExcel">Export to Excel</button>
+<button @onclick="FilterByColumn">Filter By Column</button>
+<button @onclick="GetColumnIndex">Get ColumnIndexByField</button>
+<button @onclick="GetColumns">GetColumns</button>
+<button @onclick="CriticalTasks">CriticalTask</button>
+<button @onclick="GetCurrentViewData">GetCurrentViewData </button>
+<button @onclick="FilterHandler"> GetFilteredRecords</button>
+<button @onclick="GetHierarchyInfo">Get Hierarchial Data</button>
+<button @onclick="GetPersistence">Get Persistence</button>
+<button @onclick="GetRecordById">GetRecordById</button>
+<button @onclick="GetSelectedRecords">Get Selected Record </button>
+<button @onclick="GetSelectedRowCellIndexes">GetSelectedRowCellIndexes </button>
+<button @onclick="GetSelectedRow">Get Selected Row Index</button>
+<button @onclick="HideColumnFunc">Hide Column</button>
+<button @onclick="HideColumns">Hide Columns</button>
+<button @onclick="HideSpinner">Hide Spinner</button>
+<button @onclick="IndentFunc">Indent</button>
+<button @onclick="NextTimeSpanFunc">Next Time Span</button>
+<button @onclick="OpenAddDialog">Open Add Dialog</button>
+<button @onclick="OpenColumnChooserFunc">Open columnChooser</button>
+<button @onclick="OpenEditDialog">Open EditDialog</button>
+<button @onclick="OutdentFunc">Outdent</button>
+<button @onclick="PreviousTimeSpanFunc">Previous TimeSpan</button>
+<button @onclick="Refresh">Refresh</button>
+<button @onclick="RefreshColumns">RefreshColumns</button>
+<button @onclick="RemovePredecessorFunc">Remove Predecessor</button>
+<button @onclick="ReOrderColumn">Reorder Columns</button>
+<button @onclick="ReorderRow">Reorder Row</button>
+<button @onclick="ClearPersistence">Clear Persistence</button>>
+<button @onclick="ScrollIntoView">ScrollIntoViewAsync</button>
+<button @onclick="ScrollToTaskbar">ScrollToTaskbar</button>
+<button @onclick="ScrollToTimeline">ScrollTimeline</button>
+<button @onclick="Search">Search</button>
+<button @onclick="SelectCellFunc">Select Cell</button>
+<button @onclick="SelectRowFunc">Select Row</button>
+<button @onclick="SelectRows">Select Rows</button>
+<button @onclick="SelectRowByRange">Select rows by Range</button>
+<button @onclick="SetPersistence">Set Persistence</button>
+<button @onclick="SetSplitterPosition">Splitter Psition - view</button>
+<button @onclick="SetSplitter">Splitter Position -  index</button>
+<button @onclick="SplitterPosition">Splitter position</button>
+<button @onclick="UpdateSplitterPosition">Update Splitter Position</button>
+<button @onclick="ShowColumn">Show Column</button>
+<button @onclick="ShowColumns">Show Columns</button>
+<button @onclick="ShowSpinner">Show Spinner</button>
+<button @onclick="SortByColumn">Sort by column</button>
+<button @onclick="UpdatePredecessorHandler">Update Predecessor</button>
+<button @onclick="UpdateProjectDatesFunc">Update Project Date</button>
+<button @onclick="UpdateRecordFunc">Update Record By ID</button>
+<button @onclick="ZoomIn">Zoom In</button>
+<button @onclick="ZoomOut">Zoom Out</button>
+<button @onclick="ZoomFitFunc">Zoom to Fit</button>
+
+@*
+<button @onclick="ZoomIn">Zoom In</button>
+<button @onclick="ZoomOut">Zoom Out</button>
+<button @onclick="ZoomToFit">ZoomToFit</button>
+<button @onclick="ClearSorting">ClearSorting</button>
+<button @onclick="ExpandAll">ExpandAll</button>
+<button @onclick="Indent">Indent</button>
+<button @onclick="Outdent">Outdent</button>
+<button @onclick="OpenAddDialog">OpenAddDialog</button> *@
+<SfGantt @ref="Gantt" DataSource="@TaskCollection" ShowOverallocation="true" Height="450px" Width="1000px" TreeColumnIndex="1"
+         ProjectStartDate="ProjectStart" ProjectEndDate="ProjectEnd" ShowColumnChooser ShowColumnMenu
+          GridLines="Syncfusion.Blazor.Gantt.GridLine.Both" AllowSelection="true" AllowSorting="true" AllowFiltering="true"
+          AllowResizing="true" AllowReordering="true" EnableContextMenu="true" AllowRowDragAndDrop="true"
+          Toolbar="@(new List<string>(){ "Add", "Edit", "Delete", "Update", "Cancel", "Indent","Outdent", "ExpandAll", "CollapseAll", "PrevTimeSpan", "NextTimeSpan"})"
+          HighlightWeekends="true" ScrollToTaskbarOnClick="true" ShowInlineNotes="true">
+     <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration"
+                      Progress="Progress" Dependency="Predecessor" ParentID="ParentId">
+     </GanttTaskFields>
+     <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"
+                        ShowDeleteConfirmDialog="true">
+     </GanttEditSettings>
+     <GanttSelectionSettings AllowDragSelection Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple"></GanttSelectionSettings>
+     <GanttColumns>
+         <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+         <GanttColumn Field="TaskName" HeaderText="Job Name" Width="450"
+                      ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip">
+             <Template>
+                 @{
+                    @if (context != null)
+                    {
+                        <SfButton CssClass="e-bigger" Content="@((context as TaskData).TaskName)"></SfButton>
+                    }
+                }
+            </Template>
+        </GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+        <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+
+
+
+    </GanttColumns>
+    <GanttLabelSettings LeftLabel="TaskName" TValue="TaskData">
+    </GanttLabelSettings>
+    <GanttSplitterSettings Position="@splitterPosition"> </GanttSplitterSettings>
+    <GanttEvents TValue="TaskData" OnToolbarClick="ToolbarClickHandler" QueryCellInfo="QueryCellInfo" ></GanttEvents>
+
+</SfGantt>
+
+@code {
+    public SfGantt<TaskData> Gantt;
+    private DateTime ProjectStart = new DateTime(2021, 3, 25);
+    private DateTime ProjectEnd = new DateTime(2021, 9, 28);
+    private List<TaskData> TaskCollection { get; set; }
+    private string currentState { get; set; }
+    private string splitterPosition = "40%";
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = EditingData().ToList();
+    }
+    public void AddPredecessor()
+    {
+        this.Gantt.AddPredecessor(2, "3FS");
+    }
+    private async Task QueryCellInfo(QueryCellInfoEventArgs<TaskData> args)
+    {
+        await Task.CompletedTask;
+    }
+    public async Task AddRow()
+    {
+        TaskData record = new TaskData() { TaskId = 100, TaskName = "New Added Record", StartDate = new DateTime(2021, 04, 02), Duration = "3", Progress = 50 };
+        await this.Gantt.AddRecordAsync(record, 0, Syncfusion.Blazor.Gantt.RowPosition.Top);
+    }
+    public void CancelEdit()
+    {
+        this.Gantt.CancelEdit();
+    }
+    public async Task ClearFiltering()
+    {
+        await this.Gantt.ClearFilteringAsync();
+    }
+    public async Task ClearSelecting()
+    {
+        await this.Gantt.ClearSelectionAsync();
+    }
+    public async Task ClearSorting()
+    {
+        await this.Gantt.ClearSortingAsync();
+    }
+    private async Task CollapseHandler()
+    {
+        await this.Gantt.CollapseAllAsync();
+    }
+    private async Task CollapseLevel()
+    {
+        await this.Gantt.CollapseAtLevelAsync(1);
+    }
+    private async Task CollapseKey()
+    {
+        await this.Gantt.CollapseByKeyAsync(6);
+    }
+    private void ConvertToMilestone()
+    {
+        this.Gantt.ConvertToMilestone("1");
+    }
+    private async Task CopyHandler()
+    {
+        await Gantt.CopyAsync(true);
+    }
+    private async Task DeleteRecord()
+    {
+        await this.Gantt.DeleteRecordAsync(2);
+    }
+    private void EnableItem()
+    {
+        this.Gantt.EnableItems(new List<int>() { 0, 1 }, true);
+    }
+    private async Task ExpandAll()
+    {
+        await this.Gantt.ExpandAllAsync();
+    }
+
+    private async Task ExpandLevel()
+    {
+        await this.Gantt.ExpandAtLevelAsync(1);
+    }
+    private async Task ExpandKey()
+    {
+        await this.Gantt.ExpandByKeyAsync(6);
+    }
+    private async Task ExportToCsv()
+    {
+        await this.Gantt.ExportToCsvAsync();
+    }
+    private async Task ExportToExcel()
+    {
+        await this.Gantt.ExportToExcelAsync();
+    }
+    private async Task FilterByColumn()
+    {
+        await this.Gantt.FilterByColumnAsync("TaskName", "Startswith", "Iden");
+    }
+    private async Task GetColumnIndex()
+    {
+        var index = await this.Gantt.GetColumnIndexByFieldAsync("TaskId");
+        Console.WriteLine(index);
+    }
+    private async Task GetColumns()
+    {
+        var columns = await this.Gantt.GetColumnsAsync();
+        Console.WriteLine(columns);
+    }
+    private void CriticalTasks()
+    {
+        var data = this.Gantt.GetCriticalTasksAsync();
+        Console.WriteLine(data);
+    }
+    private void GetCurrentViewData()
+    {
+        var data = Gantt.GetCurrentViewRecords();
+        Console.WriteLine(data);
+    }
+    private void FilterHandler()
+    {
+        var data = Gantt.GetFilteredRecordsAsync();
+        Console.WriteLine(data);
+    }
+    private void GetHierarchyInfo()
+    {
+        TaskData record = new TaskData()
+            {
+                TaskId = 1,
+                TaskName = "Product concept",
+                StartDate = new DateTime(2021, 04, 02),
+                EndDate = new DateTime(2021, 04, 08),
+                Duration = "5 days"
+            };
+        var recordInfo = Gantt.GetRowTaskModel(record);
+        Console.WriteLine(recordInfo);
+    }
+    private async Task GetPersistence()
+    {
+        currentState = await Gantt.GetPersistDataAsync();
+        Console.WriteLine(currentState);
+    }
+    private void GetRecordById()
+    {
+        var recordInfo = Gantt.GetTaskByID("3");
+        Console.WriteLine(recordInfo);
+    }
+    private async Task GetSelectedRecords()
+    {
+        var rec = await Gantt.GetSelectedRecordsAsync();
+        Console.WriteLine(rec);
+    }
+    private async Task GetSelectedRowCellIndexes()
+    {
+        var index = await Gantt.GetSelectedRowCellIndexesAsync();
+        Console.WriteLine(index);
+    }
+    private async Task GetSelectedRow()
+    {
+        var index = await Gantt.GetSelectedRowIndexesAsync();
+        Console.WriteLine(index);
+    }
+    private async Task HideColumnFunc()
+    {
+        await Gantt.HideColumnAsync("TaskId", "Field");
+    }
+    private async Task HideColumns()
+    {
+        await Gantt.HideColumnsAsync(new string[] { "TaskId" }, "Field");
+    }
+    private async Task HideSpinner()
+    {
+        await Gantt.HideSpinnerAsync();
+    }
+    private async Task IndentFunc()
+    {
+        await Gantt.IndentAsync();
+    }
+    public void NextTimeSpanFunc()
+    {
+        Gantt.NextTimeSpan();
+    }
+    private async Task OpenAddDialog()
+    {
+        await Gantt.OpenAddDialogAsync();
+    }
+    private async Task OpenColumnChooserFunc()
+    {
+        await Gantt.OpenColumnChooser(2, 4);
+    }
+    private async Task OpenEditDialog()
+    {
+        await Gantt.OpenEditDialogAsync(2);
+    }
+    private async Task OutdentFunc()
+    {
+        await Gantt.OutdentAsync();
+    }
+    public void PreviousTimeSpanFunc()
+    {
+        Gantt.PreviousTimeSpan();
+    }
+    private async Task Refresh()
+    {
+        await Gantt.RefreshAsync();
+    }
+    private async Task RefreshColumns()
+    {
+#pragma warning disable BL0005 // Component parameter should not be set outside of its component.
+        Gantt.Columns[0].Width = "250";
+#pragma warning restore BL0005 // Component parameter should not be set outside of its component.
+        await Gantt.RefreshColumnsAsync();
+    }
+    public void RemovePredecessorFunc()
+    {
+        Gantt.RemovePredecessor(2);
+    }
+    private async Task ReOrderColumn()
+    {
+        await Gantt.ReorderColumnsAsync(new List<string> { "TaskName", "TaskId" }, "Duration");
+    }
+    private async Task ReorderRow()
+    {
+        await Gantt.ReorderRowAsync(2, 5, "above");
+    }
+    private async void ClearPersistence()
+    {
+        await Gantt.ResetPersistDataAsync();
+    }
+    private async Task ScrollIntoView()
+    {
+        await Gantt.ScrollToTaskbarAsync(12); /// pass the task id here
+    }
+    private async Task ScrollToTaskbar()
+    {
+        await Gantt.ScrollToTaskbarAsync(12); /// pass the task id here
+    }
+    private async Task ScrollToTimeline()
+    {
+        await Gantt.ScrollToTimelineAsync(new DateTime(2021, 12, 25)); /// pass the date here
+    }
+    private async Task Search()
+    {
+        await Gantt.SearchAsync("id");
+    }
+    private async Task SelectCellFunc()
+    {
+        await Gantt.SelectCellAsync(new ValueTuple<int, int>(1, 2), true);
+    }
+    private async Task SelectRowFunc()
+    {
+        await Gantt.SelectRowAsync(2, true);
+    }
+    private async Task SelectRows()
+    {
+        await Gantt.SelectRowsAsync(new int[] { 2, 5 });
+    }
+    private async Task SelectRowByRange()
+    {
+        await Gantt.SelectRowsByRangeAsync(2, 6);
+    }
+    private async Task SetPersistence()
+    {
+        await Gantt.SetPersistDataAsync(currentState);
+    }
+    private async Task SetSplitterPosition()
+    {
+        await Gantt.SetSplitterPositionAsync(SplitterView.Grid);
+    }
+    private async Task SetSplitter()
+    {
+        await Gantt.SetSplitterPositionAsync(2);
+    }
+    private async Task SplitterPosition()
+    {
+        await Gantt.SetSplitterPositionAsync("0");
+    }
+    public void UpdateSplitterPosition()
+    {
+        splitterPosition = "60%";
+    }
+    private async Task ShowColumn()
+    {
+        await Gantt.ShowColumnAsync("TaskName", "Field");
+    }
+    private async Task ShowColumns()
+    {
+        await Gantt.ShowColumnsAsync(new string[] { "TaskName", "TaskId" }, "Field");
+    }
+    private async Task SortByColumn()
+    {
+        await Gantt.SortByColumnAsync("TaskId", SortDirection.Descending, true);
+    }
+    private async Task ShowSpinner()
+    {
+        await Gantt.ShowSpinnerAsync();
+    }
+    private void UpdatePredecessorHandler()
+    {
+        Gantt.UpdatePredecessor(7, "4FS");
+    }
+    private void UpdateProjectDatesFunc()
+    {
+        Gantt.UpdateProjectDates(new DateTime(2021, 04, 02), new DateTime(2021, 05, 05));
+    }
+    private async Task UpdateRecordFunc()
+    {
+        TaskData data = new TaskData()
+            {
+                TaskId = 3,
+                TaskName = "Updated",
+                StartDate = new DateTime(2019, 04, 08),
+                Duration = "10",
+                Progress = 100,
+                Predecessor = "2fs"
+            };
+        await Gantt.UpdateRecordByIDAsync(data);
+    }
+    private async Task ZoomIn()
+    {
+        await Gantt.ZoomInAsync();
+    }
+    private async Task ZoomOut()
+    {
+        await Gantt.ZoomOutAsync();
+    }
+    private async Task ZoomFitFunc()
+    {
+        await Gantt.ZoomToFitAsync();
+    }
+   
+    public async Task ToolbarClickHandler(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        Syncfusion.Blazor.Grids.ExcelExportProperties ExportProperties = new Syncfusion.Blazor.Grids.ExcelExportProperties();
+        Syncfusion.Blazor.Grids.ExcelStyle ThemeStyle = new Syncfusion.Blazor.Grids.ExcelStyle()
+            {
+                FontName = "Segoe UI",
+                FontColor = "#666666",
+                FontSize = 12
+            };
+        @* Theme.Header = ThemeStyle;
+        Theme.Record = ThemeStyle;
+        ExportProperties.Theme = Theme;
+        if (args.Item.Text == "CSV export")
+        {
+        await this.Gantt.CsvExport(ExportProperties);
+        }
+        if (args.Item.Text == "Excel export")
+        {
+            await this.Gantt.ExcelExport(ExportProperties);
+        }*@
+        await Task.CompletedTask;
+    }
+
+    
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public string Predecessor { get; set; }
+        public string Notes { get; set; }
+        public int? ParentId { get; set; }
+    }
+    public static List<TaskData> EditingData()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+
+        new TaskData() {
+            TaskId = 1,
+            TaskName = "Product concept",
+            StartDate = new DateTime(2021, 04, 02),
+            EndDate = new DateTime(2021, 04, 08),
+            Duration = "5 days"
+        },
+        new TaskData() {
+            TaskId = 2,
+            TaskName = "Defining the product usage",
+            StartDate = new DateTime(2021, 04, 02),
+            EndDate = new DateTime(2021, 04, 08),
+            Duration = "3",
+            Progress = 30,
+            ParentId = 1
+        },
+        new TaskData() {
+            TaskId = 3,
+            TaskName = "Defining the target audience",
+            StartDate = new DateTime(2021, 04, 02),
+            EndDate = new DateTime(2021, 04, 04),
+            Duration = "3",
+            Progress = 40,
+            ParentId = 1
+        },
+        new TaskData() {
+            TaskId = 4,
+            TaskName = "Prepare product sketch and notes",
+            StartDate = new DateTime(2021, 04, 05),
+            EndDate = new DateTime(2021, 04, 08),
+            Duration = "2",
+            Progress = 30,
+            ParentId = 1,
+            Predecessor="2"
+        },
+        new TaskData() {
+            TaskId = 5,
+            TaskName = "Concept approval",
+            StartDate = new DateTime(2021, 04, 08),
+            EndDate = new DateTime(2021, 04, 08),
+            Duration="0",
+            Predecessor="3,4"
+        },
+        new TaskData() {
+            TaskId = 6,
+            TaskName = "Market research",
+            StartDate = new DateTime(2021, 04, 09),
+            EndDate = new DateTime(2021, 04, 18),
+            Predecessor="2",
+            Duration = "4",
+            Progress = 30
+        },
+        new TaskData() {
+            TaskId = 7,
+            TaskName = "Demand analysis",
+            StartDate = new DateTime(2021, 04, 09),
+            EndDate = new DateTime(2021, 04, 12),
+            Duration = "4",
+            Progress = 40,
+            ParentId = 6
+        },
+        new TaskData() {
+            TaskId = 8,
+            TaskName = "Customer strength",
+            StartDate = new DateTime(2021, 04, 09),
+            EndDate = new DateTime(2021, 04, 12),
+            Duration = "4",
+            Progress = 30,
+            ParentId = 7,
+            Predecessor="5"
+
+        }, new TaskData() {
+            TaskId = 9,
+            TaskName = "Market opportunity analysis",
+            StartDate = new DateTime(2021, 04, 09),
+            EndDate = new DateTime(2021, 04, 012),
+            Duration="4",
+            ParentId= 7,
+            Predecessor="5"
+        },
+        new TaskData() {
+            TaskId = 10,
+            TaskName = "Competitor analysis",
+            StartDate = new DateTime(2021, 04, 15),
+            EndDate = new DateTime(2021, 04, 18),
+            Duration = "4",
+            Progress = 30,
+            ParentId= 6,
+            Predecessor="7,8"
+        },
+        new TaskData() {
+            TaskId = 11,
+            TaskName = "Product strength analysis",
+            StartDate = new DateTime(2021, 04, 15),
+            EndDate = new DateTime(2021, 04, 18),
+            Duration = "4",
+            Progress = 40,
+            ParentId = 6,
+            Predecessor="9"
+        },
+        new TaskData() {
+            TaskId = 12,
+            TaskName = "Research completed",
+            StartDate = new DateTime(2021, 04, 18),
+            EndDate = new DateTime(2021, 04, 18),
+            Duration = "0",
+            Progress = 30,
+            ParentId = 6,
+            Predecessor="10"
+        },
+         new TaskData() {
+            TaskId = 13,
+            TaskName = "Product design and development",
+            StartDate = new DateTime(2021, 04, 19),
+            EndDate = new DateTime(2021, 05, 16),
+            Duration="20",
+            Predecessor="6"
+         },
+        new TaskData() {
+            TaskId = 14,
+            TaskName = "Functionality design",
+            StartDate = new DateTime(2021, 04, 19),
+            EndDate = new DateTime(2021, 04, 23),
+            Duration = "3",
+            Progress = 30,
+            ParentId = 13,
+            Predecessor="12"
+        },
+        new TaskData() {
+            TaskId = 15,
+            TaskName = "Quality design",
+            StartDate = new DateTime(2021, 04, 19),
+            EndDate = new DateTime(2021, 04, 23),
+            Duration = "3",
+            Progress = 40,
+            ParentId = 13,
+            Predecessor="12"
+        },
+        new TaskData() {
+            TaskId = 16,
+            TaskName = "Define reliability",
+            StartDate = new DateTime(2021, 04, 24),
+            EndDate = new DateTime(2021, 04, 25),
+            Duration = "2",
+            Progress = 30,
+            ParentId = 13,
+            Predecessor="15"
+        },
+         new TaskData() {
+            TaskId = 17,
+            TaskName = "Identifying raw materials",
+            StartDate = new DateTime(2021, 04, 24),
+            EndDate = new DateTime(2021, 04, 25),
+            Duration="2",
+            ParentId=13,
+            Predecessor="15"
+        },
+        new TaskData() {
+            TaskId = 18,
+            TaskName = "Define cost plan",
+            StartDate = new DateTime(2021, 04, 26),
+            EndDate = new DateTime(2021, 04, 29),
+            Duration = "2",
+            Progress = 30,
+            ParentId=13,
+            Predecessor="17"
+        },
+        new TaskData() {
+            TaskId = 19,
+            TaskName = "Manufacturing cost",
+            StartDate = new DateTime(2021, 04, 26),
+            EndDate = new DateTime(2021, 04, 29),
+            Duration = "2",
+            Progress = 40,
+            ParentId = 18,
+            Predecessor="17"
+        },
+        new TaskData() {
+            TaskId = 20,
+            TaskName = "Selling cost",
+            StartDate = new DateTime(2021, 04, 26),
+            EndDate = new DateTime(2021, 04, 29),
+            Duration = "2",
+            Progress = 30,
+            ParentId = 18,
+            Predecessor="17"
+        },
+         new TaskData() {
+            TaskId = 21,
+            TaskName = "Development of final design",
+            StartDate = new DateTime(2021, 04, 30),
+            EndDate = new DateTime(2021, 05, 08),
+            Duration="7",
+            ParentId=13
+        },
+        new TaskData() {
+            TaskId = 22,
+            TaskName = "Develop dimensions and design",
+            StartDate = new DateTime(2021, 04, 30),
+            EndDate = new DateTime(2021, 05, 01),
+            Duration = "2",
+            Progress = 30,
+            ParentId=21,
+            Predecessor="19,20"
+        },
+        new TaskData() {
+            TaskId = 23,
+            TaskName = "Develop designs to meet industry",
+            StartDate = new DateTime(2021, 05, 02),
+            EndDate = new DateTime(2021, 05, 03),
+            Duration = "2",
+            Progress = 40,
+            ParentId = 21,
+            Predecessor="22"
+        },
+        new TaskData() {
+            TaskId = 24,
+            TaskName = "Include all the details",
+            StartDate = new DateTime(2021, 05, 06),
+            EndDate = new DateTime(2021, 05, 08),
+            Duration = "3",
+            Progress = 30,
+            ParentId = 21,
+            Predecessor="23"
+        },
+         new TaskData() {
+            TaskId = 25,
+            TaskName = "CAD - Computer Aided Design",
+            StartDate = new DateTime(2021, 05, 09),
+            EndDate = new DateTime(2021, 05, 13),
+            Duration="3",
+            Predecessor="24"
+        },
+        new TaskData() {
+            TaskId = 26,
+            TaskName = "CAM - Computer Aided Manufacturing",
+            StartDate = new DateTime(2021, 05, 14),
+            EndDate = new DateTime(2021, 05, 16),
+            Duration = "3",
+            Progress = 30,
+            Predecessor="25"
+        },
+        new TaskData() {
+            TaskId = 27,
+            TaskName = "Finalize the design",
+            StartDate = new DateTime(2021, 04, 16),
+            EndDate = new DateTime(2021, 04, 16),
+            Duration = "0",
+            Progress = 40,
+            Predecessor="26"
+        },
+        new TaskData() {
+            TaskId = 28,
+            TaskName = "Prototype testing",
+            StartDate = new DateTime(2021, 05, 17),
+            EndDate = new DateTime(2021, 05, 22),
+            Duration = "4",
+            Progress = 30,
+            Predecessor="27"
+        },
+        new TaskData() {
+            TaskId = 29,
+            TaskName = "Include feedback",
+            StartDate = new DateTime(2021, 05, 17),
+            EndDate = new DateTime(2021, 05, 22),
+            Duration="4",
+            Predecessor="28ss"
+        },
+        new TaskData() {
+            TaskId = 30,
+            TaskName = "Manufacturing",
+            StartDate = new DateTime(2021, 05, 23),
+            EndDate = new DateTime(2021, 05, 29),
+            Duration = "5",
+            Progress = 30,
+            Predecessor="28,29"
+        },
+        new TaskData() {
+            TaskId = 31,
+            TaskName = "Assembling material to finished goods",
+            StartDate = new DateTime(2021, 05, 30),
+            EndDate = new DateTime(2021, 06, 05),
+            Duration = "5",
+            Progress = 40,
+            Predecessor="30"
+        },
+        new TaskData() {
+            TaskId = 32,
+            TaskName = "Final product development",
+            StartDate = new DateTime(2021, 06, 06),
+            EndDate = new DateTime(2021, 06, 13),
+            Duration = "6",
+            Progress = 30
+        }, new TaskData() {
+            TaskId =33,
+            TaskName = "Important improvement",
+            StartDate = new DateTime(2021, 06, 06),
+            EndDate = new DateTime(2021, 06, 10),
+            Duration="3",
+            ParentId=32,
+            Predecessor="31"
+        },
+        new TaskData() {
+            TaskId = 34,
+            TaskName = "Customer testing and feedback",
+            StartDate = new DateTime(2021, 06, 11),
+            EndDate = new DateTime(2021, 06, 13),
+            Duration = "3",
+            Progress = 30,
+            ParentId=32,
+            Predecessor="33"
+        },
+        new TaskData() {
+            TaskId = 35,
+            TaskName = "Final product development",
+            StartDate = new DateTime(2021, 06, 14),
+            EndDate = new DateTime(2021, 06, 19),
+            Duration = "4",
+            Progress = 40
+        },
+        new TaskData() {
+            TaskId = 36,
+            TaskName = "Important improvement",
+            StartDate = new DateTime(2021, 06, 14),
+            EndDate = new DateTime(2021, 06, 19),
+            Duration = "4",
+            Progress = 30,
+            ParentId = 35,
+            Predecessor="34"
+        },
+         new TaskData() {
+            TaskId = 37,
+            TaskName = "Address any unforeseen issue",
+            StartDate = new DateTime(2021, 06, 14),
+            EndDate = new DateTime(2021, 06, 19),
+            Duration = "4",
+            Progress = 30,
+            Predecessor="36ss",
+            ParentId=35
+        },
+        new TaskData() {
+            TaskId = 38,
+            TaskName = "Final product",
+            StartDate = new DateTime(2021, 06, 20),
+            EndDate = new DateTime(2021, 07, 01),
+            Duration = "8",
+            Progress = 40
+        },
+        new TaskData() {
+            TaskId = 39,
+            TaskName = "Branding product",
+            StartDate = new DateTime(2021, 06, 20),
+            EndDate = new DateTime(2021, 06, 25),
+            Duration = "4",
+            Progress = 30,
+            ParentId = 38,
+            Predecessor="37"
+        },
+        new TaskData()
+        {
+            TaskId=40,
+            TaskName="Marketing and Presales",
+            StartDate=new DateTime(2021,06,26),
+            EndDate=new DateTime(2021,07,01),
+            ParentId=38,
+            Duration="4",
+            Predecessor="39"
+        }
+    };
+        return Tasks;
+    }
+
+}
+
+@* @using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.DropDowns
+<SfGantt @ref="Gantt" TValue="TaskData" DataSource="@TaskCollection" Height="450px" Width="100%" TreeColumnIndex="1" Toolbar="@(new List<Object>() { "Add", "Cancel", "Update" , "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit" })" EnableContextMenu="true" RowHeight="37" ProjectStartDate="ProjectStart" ProjectEndDate="ProjectEnd">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor">
+    </GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+    <GanttSegmentFields PrimaryKey="Id" ForeignKey="TaskId" StartDate="SegmentStartDate" EndDate="SegmentEndDate" Duration="SegmentDuration" TValue="TaskData" TSegments="SegmentModel" DataSource="SegmentCollection" SegmentChanging="SegmentEventHandler"></GanttSegmentFields>
+    <GanttLabelSettings LeftLabel="TaskName" TValue="TaskData"></GanttLabelSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Width="100" Visible="false"></GanttColumn>
+        <GanttColumn Field="TaskName" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+        <GanttResourceColumn AllowFiltering="false" AllowSorting="false"></GanttResourceColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+        <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+        <GanttColumn Field="Status" HeaderText="Status" EditType="Syncfusion.Blazor.Grids.EditType.DropDownEdit">
+            <EditTemplate>
+                @{
+                    var task = (context as TaskData);
+                }
+                <SfDropDownList ID="Status" @bind-Value="@task.Status" TItem="string" TValue="string" DataSource="@DropDownData">
+                </SfDropDownList>
+            </EditTemplate>
+        </GanttColumn>
+    </GanttColumns>
+    <GanttResource TValue="TaskData" DataSource="@ResourceCollection" Id="ResourceId" Name="ResourceName" MaxUnits="MaxUnit" Group="Group" TResources="ResourceAlloacteData"></GanttResource>
+    <GanttAssignmentFields PrimaryKey="ResourceAssignmentId" TaskID="TaskId" ResourceID="ResourceId" Units="Unit" TValue="TaskData" TAssignment="ResourceAssignmentData" ResourceAssignmentChanging="AssignmentHandler" DataSource="ResourceAssignments"></GanttAssignmentFields>
+    <GanttEvents GanttDialogOpened="GanttDialogOpenedHanlder" GanttDialogOpening="GanttDialogOpeningHandler"
+                 RowUpdating="RowUpdating" OnActionComplete="ActionCompleteHandler"
+                 TValue="TaskData"></GanttEvents>
+</SfGantt>
+<style>
+    .e-segmented-taskbar.e-gantt-clone-taskbar {
+        top: 0px !important;
+    }
+
+    .e-segmented-taskbar .e-gantt-child-progressbar {
+        background-color: #0056B3 !important;
+    }
+
+    .e-segmented-taskbar {
+        background-color: #8553F1 !important;
+        border: 1px solid #3f51b5 !important;
+    }
+</style>
+@code {
+    public SfGantt<TaskData> Gantt { get; set; }
+    private DateTime ProjectStart = new DateTime(2022, 03, 23);
+    private DateTime ProjectEnd = new DateTime(2022, 05, 10);
+    private List<TaskData> TaskCollection { get; set; }
+    private List<SegmentModel> SegmentCollection { get; set; }
+    private List<ResourceAlloacteData> ResourceCollection { get; set; }
+    private List<ResourceAssignmentData> ResourceAssignments { get; set; }
+    public bool DialogOpen { get; set; }
+    public List<string> DropDownData = new List<string>() { "Open", "In Progress", "Validated", "Completed" };
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        this.SegmentCollection = GetSegmentCollection();
+        ResourceAssignments = AssignmentCollection();
+        this.ResourceCollection = GetResources;
+    }
+    public class SegmentModel
+    {
+        public int Id { get; set; }
+        public int TaskId { get; set; }
+        public DateTime SegmentStartDate { get; set; }
+        public DateTime SegmentEndDate { get; set; }
+        public string SegmentDuration { get; set; }
+    }
+    public class ResourceAlloacteData
+    {
+        public int ResourceId { get; set; }
+        public string ResourceName { get; set; }
+        public double MaxUnit { get; set; }
+        public string Group { get; set; }
+    }
+    public class ResourceAssignmentData
+    {
+        public int ResourceAssignmentId { get; set; }
+        public int TaskId { get; set; }
+        public int ResourceId { get; set; }
+        public double Unit { get; set; }
+    }
+    private async Task AssignmentHandler(ResourceAssignmentChangeEventArgs<ResourceAssignmentData> args)
+    {
+        if (args.AddedResources is not null)
+        {
+
+        }
+        if (args.UpdatedResources is not null)
+        {
+
+        }
+        if (args.DeletedResources is not null)
+        {
+
+        }
+        await Task.CompletedTask;
+    }
+    public static List<ResourceAlloacteData> GetResources = new List<ResourceAlloacteData>()
+    {
+
+        new ResourceAlloacteData() { ResourceId= 1, ResourceName= "Martin Tamer", MaxUnit = 90},
+        new ResourceAlloacteData() { ResourceId= 2, ResourceName= "Rose Fuller", MaxUnit = 100 },
+        new ResourceAlloacteData() { ResourceId= 3, ResourceName= "Margaret Buchanan", MaxUnit = 50 },
+        new ResourceAlloacteData() { ResourceId= 4, ResourceName= "Fuller King" },
+        new ResourceAlloacteData() { ResourceId= 5, ResourceName= "Davolio Fuller" },
+        new ResourceAlloacteData() { ResourceId= 6, ResourceName= "Fuller Buchanan" },
+        new ResourceAlloacteData() { ResourceId= 7, ResourceName= "Jack Davolio" },
+        new ResourceAlloacteData() { ResourceId= 8, ResourceName= "Tamer Vinet" },
+        new ResourceAlloacteData() { ResourceId= 9, ResourceName= "Vinet Fuller" },
+        new ResourceAlloacteData() { ResourceId= 10, ResourceName= "Bergs Anton" },
+        new ResourceAlloacteData() { ResourceId= 11, ResourceName= "Construction Supervisor" }
+    };
+
+    public static List<ResourceAssignmentData> AssignmentCollection()
+    {
+        List<ResourceAssignmentData> assignments = new List<ResourceAssignmentData>()
+        {
+            new ResourceAssignmentData(){ ResourceAssignmentId=1, TaskId = 2 , ResourceId=3, Unit = 70 },
+            new ResourceAssignmentData(){ ResourceAssignmentId=2, TaskId = 2 , ResourceId=4, Unit = 50},
+            new ResourceAssignmentData(){ ResourceAssignmentId=3, TaskId = 2 , ResourceId=1},
+            new ResourceAssignmentData(){ ResourceAssignmentId=4, TaskId = 3 , ResourceId=5, Unit=100},
+            new ResourceAssignmentData(){ ResourceAssignmentId=5, TaskId = 3 , ResourceId=6},
+            new ResourceAssignmentData(){ ResourceAssignmentId=6, TaskId = 4 , ResourceId=8, Unit=100},
+            new ResourceAssignmentData(){ ResourceAssignmentId=7, TaskId = 4 , ResourceId=9, Unit=100},
+            new ResourceAssignmentData(){ ResourceAssignmentId=8, TaskId = 7 , ResourceId=2, Unit=100},
+            new ResourceAssignmentData(){ ResourceAssignmentId=9, TaskId = 7 , ResourceId=3},
+            new ResourceAssignmentData(){ ResourceAssignmentId=10, TaskId = 8 , ResourceId=4, Unit=100},
+            new ResourceAssignmentData(){ ResourceAssignmentId=11, TaskId = 8 , ResourceId=5},
+            new ResourceAssignmentData(){ ResourceAssignmentId=12, TaskId = 8 , ResourceId=8},
+            new ResourceAssignmentData(){ ResourceAssignmentId=13, TaskId = 8 , ResourceId=1},
+            new ResourceAssignmentData(){ ResourceAssignmentId=16, TaskId = 9 , ResourceId=2},
+            new ResourceAssignmentData(){ ResourceAssignmentId=17, TaskId = 9 , ResourceId=3},
+        };
+        return assignments;
+    }
+    
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; }
+        public string Status { get; set; }
+    }
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+            new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 03, 28), EndDate = new DateTime(2022, 07, 28), Duration="4", Status = "Open" },
+            new TaskData() { TaskId = 2, TaskName = "Identify site location", StartDate = new DateTime(2022, 03, 29), Progress = 30, ParentId = 1, Duration="8", Status = "Validated" },
+            new TaskData() { TaskId = 3, TaskName = "Site analyze", StartDate = new DateTime(2022, 03, 29),  Progress = 50, ParentId = 1, Duration="8", Status = "In Progress"},
+            new TaskData() { TaskId = 4, TaskName = "Perform soil test", StartDate = new DateTime(2022, 03, 29), ParentId = 1, Duration="5", Predecessor="2FS", Progress=40, Status = "Open" },
+            new TaskData() { TaskId = 5, TaskName = "Soil test approval", StartDate = new DateTime(2022, 03, 29), Duration="4", Progress = 30, Status = "Completed" },
+            new TaskData() { TaskId = 6, TaskName = "Project estimation", StartDate = new DateTime(2022, 04, 08), Duration="8", Progress=40, ParentId=1, Status = "Open" },
+            new TaskData() { TaskId = 7, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 03, 29), Duration = "0", Progress = 30, ParentId = 5, Predecessor= "4FS", Status = "Completed" },
+            new TaskData() { TaskId = 8, TaskName = "List materials", StartDate = new DateTime(2022, 04, 01), Duration = "6", Progress = 30, ParentId = 5, Status = "In Progress" },
+            new TaskData() { TaskId = 9, TaskName = "Estimation approval",Progress=30, StartDate = new DateTime(2022, 04, 01), Duration = "4", ParentId = 5, Predecessor="8FS", Status = "Validated" },
+            new TaskData() { TaskId = 10, TaskName = "Building approval", StartDate = new DateTime(2022, 04, 12), Duration = "5", ParentId = 5, Status = "Open" },
+            new TaskData() { TaskId = 11, TaskName = "Construction initiation", StartDate = new DateTime(2022, 04, 01), Duration = "5", Progress=40, Status = "Completed" },
+            new TaskData() { TaskId = 12, TaskName = "Ground floor initiation", StartDate = new DateTime(2022, 04, 05), Duration = "5", ParentId = 11, Progress=40, Status = "Open"},
+            new TaskData() { TaskId = 13, TaskName = "First floor initiation", StartDate = new DateTime(2022, 04, 05), Duration = "7",ParentId = 11, Progress=40, Status = "Validated"},
+            new TaskData() { TaskId = 14, TaskName = "Electric work initiation", StartDate = new DateTime(2022, 04, 01), Duration = "5", ParentId = 11, Progress=40, Status = "Completed" },
+            new TaskData() { TaskId = 15, TaskName = "Plumbing work", StartDate = new DateTime(2022, 04, 02), Duration = "5", ParentId = 11, Progress=40, Status = "In Progress" },
+       };
+        return Tasks;
+    }
+    private List<SegmentModel> GetSegmentCollection()
+    {
+        List<SegmentModel> segments = new List<SegmentModel>();
+        segments.Add(new SegmentModel() { Id = 1, TaskId = 2, SegmentStartDate = new DateTime(2022, 04, 01), SegmentDuration = "1" });
+        segments.Add(new SegmentModel() { Id = 2, TaskId = 2, SegmentStartDate = new DateTime(2022, 03, 29), SegmentEndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { Id = 3, TaskId = 3, SegmentStartDate = new DateTime(2022, 04, 01), SegmentDuration = "2" });
+        segments.Add(new SegmentModel() { Id = 4, TaskId = 3, SegmentStartDate = new DateTime(2022, 03, 29), SegmentEndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { Id = 5, TaskId = 3, SegmentStartDate = new DateTime(2022, 04, 04), SegmentDuration = "3" });
+        segments.Add(new SegmentModel() { Id = 6, TaskId = 4, SegmentStartDate = new DateTime(2022, 04, 01), SegmentDuration = "1" });
+        segments.Add(new SegmentModel() { Id = 7, TaskId = 4, SegmentStartDate = new DateTime(2022, 03, 29), SegmentEndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { Id = 8, TaskId = 8, SegmentStartDate = new DateTime(2022, 04, 01), SegmentEndDate = new DateTime(2022, 04, 03) });
+        segments.Add(new SegmentModel() { Id = 9, TaskId = 8, SegmentStartDate = new DateTime(2022, 04, 05), SegmentDuration = "1" });
+        segments.Add(new SegmentModel() { Id = 10, TaskId = 9, SegmentStartDate = new DateTime(2022, 03, 29), SegmentEndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { Id = 11, TaskId = 9, SegmentStartDate = new DateTime(2022, 04, 01), SegmentDuration = "1" });
+        segments.Add(new SegmentModel() { Id = 12, TaskId = 12, SegmentStartDate = new DateTime(2022, 04, 05), SegmentDuration = "1" });
+        segments.Add(new SegmentModel() { Id = 13, TaskId = 12, SegmentStartDate = new DateTime(2022, 04, 07), SegmentDuration = "1" });
+        segments.Add(new SegmentModel() { Id = 14, TaskId = 14, SegmentStartDate = new DateTime(2022, 04, 01), SegmentEndDate = new DateTime(2022, 04, 02) });
+        segments.Add(new SegmentModel() { Id = 15, TaskId = 14, SegmentStartDate = new DateTime(2022, 04, 04), SegmentDuration = "2" });
+        return segments;
+    }
+
+    public async Task SegmentEventHandler(SegmentEventArgs<SegmentModel> args)
+    {
+        if (args.AddedSegments is not null)
+        {
+
+        }
+        if (args.UpdatedSegments is not null)
+        {
+
+        }
+        if (args.DeletedSegments is not null)
+        {
+
+        }
+        await Task.CompletedTask;
+    }
+    public async Task ActionCompleteHandler(GanttActionEventArgs<TaskData> args)
+    {
+        await Task.CompletedTask;
+    }
+    private async Task GanttDialogOpenedHanlder(GanttDialogOpenedEventArgs<TaskData> args)
+    {
+        await Task.CompletedTask;
+    }
+    private async Task GanttDialogOpeningHandler(GanttDialogOpenEventArgs<TaskData> args)
+    {
+        args.Cancel = DialogOpen;
+        await Task.CompletedTask;
+    }
+    private async Task RowUpdating(Syncfusion.Blazor.Gantt.GanttRowUpdatingEventArgs<TaskData> args)
+    {
+        await Task.CompletedTask;
+    }
+} *@
+
+@* @using Syncfusion.Blazor.Gantt
+@using System.Dynamic
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt DataSource="@GanttDynamicData" Height="450px" Width="100%" TreeColumnIndex="1" HighlightWeekends="true" AllowSorting="true" ProjectStartDate="@ProjectStart" EnableContextMenu="true"
+                     Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll" })" ProjectEndDate="@ProjectEnd">
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Progress="Progress" Duration="Duration" ParentID="ParentId"></GanttTaskFields>
+                <GanttColumns>
+                    <GanttColumn Field="TaskId" HeaderText="Task ID" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right"></GanttColumn>
+                    <GanttColumn Field="TaskName" HeaderText="Task Name"></GanttColumn>
+                    <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+                    <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+                    <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+                </GanttColumns>
+                <GanttEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+                <GanttLabelSettings LeftLabel="TaskName" TValue="DynamicDictionary"></GanttLabelSettings>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+@code {
+    private DateTime ProjectStart = new DateTime(2021, 01, 04);
+    private DateTime ProjectEnd = new DateTime(2021, 03, 07);
+    private static List<DynamicDictionary> Data = new List<DynamicDictionary>();
+    private List<DynamicDictionary> GanttDynamicData { get; set; }
+    private static int ParentRecordID { get; set; }
+    private static int ChildRecordID { get; set; }
+    protected override void OnInitialized()
+    {
+        this.GanttDynamicData = GetData().ToList();
+    }
+    public static List<DynamicDictionary> GetData()
+    {
+        Data.Clear();
+        ParentRecordID = 0;
+        ChildRecordID = 0;
+        for (var i = 1; i <= 5; i++)
+        {
+            DateTime start = new DateTime(2021, 01, 10);
+            int range = (DateTime.Today - start).Days;
+            DateTime startingDate = start;
+            DateTime endingDate = startingDate.AddDays(2);
+            dynamic ParentRecord = new DynamicDictionary();
+            ParentRecord.TaskId = ++ParentRecordID;
+            ParentRecord.TaskName = "Parent task " + i;
+            ParentRecord.StartDate = startingDate;
+            ParentRecord.EndDate = endingDate;
+            ParentRecord.Progress = 30;
+            ParentRecord.Duration = ParentRecordID % 2 == 0 ? (4).ToString() : (8).ToString();
+            ParentRecord.ParentId = null;
+            Data.Add(ParentRecord);
+            AddChildRecords(ParentRecordID);
+        }
+        return Data;
+    }
+    public static void AddChildRecords(int ParentId)
+    {
+        for (var i = 1; i < 4; i++)
+        {
+            DateTime start = new DateTime(2021, 01, 10);
+            int range = (DateTime.Today - start).Days;
+            DateTime startingDate = start;
+            DateTime endingDate = startingDate.AddDays(2);
+            dynamic ChildRecord = new DynamicDictionary();
+            ChildRecord.TaskId = ++ParentRecordID;
+            ChildRecord.TaskName = "Child task " + ++ChildRecordID;
+            ChildRecord.StartDate = startingDate;
+            ChildRecord.EndDate = endingDate;
+            ChildRecord.Progress = 40;
+            ChildRecord.Duration = ParentRecordID % 3 == 0 ? (3).ToString() : (6).ToString();
+            ChildRecord.ParentId = ParentId;
+            Data.Add(ChildRecord);
+        }
+    }
+    public class DynamicDictionary : DynamicObject
+    {
+        Dictionary<string, object> dictionary = new Dictionary<string, object>();
+        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        {
+            string name = binder.Name;
+            return dictionary.TryGetValue(name, out result);
+        }
+        public override bool TrySetMember(SetMemberBinder binder, object value)
+        {
+            dictionary[binder.Name] = value;
+            return true;
+        }
+        public override System.Collections.Generic.IEnumerable<string> GetDynamicMemberNames()
+        {
+            return this.dictionary?.Keys;
+        }
+    }
+} *@

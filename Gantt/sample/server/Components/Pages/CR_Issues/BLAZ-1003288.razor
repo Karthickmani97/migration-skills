@@ -1,0 +1,77 @@
+@page "/BLAZ-1003288"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Gantt
+<div>@messsage</div>
+<SfGantt ID="Gantt" DataSource="@TaskCollection" Height="450px" Width="100%" EnableUndoRedo="true" UndoRedoActions="@undoRedoActions"
+         Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Undo", "Redo",})"
+         AllowRowDragAndDrop>
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                     ParentID="ParentId" BaselineStartDate="BaselineStartDate" BaselineEndDate="BaselineEndDate" Dependency="Predecessors">
+    </GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+    <GanttEvents TValue="BaseData.TaskData" OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+@code {
+    
+    public class BaseData
+    {
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string TaskName { get; set; } = string.Empty;
+            public DateTime? BaselineStartDate { get; set; }
+            public DateTime? BaselineEndDate { get; set; }
+            public DateTime StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public string? Duration { get; set; }
+            public int Progress { get; set; }
+            public int? ParentId { get; set; }
+            public string? Predecessors { get; set; }
+        }
+    
+        public static List<TaskData> GetTaskCollection()
+        {
+            List<TaskData> Tasks = new List<TaskData>() {
+                new TaskData() { TaskId = 1, TaskName = "Project initiation", BaselineStartDate= new DateTime(2021, 04, 02), BaselineEndDate= new DateTime(2021, 04, 04), StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 06) },
+                new TaskData() { TaskId = 2, TaskName = "Identify site location", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 02), Duration = "0", BaselineStartDate= new DateTime(2021, 04, 02, 08, 00, 00), BaselineEndDate= new DateTime(2021, 04, 02, 08, 00, 00), Progress = 30, ParentId = 1 },
+                new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2021, 04, 02), Duration = "5", Progress = 40, BaselineStartDate= new DateTime(2021, 04, 02), BaselineEndDate= new DateTime(2021, 04, 06), ParentId = 2 },
+                new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2021, 04, 08), Duration = "0", EndDate = new DateTime(2021, 04, 08), BaselineStartDate= new DateTime(2021, 04, 08, 08, 00, 00), BaselineEndDate= new DateTime(2021, 04, 08, 08, 00, 00), Progress = 30, ParentId = 2 },
+                new TaskData() { TaskId = 5, TaskName = "Project initiation", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 08), ParentId = 1},
+                new TaskData() { TaskId = 6, TaskName = "Identify site location", StartDate = new DateTime(2021, 04, 02), Duration = "2", Progress = 30, ParentId = 1, BaselineStartDate= new DateTime(2021, 04, 02), BaselineEndDate= new DateTime(2021, 04, 02) },
+                new TaskData() { TaskId = 7, TaskName = "Perform soil test", StartDate = new DateTime(2021, 04, 02), Duration = "4", Progress = 40, ParentId = 1, BaselineStartDate= new DateTime(2021, 04, 02), BaselineEndDate= new DateTime(2021, 04, 03) },
+                new TaskData() { TaskId = 8, TaskName = "Soil test approval", StartDate = new DateTime(2021, 04, 02), Duration = "5", Progress = 30, ParentId = 1, BaselineStartDate= new DateTime(2021, 04, 02), BaselineEndDate= new DateTime(2021, 04, 04) },
+                new TaskData() { TaskId = 9, TaskName = "Market opportunity analysis", BaselineStartDate= new DateTime(2021, 04, 02), BaselineEndDate= new DateTime(2021, 04, 04), StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 06) },
+                new TaskData() { TaskId = 10, TaskName = "Competitor analysis", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 02), Duration = "0", BaselineStartDate= new DateTime(2021, 04, 02, 08, 00, 00), BaselineEndDate= new DateTime(2021, 04, 02, 08, 00, 00), Progress = 30, ParentId= 9 },
+                new TaskData() { TaskId = 11, TaskName = "Product strength analysis", StartDate = new DateTime(2021, 04, 02), Duration = "5", Progress = 40, BaselineStartDate= new DateTime(2021, 04, 02), BaselineEndDate= new DateTime(2021, 04, 06), ParentId = 9 },
+                new TaskData() { TaskId = 12, TaskName = "Research completed", StartDate = new DateTime(2021, 04, 08), Duration = "0", EndDate = new DateTime(2021, 04, 08), BaselineStartDate= new DateTime(2021, 04, 08, 08, 00, 00), BaselineEndDate= new DateTime(2021, 04, 08, 08, 00, 00), Progress = 30, ParentId = 9 },
+                new TaskData() { TaskId = 13, TaskName = "Product design and development", StartDate = new DateTime(2021, 04, 02), Duration = "5", Progress = 40, BaselineStartDate= new DateTime(2021, 04, 02), BaselineEndDate= new DateTime(2021, 04, 06), ParentId = 9 }
+            };
+            return Tasks;
+        }
+    }
+    public SfGantt<BaseData.TaskData>? Gantt { get; set; }
+    public bool IsChecked { get; set; } = true;
+    public bool IsBaselineVisible => IsChecked;
+    private DateTime ProjectStartDate { get; set; } = new DateTime(2021, 3, 24);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2021, 7, 6);
+    public List<BaseData.TaskData> TaskCollection { get; set; } = new List<BaseData.TaskData>();
+    private List<Object>? toolbarItems;
+    
+    public string messsage { get; set; }
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+        messsage += " OnAction failure Event triggered";
+    }
+    protected override void OnInitialized()
+    {
+        TaskCollection = BaseData.GetTaskCollection();
+    }
+    private List<GanttUndoRedoAction> undoRedoActions = new List<GanttUndoRedoAction> {
+        GanttUndoRedoAction.Sort, GanttUndoRedoAction.Add, GanttUndoRedoAction.ColumnReorder, GanttUndoRedoAction.TaskbarEdit,
+        GanttUndoRedoAction.ColumnState, GanttUndoRedoAction.Edit, GanttUndoRedoAction.Filter, GanttUndoRedoAction.NextTimeSpan, GanttUndoRedoAction.PreviousTimeSpan, GanttUndoRedoAction.Search,GanttUndoRedoAction.Delete,
+        GanttUndoRedoAction.ZoomIn, GanttUndoRedoAction.ZoomOut, GanttUndoRedoAction.ZoomToFit,GanttUndoRedoAction.Collapse,GanttUndoRedoAction.Expand,GanttUndoRedoAction.SplitterResize
+    };
+}

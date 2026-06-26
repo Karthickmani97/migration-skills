@@ -1,0 +1,243 @@
+@page "/BLAZ-949057"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+<button @onclick="AddPredecessor">Add Predecessor</button>
+<button @onclick="UpdatePredecessorHandler">Update Predecessor</button>
+<button @onclick="RemovePredecessorFunc">Remove Predecessor</button>
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt DataSource="@TaskCollection" @ref="Gantt" Height="100%" Width="100%" HighlightWeekends="true" TreeColumnIndex="1" Toolbar="@(new List<string>() { "Add", "Cancel", "Delete", "Edit" })" 
+                     AllowUnscheduledTasks="true" TaskMode="ScheduleMode.Custom">
+                     <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true" Mode="EditMode.Auto"></GanttEditSettings>
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" ParentID="ParentId" Manual="IsManual" Dependency="Predecessor"></GanttTaskFields>
+                @* <GanttColumns>
+                    <GanttColumn Field="TaskId" Width="75px"></GanttColumn>
+                    <GanttColumn Field="TaskName" HeaderText="Task Name" Width="250px" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+                    <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+                    <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+                    <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+                </GanttColumns> *@
+                <GanttLabelSettings LeftLabel="TaskName" TValue="UnscheduleData.TaskData">
+                </GanttLabelSettings>
+                <GanttSplitterSettings Position="40%"></GanttSplitterSettings>
+                <GanttEvents TValue="UnscheduleData.TaskData" OnCellSave="CellSaveHandler" CellSaved="CellSaved" TaskbarEditing="OnTaskbarEditingHandler" TaskbarEdited="OnTaskbarEditedHandler" TaskConnectorChanging="ConnectorLineDrawHandler" TaskConnectorChanged="ConnectorLineDrawCompletedHandler"></GanttEvents>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+@code{
+    private List<UnscheduleData.TaskData> TaskCollection { get; set; }
+    private SfGantt<UnscheduleData.TaskData> Gantt;
+    protected override void OnInitialized()
+    {
+        TaskCollection = UnscheduleData.GetTaskCollection();
+    }
+    public void AddPredecessor()
+    {
+        this.Gantt.AddPredecessor(3, "2FF-2");
+    }
+    private void UpdatePredecessorHandler()
+    {
+        Gantt.UpdatePredecessor(6, "1FF");
+    }
+    public void RemovePredecessorFunc()
+    {
+        Gantt.RemovePredecessor(2);
+    }
+    public void CellSaved(Syncfusion.Blazor.Grids.CellSavedArgs<UnscheduleData.TaskData> args)
+    {
+
+    }
+    private async Task BeforeTooltipHandler(BeforeTooltipRenderEventArgs<UnscheduleData.TaskData> args)
+    {
+        await Task.CompletedTask;
+    }
+    public void ConnectorLineDrawHandler(TaskConnectorChangeEventArgs<UnscheduleData.TaskData> args)
+    {
+        //Here, you can customize your code.
+    }
+    public void ConnectorLineDrawCompletedHandler(TaskConnectorChangedEventArgs<UnscheduleData.TaskData> args)
+    {
+        //Here, you can customize your code.
+    }
+    private async Task OnTaskbarEditingHandler(TaskbarEditingEventArgs<UnscheduleData.TaskData> args)
+    {
+        //args.EnablePredecessorOffsetValidation = true;
+        await Task.CompletedTask;
+    }
+    private async Task OnTaskbarEditedHandler(TaskbarEditedEventArgs<UnscheduleData.TaskData> args)
+    {
+        await Task.CompletedTask;
+    }
+    private async Task CellSaveHandler(Syncfusion.Blazor.Grids.CellSaveArgs<UnscheduleData.TaskData> args)
+    {
+        // if (args.ColumnName == "Predecessor")
+        // {
+        //     args.Value = "3FF";
+        // }
+        await Task.CompletedTask;
+    }
+    public class UnscheduleData
+    {
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string TaskName { get; set; }
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public string Duration { get; set; }
+            public int? ParentId { get; set; }
+            public bool IsManual { get; set; }
+            public string TaskMode { get; set; }
+            public int? Predecessor { get; set; }
+        }
+        public static List<TaskData> GetTaskCollection()
+        {
+            List<TaskData> Tasks = new List<TaskData>()
+            {
+                new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 06) },
+                new TaskData() { TaskId = 2, TaskName = "Auto with Duration only", Duration = "2", ParentId = 1,Predecessor=3 },
+                new TaskData() { TaskId = 3, TaskName = "Auto with End Date only", EndDate = new DateTime(2021, 04, 03), ParentId = 1 },
+                new TaskData() { TaskId = 4, TaskName = "Auto with Start Date only", StartDate = new DateTime(2021, 04, 02), ParentId = 1 },
+                new TaskData() { TaskId = 5, TaskName = "No Scheduling Task" },
+                new TaskData() { TaskId = 6, TaskName = "Market Research" },
+                new TaskData() { TaskId = 7, TaskName = "Manual with Duration only", Duration = "2", IsManual = true, ParentId = 6 },
+                new TaskData() { TaskId = 8, TaskName = "Manual with End Date only", EndDate = new DateTime(2021, 04, 03), ParentId = 6, IsManual = true },
+                new TaskData() { TaskId = 9, TaskName = "Manual with Start Date only", StartDate = new DateTime(2021, 04, 02), ParentId = 6, IsManual = true },
+            };
+            return Tasks;
+        }
+    }
+}
+
+
+@*
+<SfGantt @ref="Gantt" ID="Unscheduled" DataSource="@TaskCollection" Toolbar="@(new List<string>() { "Add", "Cancel", "Delete", "Edit" })" Height="450px" Width="1400px" AllowUnscheduledTasks="true">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor">
+    </GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true" Mode="EditMode.Auto"></GanttEditSettings>
+    <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+    <GanttEvents TValue="TaskData" OnCellSave="CellSaveHandler" CellSaved="CellSaved" TaskbarEditing="OnTaskbarEditingHandler" TaskbarEdited="OnTaskbarEditedHandler" TaskConnectorChanging="ConnectorLineDrawHandler" TaskConnectorChanged="ConnectorLineDrawCompletedHandler"></GanttEvents>
+</SfGantt>
+
+@code {
+    public SfGantt<TaskData> Gantt;
+    public List<TaskData> TaskCollection { get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    public void CellSaved(Syncfusion.Blazor.Grids.CellSavedArgs<TaskData> args)
+    {
+
+    }
+    private async Task BeforeTooltipHandler(BeforeTooltipRenderEventArgs<TaskData> args)
+    {
+        await Task.CompletedTask;
+    }
+    public void ConnectorLineDrawHandler(TaskConnectorChangeEventArgs<TaskData> args)
+    {
+        //Here, you can customize your code.
+    }
+    public void ConnectorLineDrawCompletedHandler(TaskConnectorChangedEventArgs<TaskData> args)
+    {
+        //Here, you can customize your code.
+    }
+    private async Task OnTaskbarEditingHandler(TaskbarEditingEventArgs<TaskData> args)
+    {
+        //args.EnablePredecessorOffsetValidation = true;
+        await Task.CompletedTask;
+    }
+    private async Task OnTaskbarEditedHandler(TaskbarEditedEventArgs<TaskData> args)
+    {
+        await Task.CompletedTask;
+    }
+    private async Task CellSaveHandler(Syncfusion.Blazor.Grids.CellSaveArgs<TaskData> args)
+    {
+        if (args.ColumnName == "Duration")
+        {
+            args.Value = "3 Days";
+        }
+        if (args.ColumnName == "EndDate")
+        {
+            args.Value = new DateTime(2019, 04, 03);
+        }
+        await Task.CompletedTask;
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; }
+    }
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+            new TaskData() {
+            TaskId = 1,
+            TaskName = "Project initiation",
+            StartDate = new DateTime(2019, 04, 02),
+        },
+
+        new TaskData() {
+            TaskId = 2,
+            TaskName = "Identify Site location",
+            Progress = 30,
+        },
+
+        new TaskData() {
+            TaskId = 3,
+            TaskName = "Perform soil test",
+            Progress = 40,
+            Duration = "3 Days",
+            Predecessor="2"
+        },
+
+        new TaskData() {
+            TaskId = 4,
+            TaskName = "Soil test approval",
+            EndDate =new DateTime(2019, 04, 03),
+            Progress = 30,
+        },
+
+        new TaskData() {
+            TaskId = 5,
+            TaskName = "Project initiation",
+            StartDate = new DateTime(2019, 04, 04),
+        },
+
+        new TaskData() {
+            TaskId = 6,
+            TaskName = "Identify Site location",
+            StartDate = new DateTime(2019, 04, 02),
+            Progress = 30,
+            ParentId = 5,
+        },
+
+        new TaskData() {
+            TaskId = 7,
+            TaskName = "Perform soil test",
+            StartDate = new DateTime(2019, 04, 02),
+            Progress = 40,
+            ParentId = 5,
+        },
+
+        new TaskData() {
+            TaskId = 8,
+            TaskName = "Soil test approval",
+            EndDate = new DateTime(2019, 04, 02),
+            Progress = 30,
+            ParentId = 5
+        },
+
+    };
+        return Tasks;
+    }
+}
+ *@

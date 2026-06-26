@@ -1,0 +1,207 @@
+@page "/BLAZ-952313"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Gantt
+
+<h3>GanttResource - With Integer Keys</h3>
+<div class="e-switch-control">
+    <label class="showhide"> Resource View </label>
+    <SfSwitch ValueChange="Resource" @bind-Checked="@Check" TChecked="bool"></SfSwitch>
+    <label class="showhide"> Project View </label>
+</div>
+<div style="color:green">Toggling Resource View seems to work as expected </div>
+<br />
+<div class="row">
+    <SfButton @onclick="@LoadData" CssClass="col-1">LOAD DATA</SfButton>
+</div>
+<div style="color:red" >Issue 3: Pressing LOAD DATA results in error   "System.ArgumentNullException: Value cannot be null.
+    at System.RuntimeType.MakeGenericType(Type[] instantiation)
+    at Syncfusion.Blazor.Gantt.Internal.GanttUtils.ConvertResourcesType[T](TreeListItem`1 data, SfGantt`1 parent, Boolean isLoad)
+    at Syncfusion.Blazor.Gantt.SfGantt`1.CreateGanttItem(TreeListItem`1 item, Boolean isResource, Boolean isValidated)"</div>
+<br />
+
+<SfGantt @ref="Gantt" ID="Gantt" ShowOverallocation="@ShowOverallocation" TreeColumnIndex="1" ProjectStartDate="@ProjectStart" ProjectEndDate="@ProjectEnd" DataSource="@TaskCollection" Height="450px" Width="100%" AllowRowDragAndDrop="true" RowHeight="37"
+         Toolbar="@(new List<Object>() { "Add", "Cancel", "Update" , "Delete", "Edit", "CollapseAll", "ExpandAll",new ToolbarItem() { Text = "Show/Hide Overallocation", TooltipText = "Show/Hide Overallocation", Id = "ShowHideBar", Visible=Check, PrefixIcon="e-icons e-eye" } })" AllowResizing ViewType="@viewType">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Work="Work">
+    </GanttTaskFields>
+               <GanttResource Group="ResourceGroup" DataSource="@ResourceCollection" Id="ResourceId" Name="ResourceName" MaxUnits="Unit" TResources="ResourceAlloacteData" TValue="TaskData"></GanttResource>
+                <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="@nameof(AssignmentModel.PrimaryId)" TaskID="@nameof(AssignmentModel.TaskId)" ResourceID="@nameof(AssignmentModel.ResourceId)" Units="@nameof(AssignmentModel.Unit)" TValue="TaskData" TAssignment="AssignmentModel"></GanttAssignmentFields>
+
+                <GanttLabelSettings RightLabel="Resources" TaskLabel="Progress" TValue="TaskData"></GanttLabelSettings>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Visible=false></GanttColumn>
+
+        <GanttColumn Field="TaskName" HeaderText="Name" Width="250"></GanttColumn>
+        <GanttColumn Field="Work" HeaderText="Work"></GanttColumn>
+        <GanttColumn Field="Progress"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+    </GanttColumns>
+    <GanttEvents OnToolbarClick="ToolbarClickHandler" TValue="TaskData"></GanttEvents>
+</SfGantt>
+@code {
+    public SfGantt<TaskData> Gantt;
+    private DateTime ProjectStart = new DateTime(2022, 03, 25);
+    private DateTime ProjectEnd = new DateTime(2022, 05, 10);
+    private List<TaskData> TaskCollection { get; set; }
+    private static List<AssignmentModel> AssignmentCollection { get; set; } = new();
+    private List<ResourceAlloacteData> ResourceCollection { get; set; }
+    private ViewType viewType { get; set; } = ViewType.ProjectView;
+    private bool ShowOverallocation { get; set; } = true;
+    private Boolean Check = true;
+    
+    private void LoadData()
+    {
+        this.TaskCollection = GetTaskCollection();
+        this.ResourceCollection = GetResources;
+        AssignmentCollection = GetAssignmentCollection();
+    }
+
+    public class ResourceAlloacteData
+    {
+        //public Guid ResourceId { get; set; }
+        public int ResourceId { get; set; }
+        public string ResourceName { get; set; }
+        public double? Unit { get; set; }
+        public string? ResourceGroup { get; set; }
+    }
+    public static List<ResourceAlloacteData> GetResources = new List<ResourceAlloacteData>()
+    {
+        new ResourceAlloacteData()
+        {
+            //ResourceId= new Guid("86738193-6C5B-4093-991E-414C0C00DE7A"),
+            ResourceId= 1,
+            ResourceName= "Martin Tamer", 
+            ResourceGroup="Planning Team"
+        },
+        new ResourceAlloacteData()
+        {
+            //ResourceId= new Guid("278AD1C6-B7DA-4D84-B2CE-7588A3EF1323"),
+            ResourceId= 2,
+            ResourceName= "Rose Fuller", 
+            ResourceGroup="Testing Team"
+        },
+        new ResourceAlloacteData()
+        {
+            //ResourceId= new Guid("C22865DF-B84F-40CA-A350-5414AAC72E1D"),
+            ResourceId= 3,
+            ResourceName= "Margaret Buchanan", 
+            ResourceGroup="Approval Team"
+        }
+    };
+
+    public class TaskData
+    {
+        //public Guid TaskId { get; set; }
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        //public Guid? ParentId { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; }
+        public string Notes { get; set; }
+        public double? Work { get; set; }
+        public string TaskType { get; set; }
+        public DateTime? BaselineStartDate { get; set; }
+        public DateTime? BaselineEndDate { get; set; }
+        public string? Details { get; set; }
+    }
+
+public class AssignmentModel
+{
+    public int PrimaryId { get; set; }
+    public int TaskId { get; set; }
+    public int ResourceId { get; set; }
+    public double? Unit { get; set; }
+}
+
+public static List<TaskData> GetTaskCollection()
+{
+    return new List<TaskData>()
+    {
+        new TaskData
+        {
+            TaskId = 1,
+            TaskName = "Project initiation",
+            StartDate = new DateTime(2022, 03, 28),
+            EndDate = new DateTime(2022, 07, 28),
+            TaskType = "FixedDuration",
+            Work = 128,
+            Duration = "4"
+        },
+        new TaskData
+        {
+            TaskId = 2,
+            TaskName = "Identify Site location",
+            StartDate = new DateTime(2022, 03, 29),
+            BaselineStartDate = new DateTime(2022, 03, 29),
+            BaselineEndDate = new DateTime(2022, 03, 31),
+            Progress = 30,
+            ParentId = 1,
+            Duration = "5",
+            Work = 16
+        },
+        new TaskData
+        {
+            TaskId = 3,
+            TaskName = "Site Analyze",
+            StartDate = new DateTime(2022, 03, 29),
+            BaselineStartDate = new DateTime(2022, 03, 29),
+            BaselineEndDate = new DateTime(2022, 03, 31),
+            Progress = 50,
+            ParentId = 1,
+            Duration = "5",
+            Work = 16
+        },
+        new TaskData
+        {
+            TaskId = 4,
+            TaskName = "Perform soil test",
+            StartDate = new DateTime(2022, 03, 29),
+            ParentId = 3,
+            Work = 96,
+            Duration = "6",
+            TaskType = "FixedWork",
+            Progress = 40
+        }
+    };
+}
+
+public static List<AssignmentModel> GetAssignmentCollection()
+{
+    return new List<AssignmentModel>()
+    {
+        new AssignmentModel { PrimaryId = 1, TaskId = 2, ResourceId = 4, Unit = 70 },
+        new AssignmentModel { PrimaryId = 2, TaskId = 3, ResourceId = 2, Unit = 70 },
+        new AssignmentModel { PrimaryId = 3, TaskId = 4, ResourceId = 3, Unit = 0 }
+    };
+}
+// Predecessor="2FS",
+    public void ToolbarClickHandler(ClickEventArgs args)
+    {
+        if (args.Item.Id == "ShowHideBar")
+        {
+            ShowOverallocation = ShowOverallocation ? false : true;
+        }
+    }
+
+    public void Resource()
+    {
+        if (viewType == ViewType.ResourceView)
+        {
+            viewType = ViewType.ProjectView;
+        }
+        else
+        {
+            viewType = ViewType.ResourceView;
+        }
+        StateHasChanged();
+    }
+}
+@* 
+ *@

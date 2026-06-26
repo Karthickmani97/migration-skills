@@ -1,0 +1,172 @@
+@page "/BLAZ-889435"
+@rendermode InteractiveServer
+@* @rendermode InteractiveServer *@
+
+<button @onclick="Add">Add Assignment</button>
+<button @onclick="Update">Update Assignment</button>
+<button @onclick="Delete">Delete Assignment</button>
+<button @onclick="GetResource">GetResource</button>
+<button @onclick="GetAssignment">GetAssignments</button>
+<button @onclick="AddNewRecord">AddRecord</button>
+<button @onclick="UpdateDataSource">UpdateDataSource</button>
+<br>
+<br>
+@using Syncfusion.Blazor.Gantt
+<SfGantt @ref="obj" DataSource="@TaskCollection" EnableContextMenu Toolbar="@(new List<string>(){ "TaskInformation", "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll","Indent","Outdent"})" AllowRowDragAndDrop ShowOverallocation="true" ViewType="ViewType.ProjectView" Height="650px" Width="100%" ProjectStartDate="@ProjectStart" ProjectEndDate="@ProjectEnd" WorkUnit="WorkUnit.Hour">
+     <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                      ParentID="ParentId">
+     </GanttTaskFields>
+     <GanttColumns>
+         <GanttColumn Field="TaskId" HeaderText="ID"></GanttColumn>
+         <GanttResourceColumn HeaderText="Resources" Width="300px" AllowEditing="false"></GanttResourceColumn>
+         <GanttColumn Field="TaskName" HeaderText="Event Name"></GanttColumn>
+         <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+         <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+         <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+     </GanttColumns>
+     <GanttResource TValue="TaskData" DataSource="@ResourceCollection" Id="ResourceId" Name="ResourceName" MaxUnits="MaxUnit" Group="Group" TResources="ResourceAlloacteData"></GanttResource>
+     <GanttAssignmentFields PrimaryKey="ResourceAssignmentId" TaskID="TaskId" ResourceID="ResourceId" Units="Unit" TValue="TaskData" TAssignment="ResourceAssignment" ResourceAssignmentChanging="AssignmentHandler" DataSource="ResourceAssignments"></GanttAssignmentFields>
+     <GanttLabelSettings RightLabel="Resources" TValue="TaskData"></GanttLabelSettings>
+     <GanttEditSettings AllowAdding AllowDeleting AllowEditing AllowTaskbarEditing></GanttEditSettings>
+     <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+     <GanttTaskbarSettings AllowTaskbarDragAndDrop="true" EnableMultiTaskbar="true"></GanttTaskbarSettings>
+ </SfGantt>
+ @code {
+    public SfGantt<TaskData> obj { get; set; }
+    private DateTime ProjectStart = new DateTime(2022, 03, 25);
+    private DateTime ProjectEnd = new DateTime(2022, 05, 10);
+    private List<TaskData> TaskCollection { get; set; }
+    private List<ResourceAlloacteData> ResourceCollection { get; set; }
+    private List<ResourceAssignment> ResourceAssignments { get; set; }
+
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        this.ResourceCollection = GetResources;
+        ResourceAssignments = AssignmentCollection();
+    }
+    public class ResourceAlloacteData
+    {
+        public int ResourceId { get; set; }
+        public string ResourceName { get; set; }
+        public double MaxUnit { get; set; }
+        public string Group { get; set; }
+    }
+
+    public class ResourceAssignment
+    {
+        public int ResourceAssignmentId { get; set; }
+        public int TaskId { get; set; }
+        public int ResourceId { get; set; }
+        public double Unit { get; set; }
+    }
+    private async Task AssignmentHandler(ResourceAssignmentChangeEventArgs<ResourceAssignment> args)
+    {
+        if (args.AddedResources is not null)
+        {
+
+        }
+        if (args.UpdatedResources is not null)
+        {
+
+        }
+        if (args.DeletedResources is not null)
+        {
+
+        }
+        await Task.CompletedTask;
+    }
+    public static List<ResourceAlloacteData> GetResources = new List<ResourceAlloacteData>()
+    {
+
+        new ResourceAlloacteData() { ResourceId= 1, ResourceName= "Martin Tamer"},
+        new ResourceAlloacteData() { ResourceId= 2, ResourceName= "Rose Fuller" },
+        new ResourceAlloacteData() { ResourceId= 3, ResourceName= "Margaret Buchanan" },
+        new ResourceAlloacteData() { ResourceId= 4, ResourceName= "Fuller King" },
+        new ResourceAlloacteData() { ResourceId= 5, ResourceName= "Davolio Fuller" },
+        new ResourceAlloacteData() { ResourceId= 6, ResourceName= "Fuller Buchanan" },
+        new ResourceAlloacteData() { ResourceId= 7, ResourceName= "Jack Davolio" },
+        new ResourceAlloacteData() { ResourceId= 8, ResourceName= "Tamer Vinet" },
+        new ResourceAlloacteData() { ResourceId= 9, ResourceName= "Vinet Fuller" },
+        new ResourceAlloacteData() { ResourceId= 10, ResourceName= "Bergs Anton" },
+        new ResourceAlloacteData() { ResourceId= 11, ResourceName= "Construction Supervisor" }
+    };
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+    }
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+            new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 03, 28), EndDate = new DateTime(2022, 07, 28), Duration="4" },
+            new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 03, 29), Progress = 30, ParentId = 1, Duration="2", },
+            new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 03, 29), ParentId = 1, Duration="4" },
+            new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 03, 29), Duration = "1", Progress = 30, ParentId = 1, },
+            new TaskData() { TaskId = 5, TaskName = "Project estimation", StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 04, 2), Duration="4" },
+            new TaskData() { TaskId = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 03, 29), Duration = "3", Progress = 30, ParentId = 5, },
+            new TaskData() { TaskId = 7, TaskName = "List materials", StartDate = new DateTime(2022, 04, 01), Duration = "3", Progress = 30, ParentId = 5, },
+            new TaskData() { TaskId = 8, TaskName = "Estimation approval", StartDate = new DateTime(2022, 04, 01), Duration = "2", ParentId = 5, }
+        };
+        return Tasks;
+    }
+
+    public static List<ResourceAssignment> AssignmentCollection()
+    {
+        List<ResourceAssignment> assignments = new List<ResourceAssignment>()
+        {
+            new ResourceAssignment(){ ResourceAssignmentId=1, TaskId = 1 , ResourceId=1, Unit=100},
+            new ResourceAssignment(){ ResourceAssignmentId=2, TaskId = 2 , ResourceId=4},
+            new ResourceAssignment(){ ResourceAssignmentId=3, TaskId = 3 , ResourceId=6},
+            new ResourceAssignment(){ ResourceAssignmentId=4, TaskId = 4 , ResourceId=8, Unit=100},
+            new ResourceAssignment(){ ResourceAssignmentId=5, TaskId = 7 , ResourceId=2, Unit=100},
+            new ResourceAssignment(){ ResourceAssignmentId=6, TaskId = 8 , ResourceId=4, Unit=100},
+           new ResourceAssignment(){ ResourceAssignmentId=7, TaskId =6 , ResourceId=2},
+        };
+        return assignments;
+    }
+
+    private async void Add()
+    {
+        var record = new ResourceAssignment() { ResourceAssignmentId = 18, TaskId = 2, ResourceId = 8 };
+        await obj.AddResourceAssignmentAsync(record);
+    }
+    private async void Update()
+    {
+        var record = new ResourceAssignment() { ResourceAssignmentId = 3, TaskId = 6, ResourceId = 3, Unit = 50 };
+        await obj.UpdateResourceAssignmentAsync(record);
+    }
+    private async void Delete()
+    {
+        var record = new ResourceAssignment() { TaskId = 2, ResourceId = 8 };
+        await obj.DeleteResourceAssignmentAsync(record);
+    }
+
+    private void GetResource()
+    {
+        TaskData data = new TaskData() { TaskId = 2 };
+        var datas = obj.GetResources<ResourceAlloacteData>(data);
+    }
+    private void GetAssignment()
+    {
+        TaskData data = new TaskData() { TaskId = 2 };
+        var datas = obj.GetResourceAssignments<ResourceAssignment>(data);
+    }
+    private async void AddNewRecord()
+    {
+        var record = new ResourceAssignment() { ResourceAssignmentId = 19, TaskId = 9, ResourceId = 8 };
+        TaskData data = new TaskData() { TaskId = 9, TaskName = "NewRecord", StartDate = new DateTime(2022, 04, 01), Duration = "2", };
+        await obj.AddRecordAsync(data, 0, null, record);
+    }
+    private void UpdateDataSource()
+    {
+        ResourceAssignments = AssignmentCollection();
+    }
+}
+

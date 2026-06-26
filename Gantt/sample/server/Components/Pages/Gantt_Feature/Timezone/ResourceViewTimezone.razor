@@ -1,0 +1,256 @@
+﻿@page "/resource-timezone"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.DropDowns
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="e-switch-control">
+                <label class="showhide"> Project View </label>
+                <SfSwitch ValueChange="Resource" @bind-Checked="@IsCheck" TChecked="bool"></SfSwitch>
+                <label class="showhide"> Resource View </label>
+            </div>
+            <SfGantt @ref="Gantt" EnableContextMenu="true" ScrollToTaskbarOnClick="true" DurationUnit="DurationUnit.Hour" AllowFiltering="true" AllowSorting="true" ShowColumnMenu="true" ShowOverallocation="@ShowOverallocation" DateFormat="d MMM yyyy hh:mm tt" IncludeWeekend="true" RenderBaseline="true" Timezone="@TimeZone" TreeColumnIndex="1" DataSource="@TaskCollection" Height="450px" Width="100%" AllowRowDragAndDrop="true" RowHeight="37"
+                     Toolbar="@ToolbarItems" AllowResizing ViewType="@viewType">
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                                Indicators="Indicators" ParentID="ParentId" Dependency="Predecessor">
+                </GanttTaskFields>
+                <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" MaxUnits="MaxUnit" Group="Group" TValue="TaskInfoModel" TResources="ResourceInfoModel"></GanttResource>
+                <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="Id" TaskID="TaskId" ResourceID="ResourceId" TValue="TaskInfoModel" TAssignment="AssignmentModel"></GanttAssignmentFields>
+                <GanttLabelSettings LeftLabel="Resources" TValue="TaskInfoModel"></GanttLabelSettings>
+                <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+                <GanttColumns>
+                    <GanttColumn Field="TaskId" Visible=false></GanttColumn>
+                    <GanttColumn Field="TaskName" HeaderText="Name" Width="250"></GanttColumn>
+                    <GanttColumn Field="Progress"></GanttColumn>
+                    <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+                    <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+                    <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+                </GanttColumns>
+                <GanttDayWorkingTimeCollection>
+                    <GanttDayWorkingTime From="0" To="24"></GanttDayWorkingTime>
+                </GanttDayWorkingTimeCollection>
+                <GanttEventMarkers>
+                    <GanttEventMarker Day="new DateTime(2019, 3, 8, 12, 0, 0)" Label="Requirements Sign-Off"></GanttEventMarker>
+                    <GanttEventMarker Day="new DateTime(2019, 3, 9, 16, 0, 0)" Label="UI Design Complete"></GanttEventMarker>
+                    <GanttEventMarker Day="new DateTime(2019, 3, 11, 13, 0, 0)" Label="System Integration Started"></GanttEventMarker>
+                </GanttEventMarkers>
+                <GanttTimelineSettings TimelineUnitSize="40">
+                    <GanttTopTierSettings Unit="TimelineViewMode.Day" Format="MMM dd, yyyy"></GanttTopTierSettings>
+                    <GanttBottomTierSettings Unit="TimelineViewMode.Hour" Count="1" Format="hh:mm"></GanttBottomTierSettings>
+                </GanttTimelineSettings>
+                <GanttEvents OnToolbarClick="ToolbarClickHandler" TValue="TaskInfoModel"></GanttEvents>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+<style>
+    .showhide {
+        font-size: 15px;
+        font-weight: 400;
+        margin-bottom: 1px;
+        padding: 10px;
+    }
+
+    .e-switch-control {
+        display: flex;
+        align-items: center;
+    }
+</style>
+@code {
+    public SfGantt<TaskInfoModel> Gantt;
+    private List<TaskInfoModel> TaskCollection { get; set; } = new List<TaskInfoModel>();
+    private List<ResourceInfoModel> ResourceCollection { get; set; } = new List<ResourceInfoModel>();
+    private ViewType viewType = ViewType.ResourceView;
+    private bool ShowOverallocation { get; set; } = true;
+    private static Boolean IsCheck { get; set; } = true;
+    private static List<AssignmentModel> AssignmentCollection { get; set; } = new List<AssignmentModel>();
+#pragma warning disable BL0005 // Component parameter should not be set outside of its component.
+    private List<Object> ToolbarItems { get; set; } = new List<Object>();
+#pragma warning restore BL0005 // Component parameter should not be set outside of its component.
+    public string TimeZone { get; set; } = TimeZoneValues[0];
+    private static List<string> TimeZoneValues = new List<string> {
+        "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
+        "America/Phoenix", "America/Sao_Paulo", "Europe/London", "Europe/Paris", "Europe/Berlin",
+        "Europe/Moscow", "Africa/Johannesburg", "Africa/Cairo", "Asia/Jerusalem", "Asia/Dubai", "Asia/Amman",
+        "Asia/Kolkata", "Asia/Kathmandu", "Asia/Shanghai", "Asia/Tokyo", "Asia/Seoul",
+        "Asia/Singapore", "Australia/Sydney", "Australia/Perth", "Pacific/Auckland", "Pacific/Honolulu","UTC",
+    };
+    public string SelectedTimeZone { get; set; } = TimeZoneValues[0];
+    protected override void OnInitialized()
+    {
+        TaskCollection = GetTaskCollection();
+        ResourceCollection = GetResources;
+        AssignmentCollection = GetAssignmentCollection();
+        ToolbarItems = new List<Object>() {
+            "Add", "Cancel", "Update", "Delete", "Edit", "CollapseAll", "ExpandAll", "Indent",
+            "Outdent", new ToolbarItem() { Text = "Show/Hide Overallocation", TooltipText = "Show/Hide Overallocation", Id = "ShowHideBar", Visible = IsCheck, PrefixIcon = "e-icons e-eye" },
+            new ItemModel
+            {
+                Id = "TimeZoneDropDown",
+                Template = (RenderFragment)(builder =>
+                {
+                    builder.OpenComponent<SfDropDownList<string, string>>(0);
+                    builder.AddAttribute(1, "Width", "175px");
+                    builder.AddAttribute(2, "DataSource", TimeZoneValues);
+                    builder.AddAttribute(3, "Value", SelectedTimeZone);
+                    builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<string>(this, v => SelectedTimeZone = v));
+                    builder.AddAttribute(5, "ChildContent", (RenderFragment)(childBuilder =>
+                    {
+                        childBuilder.OpenComponent<DropDownListEvents<string, string>>(0);
+                        childBuilder.AddAttribute(1, "ValueChange", EventCallback.Factory.Create<ChangeEventArgs<string, string>>(this, OnTimeZoneChanged));
+                        childBuilder.CloseComponent();
+                    }));
+                    builder.CloseComponent();
+                })
+            },
+        };
+    }
+    public async void OnTimeZoneChanged(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, string> args)
+    {
+        TimeZone = args.Value;
+        await Task.CompletedTask;
+    }
+    public class ResourceInfoModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public double MaxUnit { get; set; }
+        public string? Group { get; set; }
+    }
+    public class AssignmentModel
+    {
+        public int Id { get; set; }
+        public int TaskId { get; set; }
+        public int ResourceId { get; set; }
+        public double? Unit { get; set; }
+    }
+    public static List<ResourceInfoModel> GetResources = new List<ResourceInfoModel>()
+    {
+        new ResourceInfoModel() { Id= 1, Name= "Martin Tamer", Group="Planning Team"},
+        new ResourceInfoModel() { Id= 2, Name= "Rose Fuller", Group="Testing Team" },
+        new ResourceInfoModel() { Id= 3, Name= "Margaret Buchanan", Group="Approval Team" },
+        new ResourceInfoModel() { Id= 4, Name= "Fuller King", Group="Development Team" },
+        new ResourceInfoModel() { Id= 5, Name= "Davolio Fuller", Group="Approval Team" },
+        new ResourceInfoModel() { Id= 6, Name= "Fuller Buchanan", Group="Development Team" },
+        new ResourceInfoModel() { Id= 7, Name= "Jack Davolio", Group="Planning Team" },
+        new ResourceInfoModel() { Id= 8, Name= "Tamer Vinet", Group="Testing Team" },
+        new ResourceInfoModel() { Id= 9, Name= "Vinet Fuller", Group="Development Team" },
+        new ResourceInfoModel() { Id= 10, Name= "Bergs Anton", Group="Testing Team" },
+        new ResourceInfoModel() { Id= 11, Name= "Construction Supervisor", Group="Testing Team" },
+    };
+    public class TaskInfoModel
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; } = string.Empty;
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; } = string.Empty;
+        public string Notes { get; set; } = string.Empty;
+        public double? Work { get; set; }
+        public string TaskType { get; set; } = string.Empty;
+        public DateTime BaselineStartDate { get; set; }
+        public DateTime BaselineEndDate { get; set; }
+        public string? Details { get; set; }
+        public List<GanttIndicator> Indicators { get; set; }
+    }
+    public static List<TaskInfoModel> GetTaskCollection()
+    {
+        var Tasks = new List<TaskInfoModel>
+            {
+                //Project summary (Parent)
+                new TaskInfoModel { TaskId=1, TaskName="Website Redesign Project", StartDate=new DateTime(2019,3,8,8,0,0), EndDate=new DateTime(2019,3,11,17,0,0), Duration = "34", Progress = 0 },
+
+                // 08/03/2019
+                new TaskInfoModel { TaskId=2, TaskName="Kick-off Meeting", StartDate=new DateTime(2019,3,8,8,0,0), EndDate=new DateTime(2019,3,8,9,0,0), Duration = "1", Progress=100, ParentId=1 },
+                new TaskInfoModel { TaskId=3, TaskName="Requirement Analysis", StartDate=new DateTime(2019,3,8,9,0,0), EndDate=new DateTime(2019,3,8,12,0,0), Duration="3", Progress=80, ParentId=1,
+                    BaselineStartDate=new DateTime(2019,3,8,9,0,0), BaselineEndDate=new DateTime(2019,3,8,12,0,0),
+                    Indicators = new List<GanttIndicator> { new GanttIndicator { Name="Analysis Complete", Date=new DateTime(2019,3,8,12,0,0), IconClass="e-notes-info", Tooltip="Analysis approved" } }
+                },
+                new TaskInfoModel { TaskId=4, TaskName="Stakeholder Interview", StartDate=new DateTime(2019,3,8,12,0,0), EndDate=new DateTime(2019,3,8,14,0,0), Duration="2", Progress=60, ParentId=1, Predecessor="3FS" },
+                new TaskInfoModel { TaskId=5, TaskName="Draft Requirement Document", StartDate=new DateTime(2019,3,8,14,0,0), EndDate=new DateTime(2019,3,8,16,0,0), Duration="2", Progress=75, ParentId=1, Predecessor="4FS" },
+                new TaskInfoModel { TaskId=6, TaskName="Requirements Review", StartDate=new DateTime(2019,3,8,16,0,0), EndDate=new DateTime(2019,3,8,17,0,0), Duration="1", Progress=30, ParentId=1, Predecessor="5FS",
+                    Indicators=new List<GanttIndicator>{ new GanttIndicator{ Name="Review Complete", Date=new DateTime(2019,3,8,17,0,0), IconClass="e-notes-info", Tooltip="Review signed off"} }
+                },
+                // 09/03/2019
+                new TaskInfoModel { TaskId=7, TaskName="Create Wireframes", StartDate=new DateTime(2019,3,9,8,0,0), EndDate=new DateTime(2019,3,9,10,0,0), Duration="2", Progress=20, ParentId=1, Predecessor="6FS" },
+                new TaskInfoModel { TaskId=8, TaskName="Wireframe Review", StartDate=new DateTime(2019,3,9,10,0,0), EndDate=new DateTime(2019,3,9,11,0,0), Duration="1", Progress=35, ParentId=1, Predecessor="7FS" },
+                new TaskInfoModel { TaskId=9, TaskName="UI Design - Home", StartDate=new DateTime(2019,3,9,11,0,0), EndDate=new DateTime(2019,3,9,13,0,0), Duration="2", Progress=60, ParentId=1, Predecessor="8FS" },
+                new TaskInfoModel { TaskId=10, TaskName="UI Design - About", StartDate=new DateTime(2019,3,9,13,0,0), EndDate=new DateTime(2019,3,9,15,0,0), Duration="2", Progress=45, ParentId=1, Predecessor="9FS" },
+                new TaskInfoModel { TaskId=11, TaskName="UI Design Review", StartDate=new DateTime(2019,3,9,15,0,0), EndDate=new DateTime(2019,3,9,16,0,0), Duration="1", Progress=25, ParentId=1, Predecessor="10FS",
+                    Indicators = new List<GanttIndicator> { new GanttIndicator { Name="UI Approved", Date=new DateTime(2019,3,9,16,0,0), IconClass="e-notes-info", Tooltip="UI approved" } }
+                },
+                new TaskInfoModel { TaskId=12, TaskName="Logo Design", StartDate=new DateTime(2019,3,9,16,0,0), EndDate=new DateTime(2019,3,9,18,0,0), Duration="2", Progress=70, ParentId=1 },
+                new TaskInfoModel { TaskId=13, TaskName="Front-End Dev Kickoff", StartDate=new DateTime(2019,3,9,18,0,0), EndDate=new DateTime(2019,3,9,19,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="12FS" },
+
+                // 10/03/2019
+                new TaskInfoModel { TaskId=14, TaskName="Setup Dev Environment", StartDate=new DateTime(2019,3,10,8,0,0), EndDate=new DateTime(2019,3,10,10,0,0), Duration="2", Progress=40, ParentId=1, Predecessor="13FS" },
+                new TaskInfoModel { TaskId=15, TaskName="Build Home Page", StartDate=new DateTime(2019,3,10,10,0,0), EndDate=new DateTime(2019,3,10,12,0,0), Duration="2", Progress=25, ParentId=1, Predecessor="14FS" },
+                new TaskInfoModel { TaskId=16, TaskName="Build About Page", StartDate=new DateTime(2019,3,10,12,0,0), EndDate=new DateTime(2019,3,10,13,0,0), Duration="1", Progress=30, ParentId=1 },
+                new TaskInfoModel { TaskId=17, TaskName="Build Contact Page", StartDate=new DateTime(2019,3,10,13,0,0), EndDate=new DateTime(2019,3,10,15,0,0), Duration="2", Progress=20, ParentId=1 },
+                new TaskInfoModel { TaskId=18, TaskName="Sprint Planning Meeting", StartDate=new DateTime(2019,3,10,15,0,0), EndDate=new DateTime(2019,3,10,16,0,0), Duration="1", Progress=100, ParentId=1 },
+                new TaskInfoModel { TaskId=19, TaskName="Functional Testing", StartDate=new DateTime(2019,3,10,16,0,0), EndDate=new DateTime(2019,3,10,18,0,0), Duration="2", Progress=0, ParentId=1, Predecessor="17FS,18FS" },
+                new TaskInfoModel { TaskId=20, TaskName="Bugfix Cycle 1", StartDate=new DateTime(2019,3,10,18,0,0), EndDate=new DateTime(2019,3,10,20,0,0), Duration="2", Progress=0, ParentId=1, Predecessor="19FS" },
+                new TaskInfoModel { TaskId=21, TaskName="Bug Review Meeting", StartDate=new DateTime(2019,3,10,20,0,0), EndDate=new DateTime(2019,3,10,21,0,0), Duration="1", Progress=0, ParentId=1 },
+
+                // 11/03/2019
+                new TaskInfoModel { TaskId=22, TaskName="Backend API Design", StartDate=new DateTime(2019,3,11,8,0,0), EndDate=new DateTime(2019,3,11,10,0,0), Duration="2", Progress=0, ParentId=1 },
+                new TaskInfoModel { TaskId=23, TaskName="Backend Implementation", StartDate=new DateTime(2019,3,11,10,0,0), EndDate=new DateTime(2019,3,11,12,0,0), Duration="2", Progress=0, ParentId=1, Predecessor="22FS" },
+                new TaskInfoModel { TaskId=24, TaskName="API Integration", StartDate=new DateTime(2019,3,11,12,0,0), EndDate=new DateTime(2019,3,11,13,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="23FS" },
+                new TaskInfoModel { TaskId=25, TaskName="System Integration Testing", StartDate=new DateTime(2019,3,11,13,0,0), EndDate=new DateTime(2019,3,11,15,0,0), Duration="2", Progress=0, ParentId=1, Predecessor="24FS" },
+                new TaskInfoModel { TaskId=26, TaskName="Performance Tuning", StartDate=new DateTime(2019,3,11,15,0,0), EndDate=new DateTime(2019,3,11,16,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="25FS" },
+                new TaskInfoModel { TaskId=27, TaskName="Bugfix Cycle 2", StartDate=new DateTime(2019,3,11,16,0,0), EndDate=new DateTime(2019,3,11,17,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="26FS" },
+                new TaskInfoModel { TaskId=28, TaskName="UAT Preparation", StartDate=new DateTime(2019,3,11,17,0,0), EndDate=new DateTime(2019,3,11,18,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="27FS" },
+                new TaskInfoModel { TaskId=29, TaskName="UAT Execution", StartDate=new DateTime(2019,3,11,18,0,0), EndDate=new DateTime(2019,3,11,20,0,0), Duration="2", Progress=0, ParentId=1, Predecessor="28FS" },
+                new TaskInfoModel { TaskId=30, TaskName="Go-Live & Project Closeout", StartDate=new DateTime(2019,3,11,20,0,0), EndDate=new DateTime(2019,3,11,21,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="29FS" },
+            };
+        return Tasks;
+    }
+    public static List<AssignmentModel> GetAssignmentCollection()
+    {
+        List<AssignmentModel> assignments = new List<AssignmentModel>()
+        {
+            new AssignmentModel(){ Id=1, TaskId = 2 , ResourceId=1, Unit=70},
+            new AssignmentModel(){ Id=2, TaskId = 3 , ResourceId=1, Unit=70},
+            new AssignmentModel(){ Id=3, TaskId = 4 , ResourceId=3},
+            new AssignmentModel(){ Id=4, TaskId = 5 , ResourceId=8},
+            new AssignmentModel(){ Id=5, TaskId = 6 , ResourceId=2},
+            new AssignmentModel(){ Id=6, TaskId = 7 , ResourceId=4, Unit=30},
+            new AssignmentModel(){ Id=7, TaskId = 8 , ResourceId=8},
+            new AssignmentModel(){ Id=8, TaskId = 9 , ResourceId=11},
+            new AssignmentModel(){ Id=9, TaskId = 12 , ResourceId=2},
+            new AssignmentModel(){ Id=10, TaskId = 13 , ResourceId=6},
+            new AssignmentModel(){ Id=11, TaskId = 14 , ResourceId=7},
+            new AssignmentModel(){ Id=12, TaskId = 15 , ResourceId=9},
+            new AssignmentModel(){ Id=13, TaskId = 16 , ResourceId=10},
+            new AssignmentModel(){ Id=14, TaskId = 17 , ResourceId=7},
+            new AssignmentModel(){ Id=15, TaskId = 18 , ResourceId=5},
+            new AssignmentModel(){ Id=16, TaskId = 19 , ResourceId=5}
+        };
+        return assignments;
+    }
+    public void ToolbarClickHandler(ClickEventArgs args)
+    {
+        if (args.Item.Id == "ShowHideBar")
+        {
+            ShowOverallocation = ShowOverallocation ? false : true;
+        }
+    }
+    public void Resource()
+    {
+        if (viewType == ViewType.ResourceView)
+        {
+            viewType = ViewType.ProjectView;
+        }
+        else
+        {
+            viewType = ViewType.ResourceView;
+        }
+        StateHasChanged();
+    }
+}

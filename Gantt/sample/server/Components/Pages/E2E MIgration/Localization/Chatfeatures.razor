@@ -1,0 +1,152 @@
+@page "/E2EMigration/BLAZ-15170"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+<div>@message</div>
+<SfGantt DataSource="@TaskCollection" Height="450px" Width="700px" RenderBaseline="true"  Toolbar="@(new List<string>() { "Add" })">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" BaselineStartDate="BaselineStartDate"
+                     BaselineEndDate="BaselineEndDate" >
+    </GanttTaskFields>
+    <GanttEventMarkers>
+        <GanttEventMarker Day="@Event" Label="Project approval and kick-off"
+                          CssClass="e-custom-event-marker"></GanttEventMarker>
+    </GanttEventMarkers>
+    <GanttHolidays>
+        <GanttHoliday From="@Holiday1" To="@Holiday2" Label="Public holidays"
+                      CssClass="e-custom-holiday"></GanttHoliday>
+        <GanttHoliday From="@Holiday3" To="@Holiday4" Label="Public holiday"
+                      CssClass="e-custom-holiday"></GanttHoliday>
+    </GanttHolidays>
+
+    <GanttLabelSettings RightLabel="TaskName" TValue="TaskData"> </GanttLabelSettings>
+    <GanttEditSettings AllowTaskbarEditing="true" AllowAdding="true" AllowDeleting="true" AllowEditing="true"></GanttEditSettings>
+    <GanttEvents TValue="TaskData" OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+
+@code{
+    public DateTime Event = new DateTime(2019, 04, 11);
+    public DateTime Holiday1 = new DateTime(2019, 04, 11);
+    public DateTime Holiday2 = new DateTime(2019, 04, 12);
+    public DateTime Holiday3 = new DateTime(2019, 04, 01);
+    public DateTime Holiday4 = new DateTime(2019, 04, 01);
+    public List<TaskData> TaskCollection { get; set; }
+    public string message{ get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+     public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+
+    public class GanttIndicator
+    {
+        public string Name { get; set; }
+        public string IconClass { get; set; }
+        public DateTime Date { get; set; }
+        public string Tooltip { get; set; }
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public DateTime BaselineStartDate { get; set; }
+        public DateTime BaselineEndDate { get; set; }
+        public List<GanttIndicator> Indicators { get; set; }
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+
+    new TaskData() {
+        TaskId = 1,
+        TaskName = "Project initiation",
+        StartDate = new DateTime(2019, 04, 02),
+        EndDate = new DateTime(2019, 04, 21)
+    },
+    new TaskData() {
+        TaskId = 2,
+        TaskName = "Identify Site location",
+        StartDate = new DateTime(2019, 04, 02),
+        Duration = "3",
+        Progress = 30,
+        ParentId = 1,
+        BaselineStartDate = new DateTime(2019, 04, 02),
+                    BaselineEndDate = new DateTime(2019, 04, 02),
+                     Indicators=(new List<GanttIndicator>()
+            {
+                new GanttIndicator()
+                {
+                    Name="product",
+                    IconClass="e-btn-icon e-notes-info e-icons e-icon-left e-gantt e-notes-info::before",
+                    Date=new DateTime(2019, 04, 8),
+                    Tooltip="sales"
+                }
+            })
+    },
+    new TaskData() {
+        TaskId = 3,
+        TaskName = "Perform soil test",
+        StartDate = new DateTime(2019, 04, 02),
+        Duration = "4",
+        Progress = 40,
+        ParentId = 1
+    },
+    new TaskData() {
+        TaskId = 4,
+        TaskName = "Soil test approval",
+        StartDate = new DateTime(2019, 04, 02),
+        Duration = "0",
+        Progress = 30,
+        ParentId = 1
+    },
+    new TaskData() {
+        TaskId = 5,
+        TaskName = "Project estimation",
+        StartDate = new DateTime(2019, 04, 02),
+        EndDate = new DateTime(2019, 04, 21)
+    },
+    new TaskData() {
+        TaskId = 6,
+        TaskName = "Develop floor plan for estimation",
+        StartDate = new DateTime(2019, 04, 04),
+        Duration = "3",
+        Progress = 30,
+        ParentId = 5
+    },
+    new TaskData() {
+        TaskId = 7,
+        TaskName = "List materials",
+        StartDate = new DateTime(2019, 04, 04),
+        Duration = "3",
+        Progress = 40,
+        ParentId = 5
+    },
+    new TaskData() {
+        TaskId = 8,
+        TaskName = "Estimation approval",
+        StartDate = new DateTime(2019, 04, 04),
+        Duration = "0",
+        Progress = 30,
+        ParentId = 5
+    }
+};
+        return Tasks;
+    }
+}
+<style>
+    .e-gantt .e-gantt-chart .e-custom-event-marker {
+        width: 1px;
+        border-left: 2px red dotted;
+    }
+    .e-custom-parent {
+        background-color: #6d619b;
+        border: 1px solid #3f51b5;
+    }
+</style>

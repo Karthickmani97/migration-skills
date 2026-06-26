@@ -1,0 +1,315 @@
+@page "/TaskIDString"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.TreeGrid
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.DropDowns
+
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+             <div class="col-lg-9">
+<SfGantt @ref="Gantt" ID="GanttEditing" DataSource="@TaskCollection" ShowColumnMenu="true" ShowColumnChooser="true" GridLines="Syncfusion.Blazor.Gantt.GridLine.Vertical" EnableContextMenu="true"
+    Toolbar="@(new List<string>() { "Add", "Cancel", "Delete", "Edit", "Update","ZoomIn","ZoomOut", "ZoomToFit" })" Height="450px"
+    Width="1400px" AllowFiltering="true" AllowSorting="true">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration"
+        Progress="Progress" Dependency="Predecessor" Child="SubTasks" Notes="Notes">
+    </GanttTaskFields>
+    <GanttSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple">
+    </GanttSelectionSettings>
+    <GanttEditSettings AllowEditing="true" AllowAdding="true" AllowDeleting="true" AllowTaskbarEditing="true"
+        ShowDeleteConfirmDialog="true">
+    </GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" HeaderText="ID" Width="100"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Name" Width="250"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date" Width="150" Format="@DateFormat"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date" Width="150" Format="@DateFormat"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration" Width="150"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+        <GanttColumn Field="Notes" HeaderText="Notes"></GanttColumn>
+    </GanttColumns>
+    <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+    <GanttEvents TValue="TaskData" Created="Created"></GanttEvents>
+</SfGantt>
+</div>
+
+              <div class="col-lg-3">
+                  <div class="e-switch-control" style="width: 750px;">
+                <label class="showhide" style="padding: 10px 15px 10px 10px"> Methods: </label>
+                  <SfDropDownList Width="25%" @ref="@DropdownMode" TValue="string" TItem="DropDownData" DataSource="@Methods" @bind-Value="@Mode" AllowFiltering="true" Placeholder=" ">
+                    <DropDownListEvents TValue="string" ValueChange="MethodChange" TItem="DropDownData"></DropDownListEvents>
+                    <DropDownListFieldSettings Text="Mode" Value="ID"></DropDownListFieldSettings>
+                </SfDropDownList>
+            </div>
+        </div>
+    </div>
+</div>
+    
+</div>
+
+@code {
+    public SfGantt<TaskData> Gantt;
+    
+    private string[] columnMenuItems = new string[] { "AutoFitAll", "AutoFit", "SortAscending" };
+    
+    private SfDropDownList<string, DropDownData> DropdownMode { get; set; }
+    public TaskData addInt = new TaskData() { TaskId = "SF201", TaskName = "New Added Record", StartDate = new DateTime(2019, 04, 05), Duration = "3", Progress = 50};
+    private List<DropDownData> Methods { get; set; } = new List<DropDownData>();
+    private string Mode { get; set; }
+    public class DropDownData
+    {
+        public string ID { get; set; }
+        public string Mode { get; set; }
+    }
+
+    public List<TaskData> TaskCollection { get; set; }
+    public TaskData record = new TaskData()
+        {
+            TaskId = "2FS3D",
+            TaskName = "New Added Record",
+            StartDate = new DateTime(2019,04, 02),
+            Duration = "3",
+            Progress = 50
+        };
+
+    private string DateFormat = "MM/dd/yyyy";
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        this.Methods.Add(new DropDownData() { ID = "AddString", Mode = "AddString" });
+        this.Methods.Add(new DropDownData() { ID = "AddPredecessor", Mode = "AddPredecessor" });
+        this.Methods.Add(new DropDownData() { ID = "CollapseLevel", Mode = "CollapseLevel" });
+        this.Methods.Add(new DropDownData() { ID = "CollapseAll", Mode = "CollapseAll" });
+        this.Methods.Add(new DropDownData() { ID = "CollapseKey", Mode = "CollapseKey" });
+        this.Methods.Add(new DropDownData() { ID = "ConvertToMilestone", Mode = "ConvertToMilestone" });
+        this.Methods.Add(new DropDownData() { ID = "DeleteString", Mode = "DeleteString" });
+        this.Methods.Add(new DropDownData() { ID = "ExpandAll", Mode = "ExpandAll" });
+        this.Methods.Add(new DropDownData() { ID = "ExpandLevel", Mode = "ExpandLevel" });
+        this.Methods.Add(new DropDownData() { ID = "HideSpinner", Mode = "HideSpinner" });
+        this.Methods.Add(new DropDownData() { ID = "ShowSpinner", Mode = "ShowSpinner" });
+        this.Methods.Add(new DropDownData() { ID = "NextTimeSpan", Mode = "NextTimeSpan" });
+        this.Methods.Add(new DropDownData() { ID = "OpenAddDialog", Mode = "OpenAddDialog" });
+        this.Methods.Add(new DropDownData() { ID = "OpenColumnChooser", Mode = "OpenColumnChooser" });
+        this.Methods.Add(new DropDownData() { ID = "OpenEditDialog", Mode = "OpenEditDialog" });
+        this.Methods.Add(new DropDownData() { ID = "PreviousTimeSpan", Mode = "PreviousTimeSpan" });
+        this.Methods.Add(new DropDownData() { ID = "ReOrderColumn", Mode = "ReOrderColumn" });
+        this.Methods.Add(new DropDownData() { ID = "ScrollToTaskbar", Mode = "ScrollToTaskbar" });
+        this.Methods.Add(new DropDownData() { ID = "ScrollToTimeline", Mode = "ScrollToTimeline" });
+        this.Methods.Add(new DropDownData() { ID = "SetSplitter", Mode = "SetSplitter" });
+        this.Methods.Add(new DropDownData() { ID = "SingleSort", Mode = "SingleSort" });
+        this.Methods.Add(new DropDownData() { ID = "MultiSort", Mode = "MultiSort" });
+        this.Methods.Add(new DropDownData() { ID = "UpdateProjectDates", Mode = "UpdateProjectDates" });
+    }
+    public void MethodChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, DropDownData> args)
+    {
+        if (args.Value == "AddString")
+        {
+            this.Gantt.AddRecordAsync(addInt, 2, Syncfusion.Blazor.Gantt.RowPosition.Below);
+        }
+        if (args.Value == "AddPredecessor")
+        {
+            this.Gantt.AddPredecessor("2ABC","3ABC FS");
+        }
+        if (args.Value == "CollapseLevel")
+        {
+            this.Gantt.CollapseAtLevelAsync(0); 
+        }
+        if (args.Value == "CollapseAll")
+        {
+            this.Gantt.CollapseAllAsync(); 
+        }
+        if (args.Value == "CollapseKey")
+        {
+            this.Gantt.CollapseByKeyAsync("5ABC"); 
+        }
+        if (args.Value == "ConvertToMilestone")
+        {
+            this.Gantt.ConvertToMilestone("3ABC");
+        }
+        if (args.Value == "DeleteString")
+        {
+            this.Gantt.DeleteRecordAsync("3ABC"); 
+        }
+        if (args.Value == "ExpandAll")
+        {
+            this.Gantt.ExpandAllAsync(); 
+        }
+        if (args.Value == "ExpandLevel")
+        {
+            this.Gantt.ExpandAtLevelAsync(0); 
+        }
+        if (args.Value == "HideSpinner")
+        {
+            this.Gantt.HideSpinnerAsync();
+        }
+        if (args.Value == "ShowSpinner")
+        {
+            this.Gantt.ShowSpinnerAsync();
+        }
+        if (args.Value == "NextTimeSpan")
+        {
+            this.Gantt.NextTimeSpan();
+        }
+        if (args.Value == "OpenAddDialog")
+        {
+            this.Gantt.OpenAddDialogAsync();
+        }
+        if (args.Value == "OpenColumnChooser")
+        {
+            this.Gantt.OpenColumnChooser(2,4);
+        }
+        if (args.Value == "OpenEditDialog")
+        {
+            this.Gantt.OpenEditDialogAsync("2ABC");
+        }
+        if (args.Value == "PreviousTimeSpan")
+        {
+            this.Gantt.PreviousTimeSpan();
+        }
+        if (args.Value == "ReOrderColumn")
+        {
+            this.Gantt.ReorderColumnsAsync(new List<string> {"TaskId","TaskName"},"Duration");
+        }
+        if (args.Value == "ScrollToTaskbar")
+        {
+            this.Gantt.ScrollToTaskbarAsync("12ABC");
+        }
+        if (args.Value == "ScrollToTimeline")
+        {
+            this.Gantt.ScrollToTimelineAsync(new DateTime(2019, 4, 26));
+        }
+        if (args.Value == "SetSplitter")
+        {
+            this.Gantt.SetSplitterPositionAsync(2);
+        }
+        if (args.Value == "MultiSort")
+        {
+            this.Gantt.SortByColumnAsync("TaskId", SortDirection.Ascending,true);
+        }
+        if (args.Value == "SingleSort")
+        {
+            this.Gantt.SortByColumnAsync("StartDate", SortDirection.Descending,false);
+        }
+        if (args.Value == "UpdateProjectDates")
+        {
+            this.Gantt.UpdateProjectDates(new DateTime(2019, 03, 29), new DateTime(2019, 04, 07));
+        }
+    }
+    public async Task Created()
+    {
+
+    }
+
+    public class TaskData
+    {
+        public string TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public string Predecessor { get; set; }
+        public string Notes { get; set; }
+        public List<TaskData> SubTasks { get; set; }
+
+    }
+
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+        new TaskData() {
+        TaskId = "1ABC",
+        TaskName = "Project initiation",
+        StartDate = new DateTime(2019, 04, 02),
+        EndDate = new DateTime(2019, 04, 21),
+        SubTasks = (new List <TaskData> () {
+        new TaskData() {
+        TaskId = "2ABC",
+        TaskName = "Identify Site location",
+        StartDate = new DateTime(2019, 04, 02),
+        Duration = "0",
+        Progress = 30,
+        },
+        new TaskData() {
+        TaskId = "3ABC",
+        TaskName = "Perform soil test",
+        StartDate = new DateTime(2019, 04, 02),
+        Duration = "4",
+        Progress = 40,
+        Notes = "New data"
+        },
+        new TaskData() {
+        TaskId = "4ABC",
+        TaskName = "Soil test approval",
+        StartDate = new DateTime(2019, 04, 02),
+        Duration = "0",
+        Progress = 30,
+        Notes = "Checking notes tooltip"
+        },
+        })
+},
+    new TaskData() {
+        TaskId = "5ABC",
+        TaskName = "Project estimation",
+        StartDate = new DateTime(2019, 04, 02),
+        EndDate = new DateTime(2019, 04, 21),
+        SubTasks = (new List <TaskData> () {
+        new TaskData() {
+        TaskId = "6ABC",
+        TaskName = "Develop floor plan for estimation",
+        StartDate = new DateTime(2019, 04, 04),
+        Duration = "3",
+        Progress = 30,
+        },
+    new TaskData() {
+        TaskId = "7ABC",
+        TaskName = "List materials",
+        StartDate = new DateTime(2019, 04, 04),
+        Duration = "3",
+        Progress = 40,
+    },
+    new TaskData() {
+        TaskId = "8ABC",
+        TaskName = "Estimation approval",
+        StartDate = new DateTime(2019, 04, 04),
+        Duration = "6",
+        Progress = 30,
+    },
+    new TaskData() {
+        TaskId = "9ABC",
+        TaskName = "Estimation approval",
+        StartDate = new DateTime(2019, 04, 24),
+        Duration = "4",
+        Progress = 30,
+    },
+    new TaskData() {
+        TaskId = "10ABC",
+        TaskName = "Estimation approval",
+        StartDate = new DateTime(2019, 04, 25),
+        Duration = "2",
+        Progress = 30,
+    },
+    new TaskData() {
+        TaskId = "11ABC",
+        TaskName = "Estimation approval",
+        StartDate = new DateTime(2019, 04, 20),
+        Duration = "8",
+        Progress = 30,
+    },
+    new TaskData() {
+        TaskId = "12ABC",
+        TaskName = "Estimation approval",
+        StartDate = new DateTime(2019, 05, 02),
+        Duration = "5",
+        Progress = 30,
+    },
+    })
+    }
+    };
+
+        return Tasks;
+    }
+}

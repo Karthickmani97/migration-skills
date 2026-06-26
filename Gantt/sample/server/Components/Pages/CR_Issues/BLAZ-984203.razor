@@ -1,0 +1,43 @@
+@page "/BLAZ-984203"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+<div>@messsage</div>
+<span class="error">@ErrorDetails</span>
+<SfGantt TValue="TaskData" ID="Gantt" Height="450px" Width="700px">
+     <SfDataManager Url="https://some.com/invalidUrl" Adaptor="Adaptors.UrlAdaptor"></SfDataManager>
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration"
+        Progress="Progress" ParentID="ParentId">
+    </GanttTaskFields>
+    <GanttEvents TValue="TaskData" OnActionFailure="ActionFailure"></GanttEvents>
+</SfGantt>
+
+<style>
+    .error {
+        color: red;
+    }
+</style>
+
+@code{
+    private string ErrorDetails = "";
+    public string messsage{ get; set; }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+    }
+
+    public void ActionFailure(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+        this.ErrorDetails = args.Error.Message.ToString();
+        StateHasChanged();
+    }
+}

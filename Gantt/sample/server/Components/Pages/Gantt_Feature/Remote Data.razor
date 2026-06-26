@@ -1,0 +1,57 @@
+@page "/Remote-data"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor
+
+<div class="control-section">
+    <div class="row">
+        <div class="col-md-12">
+           <SfGantt ID="GanttRemotedata" TValue="GanttRemoteData" Height="600" Width="1200px" AllowSorting="true" HighlightWeekends="true" AllowFiltering="true" EnableContextMenu="true" Toolbar="@(new List<string>() { "Add", "Cancel", "Delete", "Edit", "Update","Indent","Outdent", "ZoomIn", "ZoomOut", "ZoomToFit" })"
+              GridLines="Syncfusion.Blazor.Gantt.GridLine.Both">
+                <SfDataManager Url="https://blazor.syncfusion.com/services/production/api/GanttData" Adaptor="Adaptors.WebApiAdaptor" CrossDomain="true"></SfDataManager>
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate"
+                                 Duration="Duration" Progress="Progress" Dependency="Predecessor" Child="SubTasks">
+                </GanttTaskFields>
+
+                <GanttEditSettings 
+                  AllowTaskbarEditing="true" 
+                  AllowEditing="true" 
+                  AllowAdding="true" 
+                  AllowDeleting="true" 
+                  Mode="Syncfusion.Blazor.Gantt.EditMode.Auto" 
+                  ShowDeleteConfirmDialog="true">
+                </GanttEditSettings>
+
+                <GanttColumns>
+                    <GanttColumn Field="TaskId" HeaderText="Task Id" Visible="false"></GanttColumn>
+                    <GanttColumn Field="TaskName" HeaderText="Task Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+                    <GanttColumn Field="StartDate"></GanttColumn>
+                    <GanttColumn Field="Duration"></GanttColumn>
+                </GanttColumns>
+                <GanttTimelineSettings TimelineUnitSize="300">
+                    <GanttTopTierSettings Unit="TimelineViewMode.Month" Format="MMMM" Count="6"></GanttTopTierSettings>
+                    <GanttBottomTierSettings Unit="TimelineViewMode.Week"></GanttBottomTierSettings>
+                </GanttTimelineSettings>
+                <GanttLabelSettings LeftLabel="TaskName" TValue="GanttRemoteData">
+                </GanttLabelSettings>
+                <GanttSplitterSettings Position="28%"> </GanttSplitterSettings>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+@code{
+    private DateTime ProjectStart = new DateTime(2021, 2, 24);
+    private DateTime ProjectEnd = new DateTime(2021, 12, 10);
+    public class GanttRemoteData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public int? Duration { get; set; }
+        public int? Progress { get; set; }
+        public string? Predecessor { get; set; }
+        public List<GanttRemoteData> SubTasks { get; set; }
+    }
+}
+}

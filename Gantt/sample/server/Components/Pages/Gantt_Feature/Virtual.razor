@@ -1,0 +1,445 @@
+@page "/Virtual"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.TreeGrid;
+@using System.Diagnostics
+@using Syncfusion.Blazor.Navigations
+<div>
+<button @onclick="CollapseByKey">CollapsebyKey</button>
+<button @onclick="ExpandByKey">ExpandbyKey</button>
+<button @onclick="CollapseAtLevel">CollapseAtLevel</button>
+<button @onclick="ExpandAtLevel">ExpandAtLevel</button>
+<button id="Scroll_Rows" class="btn btn-primary" @onclick="Scroll">Scroll</button>
+<button id="Position" class="btn btn-primary" @onclick="ScrollPosition">Position</button>
+<button id="Delete" @onclick="Delete">Delete Row</button>
+<button id="Convert" @onclick="ConvertToMilestone">ConvertToMilestone90</button>
+<button id="Add_method" @onclick="Add">Add</button>
+<button id="ScrollToTask" @onclick="ScrollTask">ScrollToTask</button>
+</div><br>
+
+<SfGantt @ref="Gantt"
+         ID="Gantt"
+         DataSource="@TaskCollection"
+        Toolbar="@(new List<string>() { "Add", "Cancel", "Update" , "Delete", "Edit", "CollapseAll", "ExpandAll",  "Indent" , "Outdent" ,"ZoomIn", "ZoomOut", "ZoomToFit" ,"NextTimeSpan", "PrevTimeSpan", "Search" })"
+         EnableRowVirtualization="true"
+         EnableTimelineVirtualization="true"
+         ProjectStartDate="ProjectStartDate"
+         ProjectEndDate="ProjectEndDate"
+         AllowSelection="true"
+         EnableContextMenu="true"
+         AllowFiltering="true"
+         GridLines="Syncfusion.Blazor.Gantt.GridLine.Both"
+         AllowSorting="true"
+         AllowResizing="true"
+         AllowUnscheduledTasks="true"
+         EnablePredecessorValidation="true"
+         ShowColumnMenu="true"
+         AllowReordering="true"
+         HighlightWeekends="true"
+         AllowRowDragAndDrop="false"
+         DateFormat="dd/MM/yyyy"
+         Height="500px"
+         Width="1400px">
+    <GanttTaskFields Id="ID"
+                     Name="TaskName"
+                     StartDate="StartDate"
+                     EndDate="EndDate"
+                     Duration="Duration"
+                     Progress="Progress"
+                     Dependency = "Predecessor"
+                     ParentID="ParentId">
+    </GanttTaskFields>
+
+    <GanttEditSettings AllowAdding="true"
+                       AllowDeleting="true"
+                       AllowEditing="true"
+                       AllowTaskbarEditing="true"
+                       ShowDeleteConfirmDialog="true">
+    </GanttEditSettings>
+     <GanttEventMarkers>
+        <GanttEventMarker Day="@Event" Label="Project approval and kick-off"
+                          CssClass="e-custom-event-marker"></GanttEventMarker>
+    </GanttEventMarkers>
+     <GanttHolidays>
+                    <GanttHoliday From="@Holiday1" To="@Holiday2" Label="Public holidays"></GanttHoliday>
+     </GanttHolidays>
+
+    <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+
+
+    <GanttEvents TValue="TaskData"  
+    OnLoad="LoadHandler" 
+    Created="Created" 
+    OnActionBegin="ActionBegin" 
+    OnActionComplete="ActionComplete" 
+    Expanding="Expanding" 
+    Expanded="expanded" 
+    Collapsing="collapsing" 
+    Collapsed="collapsed" 
+    RowSelected="selected"  
+    RowSelecting="selecting" 
+    SplitterResizeStart="Resizestart" 
+    SplitterResizing ="Resized"
+    EndEdit="EndEdit"
+    Zoomed="ZoomCompleteHandler"
+    ColumnReordered="ColumnReorderedHandler"
+    Sorted="SortedHandler"
+    Searched="SearchedHandler"
+    Filtered="FilteredHandler"></GanttEvents>
+
+    <GanttLabelSettings LeftLabel="TaskName" TValue="TaskData"></GanttLabelSettings>
+
+    <GanttSplitterSettings Position="30%"></GanttSplitterSettings>
+  <GanttSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Both" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple"></GanttSelectionSettings>
+
+    <GanttTimelineSettings UpdateTimescaleView="true"></GanttTimelineSettings>
+</SfGantt>
+
+@code{
+    public DateTime Event = new DateTime(2017, 04, 10);
+    public DateTime Holiday1 = new DateTime(2017, 04, 11);
+    public DateTime Holiday2 = new DateTime(2017, 04, 12);
+
+    //private void CollapseHandler(Syncfusion.Blazor.TreeGrid.RowCollapsingEventArgs<TaskData> args)
+    //{
+    //    args.CollapseAll = false;
+    //}
+
+    //private void ExpandingHandler(Syncfusion.Blazor.TreeGrid.RowExpandingEventArgs<TaskData> args)
+    //{
+    //    args.ExpandAll = false;
+    //}
+    public async Task ConvertToMilestone()
+    {
+         Gantt.ConvertToMilestone("1325");
+         //await Gantt.RefreshAsync();
+    }
+   TaskData rec = new TaskData()
+                {
+                    ID = 3000,
+                    TaskName = "Task 3000" ,
+                    StartDate = new DateTime(2018, 7, 20),
+                    EndDate = new DateTime(2018, 7, 22),
+                    Duration = "10",
+                    Progress = 10,
+                    ParentId = null,
+                    Predecessor=null,
+                };
+                public async Task Add(){
+        await Gantt.AddRecordAsync(rec,1326,Syncfusion.Blazor.Gantt.RowPosition.Below);
+        //await Gantt.RefreshAsync();
+    }
+    public async Task CollapseByKey(){
+        await Gantt.CollapseByKeyAsync(1);
+    }
+    public async Task ExpandByKey(){
+        await Gantt.ExpandByKeyAsync(1);
+    }
+    public async Task CollapseAtLevel(){
+        await Gantt.CollapseAtLevelAsync(0);
+    }
+
+    public async Task ExpandAtLevel(){
+        await Gantt.CollapseAtLevelAsync(0);
+    }
+    private async Task Scroll()
+    {
+        Gantt.ScrollIntoViewAsync(0, 30);
+        //await Gantt.RefreshAsync();
+    }
+    public async Task Delete()
+    {
+        await this.Gantt.DeleteRecordAsync(2);
+        //await Gantt.RefreshAsync();
+    }
+    private async Task ScrollPosition()
+    {
+        Gantt.ScrollIntoViewAsync(3, 1320);
+        //await Gantt.RefreshAsync();
+    }
+    private async Task ScrollTask()
+    {
+        Gantt.ScrollToTaskbarAsync(23);
+    }
+    public SfGantt<TaskData> Gantt;
+    SfGantt<TaskData> Obj { get; set; }
+    Stopwatch timer = new Stopwatch();
+    public DateTime ProjectStartDate = new DateTime(2017, 01, 01);
+    public DateTime ProjectEndDate = new DateTime(2020, 02, 28);
+
+    public void LoadHandler(object args)
+    {
+        timer.Stop();
+        Debug.WriteLine("Time taken for Initial Rendering: " + timer.ElapsedMilliseconds.ToString());
+        Console.WriteLine("Time taken for Initial Rendering: " + timer.ElapsedMilliseconds.ToString());
+        timer.Start();
+    }
+
+    public void Created(Object args)
+    {
+        timer.Stop();
+        Debug.WriteLine("Time taken for Initial Creating: " + timer.ElapsedMilliseconds.ToString());
+        Console.WriteLine("Time taken for Initial Creating: " + timer.ElapsedMilliseconds.ToString());
+    }
+
+    public void ActionComplete(GanttActionEventArgs<TaskData> args)
+    {
+        timer.Stop();
+        Debug.WriteLine("Time taken for " + args.RequestType.ToString() + " " + timer.ElapsedMilliseconds.ToString());
+        Console.WriteLine("Time taken for " + args.RequestType.ToString() + " " + timer.ElapsedMilliseconds.ToString());
+        timer.Reset();
+    }
+
+
+    public void ActionBegin(GanttActionEventArgs<TaskData> args)
+    {
+        timer.Start();
+        Debug.WriteLine("Time taken Afer acion: " + timer.ElapsedMilliseconds.ToString());
+        Console.WriteLine("Time taken Afer acion: " + timer.ElapsedMilliseconds.ToString());
+
+
+    }
+
+    public void Resizestart(Syncfusion.Blazor.Layouts.ResizeEventArgs args)
+    {
+
+        timer.Start();
+        Debug.WriteLine("Time taken On Rezize start: " + timer.ElapsedMilliseconds.ToString());
+        Console.WriteLine("Time taken On Rezize start: " + timer.ElapsedMilliseconds.ToString());
+    }
+
+    public void Resized(Syncfusion.Blazor.Layouts.ResizingEventArgs args)
+    {
+        timer.Stop();
+        Debug.WriteLine("Time taken On Rezize Stop: " + timer.ElapsedMilliseconds.ToString());
+        Console.WriteLine("Time taken On Rezize Stop: " + timer.ElapsedMilliseconds.ToString());
+        timer.Reset();
+    }
+
+    public void ToolBarClick(Syncfusion.Blazor.Navigations.ClickEventArgs Args)
+    {
+
+    }
+
+
+    public async Task  TaskbarEdited(TaskbarEditedEventArgs<TaskData> args)
+    {
+         //await Gantt.RefreshAsync();
+    }
+
+    private void Expanding(Syncfusion.Blazor.TreeGrid.RowExpandingEventArgs<TaskData> args)
+    {
+        args.ExpandAll = true;
+        timer.Reset();
+        timer.Start();
+    }
+
+    private void expanded(Syncfusion.Blazor.TreeGrid.RowExpandedEventArgs<TaskData> args)
+    {
+        Debug.WriteLine("Time taken for Expanding: " + timer.ElapsedMilliseconds.ToString());
+        Console.WriteLine("Time taken for Expadning: " + timer.ElapsedMilliseconds.ToString());
+        timer.Stop();
+
+    }
+
+    private void collapsing(Syncfusion.Blazor.TreeGrid.RowCollapsingEventArgs<TaskData> args)
+    {
+        timer.Reset();
+        args.CollapseAll = true;
+        timer.Start();
+    }
+
+    private void collapsed(Syncfusion.Blazor.TreeGrid.RowCollapsedEventArgs<TaskData> args)
+    {
+        Debug.WriteLine("Time taken for Collapsing: " + timer.ElapsedMilliseconds.ToString());
+        Console.WriteLine("Time taken for Collapsing: " + timer.ElapsedMilliseconds.ToString());
+        timer.Stop();
+
+    }
+
+    private void selecting(RowSelectingEventArgs<TaskData> args)
+    {
+        timer.Reset();
+        Debug.WriteLine("Time taken for Collapsing: " + timer.ElapsedMilliseconds.ToString());
+        Console.WriteLine("Time taken for Collapsing: " + timer.ElapsedMilliseconds.ToString());
+        timer.Start();
+    }
+
+    private void selected(RowSelectEventArgs<TaskData> args)
+    {
+        Debug.WriteLine("Time taken for RowSelection: " + timer.ElapsedMilliseconds.ToString());
+        Console.WriteLine("Time taken for RowSelection: " + timer.ElapsedMilliseconds.ToString());
+        timer.Stop();
+
+
+    }
+    public async Task EndEdit(TaskbarEditedEventArgs<TaskData> args)
+    {
+            //await Gantt.RefreshAsync();
+    }
+    public async Task ZoomCompleteHandler(ZoomedEventArgs args) 
+    {
+            //await Gantt.RefreshAsync();
+    }
+    public async Task ColumnReorderedHandler(ColumnReorderedEventArgs args)  
+    {  
+            //await Gantt.RefreshAsync();
+    }
+    public async Task  SortedHandler(SortedEventArgs args)
+    {
+            //await Gantt.RefreshAsync();
+    }
+    public async Task  SearchedHandler(SearchedEventArgs args)
+    {
+         //await Gantt.RefreshAsync();
+    }
+    public async Task FilteredHandler(FilteredEventArgs args)
+    {
+         //await Gantt.RefreshAsync();
+    }
+
+    public List<TaskData> TaskCollection { get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = VirtualData.GetTreeVirtualData();
+        timer.Start();
+    }
+    public class VirtualData
+    {
+        public static List<TaskData> GetTreeVirtualData()
+        {
+            List<TaskData> DataCollection = new List<TaskData>();
+           // Random rand = new Random();
+            var x = 0;
+            for (var i = 1; i <=200; i++)
+            {
+              //  var name = rand.Next(0, 100);
+                TaskData Parent = new TaskData()
+                {
+                    ID = ++x,
+                    TaskName = "Task " + x,
+                    StartDate = new DateTime(2017, 1, 9),
+                    EndDate = new DateTime(2017, 1, 13),
+                    Duration = "10",
+                    Progress = 10,
+                    ParentId = null,
+                    Predecessor=null,
+                };
+                DataCollection.Add(Parent);
+                for (var j = 1; j <= 10; j++)
+                {
+                  //  var childName = rand.Next(0, 100);
+                    var id =  ++x;
+                    string virtualpredeceesor = string.Empty;
+                    @* if(id == 2)
+                    {
+                        virtualpredeceesor = "32FS";
+                    }
+                    else
+                    {
+                        virtualpredeceesor = null;
+                    } *@
+                    DataCollection.Add(new TaskData()
+                        {
+                            ID = id ,
+                            TaskName = "Task " + x,
+                            StartDate = new DateTime(2017, 1, 9),
+                            EndDate = new DateTime(2019, 1, 13),
+                            Duration = "10",
+                            Progress = 36,
+                            ParentId = Parent.ID,
+                            //Predecessor = virtualpredeceesor
+                            Predecessor = (id - 1)+"FS"
+                });
+                if(id == 2){
+                    x++;
+                    DataCollection.Add(new TaskData()
+                        {
+                            ID = id + 1,
+                            TaskName = "Task " + x,
+                            StartDate = new DateTime(2017, 1, 9),
+                            EndDate = new DateTime(2019, 1, 13),
+                            Duration = "10",
+                            Progress = 55,
+                            ParentId = id,
+                            //Predecessor = virtualpredeceesor
+                            //Predecessor = (id - 1)+"FS"
+                });
+                }
+                if(id == 7)
+                {
+                    x++;
+                    DataCollection.Add(new TaskData()
+                        {
+                            ID = id + 1,
+                            TaskName = "Task " + x,
+                            StartDate = new DateTime(2017, 1, 9),
+                            EndDate = new DateTime(2019, 1, 13),
+                            Duration = "10",
+                            Progress = 40,
+                            ParentId = id,
+                            //Predecessor = virtualpredeceesor
+                            //Predecessor = (id - 1)+"FS"
+                });
+                }
+                if(id == 8)
+                {
+                    x++;
+                    DataCollection.Add(new TaskData()
+                        {
+                            ID = id + 1,
+                            TaskName = "Task " + x,
+                            StartDate = new DateTime(2017, 1, 9),
+                            EndDate = new DateTime(2019, 1, 13),
+                            Duration = "10",
+                            Progress = 50,
+                            ParentId = id,
+                            //Predecessor = virtualpredeceesor
+                            //Predecessor = (id - 1)+"FS"
+                });
+                }
+                if(id == 9)
+                {
+                    x++;
+                    DataCollection.Add(new TaskData()
+                        {
+                            ID = id + 1,
+                            TaskName = "Task " + x,
+                            StartDate = new DateTime(2017, 1, 9),
+                            EndDate = new DateTime(2019, 1, 13),
+                            Duration = "10",
+                            Progress = 20,
+                            ParentId = id,
+                            //Predecessor = virtualpredeceesor
+                            //Predecessor = (id - 1)+"FS"
+                });
+                }
+
+                }
+            }
+            return DataCollection;
+        }
+    }
+    public class TaskData
+    {
+        public int ID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; }
+    }
+}
+
+<style>
+    .e-gantt .e-gantt-chart .e-custom-event-marker {
+        width: 1px;
+        border-left: 2px red dotted;
+    }
+    .e-gantt .e-gantt-chart .e-custom-holiday {
+        background-color: #e82869;
+    }
+</style>

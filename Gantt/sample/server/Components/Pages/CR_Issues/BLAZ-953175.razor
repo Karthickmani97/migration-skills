@@ -1,0 +1,153 @@
+﻿@page "/projectgatt"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Navigations;
+<div>@messsage</div>
+<SfGantt @ref="Gantt" TValue="ProjectTask" Height="800px" Width="1600px" AllowPdfExport="true"
+AllowResizing="true" AllowSorting="true" AllowFiltering="true" AllowExcelExport="true"
+WorkWeek="@(new string[] { "Monday", "Tuesday", "Wednesday", "Thursday" ,"Friday"})" HighlightWeekends="true"
+Toolbar="@Toolbaritems">
+    <SfDataManager AdaptorInstance="@typeof(CustomAdaptor)" Adaptor="Adaptors.CustomAdaptor"></SfDataManager>
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" >
+    </GanttTaskFields>
+    <GanttColumns>
+        <GanttColumn Field=@nameof(ProjectTask.TaskId)　HeaderText ="Task Id" IsPrimaryKey="true" TextAlign="TextAlign.Right" Width="80" IsFrozen=true>
+            <HeaderTemplate>
+                <div>
+                    <ImageComponent ImageUrl="Image/ClipBoard.png" />
+                </div>
+            </HeaderTemplate>
+        </GanttColumn>
+        <GanttColumn Field=@nameof(ProjectTask.TaskName) HeaderText="Task Name" Width="200" IsFrozen=true></GanttColumn>
+        <GanttColumn Field=@nameof(ProjectTask.StartDate) HeaderText="Start Date" TextAlign="TextAlign.Center" Width="100">
+        </GanttColumn>
+        <GanttColumn Field=@nameof(ProjectTask.EndDate) HeaderText="EndDate" TextAlign="TextAlign.Center" Width="100"></GanttColumn>
+        <GanttColumn Field="@nameof(ProjectTask.Duration)" HeaderText="Duration" TextAlign="TextAlign.Right" Width="100">
+            <HeaderTemplate>
+                <div>
+                    <ImageComponent ImageUrl="Image/Calender.png" />
+                </div>
+            </HeaderTemplate>
+        </GanttColumn>
+        <GanttColumn Field=@nameof(ProjectTask.Resource) HeaderText="Resource" Width="100"></GanttColumn>
+        <GanttColumn Field=@nameof(ProjectTask.Done) HeaderText="Done" TextAlign="TextAlign.Center" Width="100"></GanttColumn>
+    </GanttColumns>
+    <GanttLabelSettings TValue="ProjectTask">
+        <TaskLabelTemplate>
+            <div>
+                class="e-task-label-inner-div" style="line-height:21px; height:22px;"
+                <span class="e-label">@((context as ProjectTask).Progress)%</span>
+            </div>
+        </TaskLabelTemplate>
+    </GanttLabelSettings>
+    <GanttEvents OnToolbarClick="ToolbarClickHandler" TValue="ProjectTask"OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+@code 
+{
+    public SfGantt<ProjectTask>? Gantt;
+    private static List<ProjectTask> TaskCollection { get; set; }
+    public string messsage{ get; set; }
+    public static bool isExport;
+    public List<Object> Toolbaritems { get; set; } = new List<Object>()
+    {"ExcelExport","CollapseAll", "ExpandAll", "NextTimeSpan", "PrevTimeSpan", "Indent", "Outdent","ZoomToFit","ZoomOut","ZoomIn","ExcelExport",new ToolbarItem() { TooltipText = "PdfExport", Id = "PdfExport", PrefixIcon = "e-pdfexport" } };
+    protected override async Task OnInitializedAsync()
+    {
+        TaskCollection = SeedInitialTasksAsync();
+    }
+     public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+    public class ProjectTask {
+        public int TaskId{ get; set; }
+        public string TaskName{ get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public string Resource { get; set; }
+        public bool Done { get; set; }
+    }
+    private static List<ProjectTask> SeedInitialTasksAsync()
+    {
+        var seedData = new List<ProjectTask>
+        {
+            new ProjectTask { TaskId = 1, TaskName = "全体（1Q）", StartDate = new DateTime(2025, 3, 17), EndDate = new DateTime(2025, 6, 2), Duration = "56", Progress = 0, Resource = "ALL", Done = false },
+            new ProjectTask { TaskId = 3, TaskName = "夕会", StartDate = new DateTime(2025, 3, 17), EndDate = new DateTime(2025, 6, 2), Duration = "56", Progress = 0, Resource = "ALL", Done = false },
+            new ProjectTask { TaskId = 4, TaskName = "社内会議", StartDate = new DateTime(2025, 3, 17), EndDate = new DateTime(2025, 6, 2), Duration = "56", Progress = 0, Resource = "ALL", Done = false },
+            new ProjectTask { TaskId = 5, TaskName = "個人庶務", StartDate = new DateTime(2025, 3, 17), EndDate = new DateTime(2025, 6, 2), Duration = "56", Progress = 0, Resource = "ALL", Done = false },
+            new ProjectTask { TaskId = 7, TaskName = "研修・セミナー・イベント（1Q）", StartDate = new DateTime(2025, 3, 17), EndDate = new DateTime(2025, 6, 2), Duration = "56", Progress = 0, Resource = "ALL", Done = false },
+            new ProjectTask { TaskId = 9, TaskName = "開発進捗定例", StartDate = new DateTime(2025, 3, 17), EndDate = new DateTime(2025, 6, 2), Duration = "56", Progress = 0, Resource = "ALL", Done = false }
+        };
+        return seedData;
+    }
+
+    public async Task ToolbarClickHandler(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        if (args.Item != null && args.Item.Text == "Excel export")
+        {
+            var ExportProperties = new Syncfusion.Blazor.Grids.ExcelExportProperties
+                {
+                    FileName = "Gantt.xlsx",
+                    IncludeHiddenColumn = true,
+                    ExportType = ExportType.CurrentPage,
+                    Theme = new Syncfusion.Blazor.Grids.ExcelTheme
+                    {
+                        Header = new Syncfusion.Blazor.Grids.ExcelStyle
+                        {
+                            FontName = "Meiryo UI",
+                            FontColor = "#666666",
+                            FontSize = 12
+                        },
+                        Record = new Syncfusion.Blazor.Grids.ExcelStyle
+                        {
+                            FontName = "Meiryo UI",
+                            FontColor = "#666666",
+                            FontSize = 12
+                        }
+                    }
+                };
+            await this.Gantt.ExportToExcelAsync(ExportProperties);
+        }
+    }
+    // Implementing custom adaptor by extending the DataAdaptor class.
+    public class CustomAdaptor : DataAdaptor
+    {
+        public override async Task<object> ReadAsync(DataManagerRequest dm, string? key = null)
+        {
+            IEnumerable<ProjectTask>? DataSource = TaskCollection;
+            if (dm.Search?.Count > 0)
+            {
+                DataSource = DataOperations.PerformSearching(DataSource, dm.Search);
+            }
+            if (dm.Sorted?.Count > 0)
+            {
+                DataSource = DataOperations.PerformSorting(DataSource, dm.Sorted);
+            }
+            if (dm.Where?.Count > 0)
+            {
+                if (dm.Where[0].Field != null && dm.Where[0].Field != "ParentId")
+                {
+                    DataSource = DataOperations.PerformFiltering(DataSource, dm.Where, dm.Where[0].Operator);
+                }
+            }
+
+            int count = DataSource?.Cast<ProjectTask>().Count() ?? 0;
+
+            if (dm.Skip != 0)
+            {
+                DataSource = DataOperations.PerformSkip(DataSource, dm.Skip);
+            }
+            if (dm.Take != 0)
+            {
+                DataSource = DataOperations.PerformTake(DataSource, dm.Take);
+            }
+
+            return dm.RequiresCounts ? new DataResult { Result = DataSource, Count = count }: (object)DataSource;
+        }
+    }
+}

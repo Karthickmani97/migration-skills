@@ -1,0 +1,466 @@
+﻿@page "/multipdf-page-size"
+
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Navigations
+@using System.Collections.Generic
+@using Syncfusion.PdfExport
+
+<div class="control-section">
+    <SfComboBox @ref="@customListPdf" TItem="CustomData" TValue="string" Placeholder="Custom DataSource" 
+    DataSource="@CustomListPdfData" FloatLabelType="FloatLabelType.Always" Width="250px">
+        <ComboBoxFieldSettings Text="Name" Value="Value"></ComboBoxFieldSettings>
+        <ComboBoxEvents TItem="CustomData" TValue="string" ValueChange="ChangeExportProperties"></ComboBoxEvents>
+    </SfComboBox>
+
+    <SfComboBox @ref="@exportProperties" TItem="ExportPropertyData" TValue="string" Placeholder="Export Properties" 
+    DataSource="@ExportPropertyDataSample" FloatLabelType="FloatLabelType.Always" Width="250px">
+        <ComboBoxFieldSettings Text="Id" Value="Text"></ComboBoxFieldSettings>
+        <ComboBoxEvents TItem="ExportPropertyData" TValue="string" ValueChange="GetExportProperties"></ComboBoxEvents>
+    </SfComboBox>
+
+    <SfGantt @ref="@Gantt" ID="GanttPdfCustomizationSample" Height="300px" TValue="GanttTask" DataSource="@projectNewData"
+    AllowSorting="true" AllowReordering="true" EnableContextMenu="true"
+    AllowExcelExport="true" AllowPdfExport="true" AllowRowDragAndDrop="true"
+    HighlightWeekends="true" AllowResizing="true" AllowFiltering="true"
+    GridLines="@gridLines" ShowColumnMenu="true"
+    Toolbar="@ToolbarItems" RenderBaseline="true"
+    ToolbarClick="OnToolbarClick">
+
+        <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate"
+        EndDate="EndDate" Duration="Duration" Progress="Progress"
+        Dependency="Predecessor" BaselineStartDate="BaselineStartDate"
+        BaselineEndDate="BaselineEndDate" Child="Subtasks"
+        Indicators="Indicators" Manual="IsManual">
+        </GanttTaskFields>
+
+        <GanttColumns>
+            <GanttColumn Field="TaskID" HeaderText="Task ID"></GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Task Name" AllowReordering="false"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date" AllowSorting="false"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration" AllowEditing="false"></GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress" AllowFiltering="false"></GanttColumn>
+        </GanttColumns>
+
+        <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+
+        <GanttTimelineSettings>
+            <GanttTopTierSettings Unit="TimelineViewMode.Week"></GanttTopTierSettings>
+            <GanttBottomTierSettings Unit="TimelineViewMode.Day" Count="1"></GanttBottomTierSettings>
+        </GanttTimelineSettings>
+        <GanttEvents TValue="GanttTask" OnToolbarClick="OnToolbarClick" ></GanttEvents>
+        <GanttLabelSettings LeftLabel="TaskID" RightLabel="TaskName" TaskLabel="Progress" TValue="GanttTask"></GanttLabelSettings>
+
+    </SfGantt>
+</div>
+
+<style>
+    .control-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    }
+</style>
+
+@code {
+    private SfGantt<GanttTask> Gantt;
+
+    private List<GanttTask> projectNewData = new List<GanttTask>();
+    private List<GanttTask> projectData = new List<GanttTask>
+    {
+        new GanttTask
+        {
+            TaskID = 1,
+            TaskName = "Product Concept",
+            StartDate = new DateTime(2019, 4, 2),
+            EndDate = new DateTime(2019, 4, 21),
+            Subtasks = new List<GanttTask>
+            {
+                new GanttTask
+                {
+                    TaskID = 2,
+                    TaskName = "Defining the product and its usage",
+                    BaselineStartDate = new DateTime(2019, 4, 2),
+                    BaselineEndDate = new DateTime(2019, 4, 6),
+                    StartDate = new DateTime(2019, 4, 2),
+                    Duration = 3,
+                    Progress = 30
+                },
+                new GanttTask
+                {
+                    TaskID = 3,
+                    TaskName = "Defining target audience",
+                    StartDate = new DateTime(2019, 4, 2),
+                    Duration = 3,
+                    Indicators = new List<GanttIndicator>
+                    {
+                        new GanttIndicator
+                        {
+                            Date = new DateTime(2019, 4, 25),
+                            Name = "Indicator title",
+                            Tooltip = "tooltip"
+                        }
+                    }
+                },
+                new GanttTask
+                {
+                    TaskID = 4,
+                    TaskName = "Prepare product sketch and notes",
+                    StartDate = new DateTime(2019, 4, 2),
+                    Duration = 3,
+                    Predecessor = "2",
+                    Progress = 30
+                }
+            }
+        }
+    };
+    private SfComboBox<string, CustomData> customListPdf;
+    private SfComboBox<string, ExportPropertyData> exportProperties;
+    private GanttPdfExportProperties GanttExportProperties = new GanttPdfExportProperties();
+    private Syncfusion.Blazor.Gantt.GridLine gridLines = Syncfusion.Blazor.Gantt.GridLine.Both;
+    private List<CustomData> CustomListPdfData = new List<CustomData>();
+    string[] customItemsSample = new[]
+    {
+        "PdfExportData",
+        "EventMarkersData",
+        "TaskIndicatorsData",
+        "TaskIndicatorsWithHtmlName",
+        "TaskIndicatorsWithDifferentDate",
+        "TaskAndProjectIndicatorsData",
+        "NewProjectTaskData"
+    };
+
+    private List<ExportPropertyData> ExportPropertyDataSample = new List<ExportPropertyData>
+    {
+        new ExportPropertyData { Id = "pageOrientation-Portrait", Text = "PageOrientation - Portrait" },
+        new ExportPropertyData { Id = "pagesize-Letter", Text = "PageSize - Letter" },
+        new ExportPropertyData { Id = "pagesize-Note", Text = "PageSize - Note" },
+        new ExportPropertyData { Id = "pagesize-Legal", Text = "PageSize - Legal" },
+        new ExportPropertyData { Id = "pagesize-A0", Text = "PageSize - A0" },
+        new ExportPropertyData { Id = "pagesize-A1", Text = "PageSize - A1" },
+        new ExportPropertyData { Id = "pagesize-A2", Text = "PageSize - A2" },
+        new ExportPropertyData { Id = "pagesize-A3", Text = "PageSize - A3" },
+        new ExportPropertyData { Id = "pagesize-A4", Text = "PageSize - A4" },
+        new ExportPropertyData { Id = "pagesize-A5", Text = "PageSize - A5" },
+        new ExportPropertyData { Id = "pagesize-A6", Text = "PageSize - A6" },
+        new ExportPropertyData { Id = "pagesize-A7", Text = "PageSize - A7" },
+        new ExportPropertyData { Id = "pagesize-A8", Text = "PageSize - A8" },
+        new ExportPropertyData { Id = "pagesize-A9", Text = "PageSize - A9" },
+        new ExportPropertyData { Id = "pagesize-B0", Text = "PageSize - B0" },
+        new ExportPropertyData { Id = "pagesize-B1", Text = "PageSize - B1" },
+        new ExportPropertyData { Id = "pagesize-B2", Text = "PageSize - B2" },
+        new ExportPropertyData { Id = "pagesize-B3", Text = "PageSize - B3" },
+        new ExportPropertyData { Id = "pagesize-B4", Text = "PageSize - B4" },
+        new ExportPropertyData { Id = "pagesize-B5", Text = "PageSize - B5" },
+        new ExportPropertyData { Id = "pagesize-Archa", Text = "PageSize - Archa" },
+        new ExportPropertyData { Id = "pagesize-Archb", Text = "PageSize - Archb" },
+        new ExportPropertyData { Id = "pagesize-Archc", Text = "PageSize - Archc" },
+        new ExportPropertyData { Id = "pagesize-Archd", Text = "PageSize - Archd" },
+        new ExportPropertyData { Id = "pagesize-Arche", Text = "PageSize - Arche" },
+        new ExportPropertyData { Id = "pagesize-Flsa", Text = "PageSize - Flsa" },
+        new ExportPropertyData { Id = "pagesize-HalfLetter", Text = "PageSize - HalfLetter" },
+        new ExportPropertyData { Id = "pagesize-Letter11x17", Text = "PageSize - Letter11x17" },
+        new ExportPropertyData { Id = "pagesize-Ledger", Text = "PageSize - Ledger" },
+        new ExportPropertyData { Id = "fontsize-fontfamily-fontBrush", Text = "FontSize - FontFamily - FontBrush" },
+        new ExportPropertyData { Id = "fontsize-fontfamily-fontBrush-1", Text = "FontSize - FontFamily - FontBrush 1" }
+    };
+    protected override void OnInitialized()
+    {
+        projectNewData = projectData;
+        InitializeCustomDataSource();
+    }
+    private void InitializeCustomDataSource()
+    {
+        foreach (var item in customItemsSample)
+        {
+            CustomListPdfData.Add(new CustomData { Name = item, Value = item });
+        }
+    }
+    private void ChangeExportProperties(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, CustomData> args)
+    {
+        switch (args.Value)
+        {
+            case "PdfExportData":
+                projectNewData = basicData;
+                Gantt.EventMarkers = new List<GanttEventMarker>
+            {
+                new GanttEventMarker { Day = new DateTime(2019, 4, 10), Label = "Project approval and kick-off" }
+            };
+                Gantt.Holidays = new List<GanttHoliday>
+            {
+                new GanttHoliday { From = new DateTime(2019, 4, 4), To = new DateTime(2019, 4, 5) }
+            };
+                Gantt.GridLines = Syncfusion.Blazor.Gantt.GridLine.Both;
+                break;
+            case "EventMarkersData":
+                projectNewData = basicData;
+                Gantt.EventMarkers = new List<GanttEventMarker>
+            {
+                new GanttEventMarker { Day = new DateTime(2019, 5, 3), Label = "Project approval and kick-off" }
+            };
+                Gantt.Holidays = new List<GanttHoliday>
+            {
+                new GanttHoliday { From = new DateTime(2019, 5, 7), To = new DateTime(2019, 5, 7) }
+            };
+                Gantt.GridLines = Syncfusion.Blazor.Gantt.GridLine.Both;
+                break;
+            case "TaskIndicatorsData":
+                projectNewData = indicatorData;
+                break;
+            case "TaskIndicatorsWithHtmlName":
+                projectNewData = indicatorData;
+                break;
+            case "TaskIndicatorsWithDifferentDate":
+                projectNewData = indicatorData;
+                break;
+            case "TaskAndProjectIndicatorsData":
+                projectNewData = indicatorData;
+                break;
+            case "NewProjectTaskData":
+                projectNewData = projectData;
+                break;
+        }
+    }
+
+    private void GetExportProperties(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, ExportPropertyData> args)
+    {
+        var exportProps = new GanttPdfExportProperties();
+
+        switch (args.ItemData.Id)
+        {
+            case "pageOrientation-Portrait":
+                exportProps.PageOrientation = Syncfusion.Blazor.Grids.PageOrientation.Portrait;
+                break;
+
+            case "pagesize-Letter":
+                exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.Letter;
+                exportProps.Header = new PdfHeader
+                    {
+                        FromTop = 0,
+                        Height = 150,
+                        Contents = new List<PdfHeaderFooterContent>
+                {
+                    new PdfHeaderFooterContent
+                    {
+                        Type = ContentType.Text,
+                        Value = "Welcome",
+                        Position = new PdfPosition { X = 500, Y = 10 },
+                        Style = new PdfContentStyle { TextBrushColor = "#C25050", FontSize = 25 }
+                    },
+                    new PdfHeaderFooterContent
+                    {
+                        Type = ContentType.PageNumber,
+                        PageNumberType = PdfPageNumberType.Arabic,
+                        Value = "Page 1 of 1",
+                        Style = new PdfContentStyle { TextBrushColor = "#ffff80", FontSize = 15, HAlign = PdfHorizontalAlign.Center }
+                    },
+                    new PdfHeaderFooterContent
+                    {
+                        Type = ContentType.Line,
+                        Style = new PdfContentStyle { PenColor = "#000080", PenSize = 2, DashStyle = Syncfusion.Blazor.Grids.PdfDashStyle.Solid },
+                        Points = new PdfPoints { X1 = 450, Y1 = 18, X2 = 650, Y2 = 18 }
+                    }
+                }
+                    };
+
+                exportProps.Footer = new PdfFooter
+                    {
+                        FromBottom = 50,
+                        Height = 100,
+                        Contents = new List<PdfHeaderFooterContent>
+                {
+                    new PdfHeaderFooterContent
+                    {
+                        Type = ContentType.Text,
+                        Value = "Thank you!",
+                        Style = new PdfContentStyle { TextBrushColor = "#C67878", FontSize = 14 }
+                    },
+                    new PdfHeaderFooterContent
+                    {
+                        Type = ContentType.Line,
+                        Style = new PdfContentStyle { PenColor = "#000080", PenSize = 2, DashStyle = Syncfusion.Blazor.Grids.PdfDashStyle.Solid },
+                        Points = new PdfPoints { X1 = 350, Y1 = 40, X2 = 685, Y2 = 40 }
+                    },
+                    new PdfHeaderFooterContent
+                    {
+                        Type = ContentType.PageNumber,
+                        PageNumberType = PdfPageNumberType.Arabic,
+                        Value = "Page 1 of 1",
+                        Size = new PdfSize { Height = 50, Width = 100 },
+                        Style = new PdfContentStyle { TextBrushColor = "#000000", HAlign = PdfHorizontalAlign.Center, VAlign = PdfVerticalAlign.Bottom }
+                    }
+                }
+                    };
+                break;
+
+            case "pagesize-Note": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.Note; break;
+            case "pagesize-Legal": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.Legal; break;
+            case "pagesize-A0": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.A0; break;
+            case "pagesize-A1": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.A1; break;
+            case "pagesize-A2": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.A2; break;
+            case "pagesize-A3": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.A3; break;
+            case "pagesize-A4": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.A4; break;
+            case "pagesize-A5": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.A5; break;
+            case "pagesize-A6": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.A6; break;
+            case "pagesize-A7": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.A7; break;
+            case "pagesize-A8": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.A8; break;
+            case "pagesize-A9": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.A9; break;
+            case "pagesize-B0": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.B0; break;
+            case "pagesize-B1": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.B1; break;
+            case "pagesize-B2": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.B2; break;
+            case "pagesize-B3": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.B3; break;
+            case "pagesize-B4": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.B4; break;
+            case "pagesize-B5": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.B5; break;
+            case "pagesize-Archa": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.Archa; break;
+            case "pagesize-Archb": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.Archb; break;
+            case "pagesize-Archc": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.Archc; break;
+            case "pagesize-Archd": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.Archd; break;
+            case "pagesize-Arche": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.Arche; break;
+            case "pagesize-Flsa": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.Flsa; break;
+            case "pagesize-HalfLetter": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.HalfLetter; break;
+            case "pagesize-Letter11x17": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.Letter11x17; break;
+            case "pagesize-Ledger": exportProps.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.Ledger; break;
+
+            case "fontsize-fontfamily-fontBrush":
+                exportProps.Style = new PdfGanttStyle()
+                    {
+                        HeaderStyle = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, TextColor = "#FF0000", FontFamily = new PdfStandardFont(PdfFontFamily.Helvetica, 3) } },
+                        CellStyle = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, TextColor = "#FF0000", FontFamily = new PdfStandardFont(PdfFontFamily.Helvetica, 3) } },
+                        TimelineTopTierStyle = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, TextColor = "#FF0000", FontFamily = new PdfStandardFont(PdfFontFamily.Helvetica, 3) } },
+                        TimelineBottomTierStyle = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, TextColor = "#FF0000", FontFamily = new PdfStandardFont(PdfFontFamily.Helvetica, 3) } },
+                        EventMarkerStyle = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, TextColor = "#FF0000", FontFamily = new PdfStandardFont(PdfFontFamily.Helvetica, 3) } },
+                        HolidayStyle = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, TextColor = "#FF0000", FontFamily = new PdfStandardFont(PdfFontFamily.Helvetica, 3) } },
+                        LabelStyleSettings = new PdfLabelSettings()
+                        {
+                            LeftLabel = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, FontFamily = new PdfStandardFont(PdfFontFamily.Helvetica, 3) } },
+                            RightLabel = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, FontFamily = new PdfStandardFont(PdfFontFamily.Helvetica, 3) } },
+                            TaskLabel = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, FontFamily = new PdfStandardFont(PdfFontFamily.Helvetica, 3) } }
+                        }
+                    };
+                break;
+            case "fontsize-fontfamily-fontBrush-1":
+                exportProps.Style = new PdfGanttStyle()
+                    {
+                        HeaderStyle = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, TextColor = "#FF0000", FontFamily = new PdfStandardFont(PdfFontFamily.TimesRoman, 3) } },
+                        CellStyle = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, TextColor = "#FF0000", FontFamily = new PdfStandardFont(PdfFontFamily.TimesRoman, 3) } },
+                        TimelineTopTierStyle = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, TextColor = "#FF0000", FontFamily = new PdfStandardFont(PdfFontFamily.TimesRoman, 3) } },
+                        TimelineBottomTierStyle = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, TextColor = "#FF0000", FontFamily = new PdfStandardFont(PdfFontFamily.TimesRoman, 3) } },
+                        EventMarkerStyle = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, TextColor = "#FF0000", FontFamily = new PdfStandardFont(PdfFontFamily.TimesRoman, 3) } },
+                        HolidayStyle = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, TextColor = "#FF0000", FontFamily = new PdfStandardFont(PdfFontFamily.TimesRoman, 3) } },
+                        LabelStyleSettings = new PdfLabelSettings()
+                        {
+                            LeftLabel = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, FontFamily = new PdfStandardFont(PdfFontFamily.TimesRoman, 3) } },
+                            RightLabel = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, FontFamily = new PdfStandardFont(PdfFontFamily.TimesRoman, 3) } },
+                            TaskLabel = new PdfElementStyle() { Font = new PdfGridFont { FontSize = 3, FontFamily = new PdfStandardFont(PdfFontFamily.TimesRoman, 3) } }
+                        }
+                    };
+                break;
+            default:
+                break;
+        }
+
+        GanttExportProperties = exportProps;
+    }
+
+    private async Task OnToolbarClick(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        if (args.Item.Id == "GanttPdfCustomization_PdfExport")
+        {
+            await Gantt.ExportToPdfAsync(GanttExportProperties,true);
+        }
+    }
+    
+    public class GanttTask
+    {
+        public int TaskID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public double Progress { get; set; }
+        public int Duration { get; set; }
+        public string Predecessor { get; set; }
+        public DateTime? BaselineStartDate { get; set; }
+        public DateTime? BaselineEndDate { get; set; }
+        public List<GanttTask> Subtasks { get; set; }
+        public List<GanttIndicator> Indicators { get; set; }
+        public bool IsManual { get; set; }
+    }
+
+    public class GanttIndicator
+    {
+        public DateTime Date { get; set; }
+        public string Name { get; set; }
+        public string Tooltip { get; set; }
+    }
+
+    public class CustomData
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
+
+    public class ExportPropertyData
+    {
+        public string Id { get; set; }
+        public string Text { get; set; }
+    }
+
+    private List<object> ToolbarItems = new List<object> {
+        "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll",
+        "Search", "ZoomIn", "ZoomOut", "ZoomToFit", "PrevTimeSpan", "NextTimeSpan", new ToolbarItem{ Id = "GanttPdfCustomization_PdfExport", Text = "PdfExport", PrefixIcon="e-pdfexport"}
+    };
+    
+    private List<GanttTask> basicData = new List<GanttTask>
+    {
+        new GanttTask
+        {
+            TaskID = 1,
+            TaskName = "Product Concept",
+            StartDate = new DateTime(2019, 4, 2),
+            EndDate = new DateTime(2019, 4, 21),
+            Subtasks = new List<GanttTask>
+            {
+                new GanttTask { TaskID = 2, TaskName = "Defining the product and its usage", BaselineStartDate = new DateTime(2019, 4, 2), BaselineEndDate = new DateTime(2019, 4, 6), StartDate = new DateTime(2019, 4, 2), Duration = 3, Progress = 30 },
+                new GanttTask { TaskID = 3, TaskName = "Defining target audience", StartDate = new DateTime(2019, 4, 2), Duration = 3 },
+                new GanttTask { TaskID = 4, TaskName = "Prepare product sketch and notes", StartDate = new DateTime(2019, 4, 2), Duration = 3, Predecessor = "2", Progress = 30 }
+            }
+        },
+        new GanttTask
+        {
+            TaskID = 5,
+            TaskName = "Concept Approval",
+            StartDate = new DateTime(2019, 4, 2),
+            Duration = 0,
+            Predecessor = "3,4"
+        }
+    };
+    
+    private List<GanttTask> indicatorData = new List<GanttTask>
+    {
+        new GanttTask
+        {
+            TaskID = 1,
+            TaskName = "Product Concept",
+            StartDate = new DateTime(2019, 4, 2),
+            EndDate = new DateTime(2019, 4, 21),
+            Subtasks = new List<GanttTask>
+            {
+                new GanttTask { TaskID = 2, TaskName = "Defining the product and its usage", BaselineStartDate = new DateTime(2019, 4, 2), BaselineEndDate = new DateTime(2019, 4, 6), StartDate = new DateTime(2019, 4, 2), Duration = 3, Progress = 60 },
+                new GanttTask { TaskID = 3, TaskName = "Defining target audience", StartDate = new DateTime(2019, 4, 2), Duration = 3, Indicators = new List<GanttIndicator> { new GanttIndicator { Date = new DateTime(2019, 4, 3), Name = "Indicator title" } } },
+                new GanttTask { TaskID = 4, TaskName = "Prepare product sketch and notes", StartDate = new DateTime(2019, 4, 2), Duration = 3, Predecessor = "2", Progress = 30 }
+            }
+        },
+        new GanttTask
+        {
+            TaskID = 5,
+            TaskName = "Concept Approval",
+            StartDate = new DateTime(2019, 4, 2),
+            Duration = 0,
+            Predecessor = "3,4"
+        }
+    };
+
+}

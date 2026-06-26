@@ -1,0 +1,228 @@
+﻿@page "/E2EMigration/TaskbarTemplate"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Gantt
+<div>@message</div>
+<SfGantt id="GanttTaskbartemplate" @ref="Gantt" DataSource="@TaskCollection" Toolbar="@(new List<string>() { "Add", "Cancel","Delete", "Edit","Update", "CollapseAll", "ExpandAll",  "Indent" , "Outdent" ,"ZoomIn", "ZoomOut", "ZoomToFit"})"  AllowReordering="true" ShowColumnMenu="true" AllowSelection="true" EnableContextMenu="true" AllowFiltering="true" AllowSorting="true" AllowResizing="true" AllowUnscheduledTasks="true" EnablePredecessorValidation="true"
+        Height="500px" Width="1400px">
+    <GanttTaskFields Id="TaskId" Name="FieldName" StartDate="Begining" EndDate="Ending" Duration="Period" Progress="Breakthrough" ParentID="ParentId" Dependency="Predecessor">
+    </GanttTaskFields>
+     <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+     <GanttEditSettings AllowTaskbarEditing="true" AllowEditing="true" ShowDeleteConfirmDialog="true" AllowAdding="true" AllowDeleting="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Auto"></GanttEditSettings>
+    <GanttTemplates TValue="TaskData">
+        <ParentTaskbarTemplate>
+            <div class="e-gantt-parent-taskbar e-custom-parent" style="height:22px;border-radius:5px;text-overflow:ellipsis;">
+                <span class="e-task-label">@((context as TaskData).Breakthrough)</span>
+            </div>
+        </ParentTaskbarTemplate>
+        <TaskbarTemplate>
+            <div class="e-gantt-child-taskbar e-custom-moments" style="height:22px;border-radius:5px;">
+                <span class="e-task-label" style="top:15px;font-size:12px;text-overflow:ellipsis;height:90%;overflow:hidden;">@((context as TaskData).Custom)</span>
+            </div>
+        </TaskbarTemplate>
+        <MilestoneTemplate>
+            <div class="e-gantt-milestone" style="width:12px;height:12px;transform: rotate(45deg);background-color: #7ab748 !important;border-color: #0d6efd !important"></div>
+          
+        </MilestoneTemplate>
+    </GanttTemplates>
+    <GanttLabelSettings TValue="TaskData" RightLabel="FieldName"></GanttLabelSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskId"></GanttColumn>
+        <GanttColumn Field="FieldName"></GanttColumn>
+        <GanttColumn Field="Custom"></GanttColumn>
+        <GanttColumn Field="Begining"></GanttColumn>
+        <GanttColumn Field="Ending"></GanttColumn>
+        <GanttColumn Field="Period"></GanttColumn>
+        <GanttColumn Field="Breakthrough"></GanttColumn>
+        <GanttColumn Field="Predecessor"></GanttColumn>
+    </GanttColumns>
+     <GanttEvents TValue="TaskData" Created="Created" OnActionFailure="ActionFailureHandler" ></GanttEvents>
+</SfGantt>
+ 
+<style>
+    .e-custom-parent {
+        background-color: #6d619b;
+        border: 1px solid #3f51b5;
+    }
+
+    .e-milestone-top {
+        border-bottom-color: #7ab748 !important;
+        border-bottom: 1px solid #3f51b5;
+    }
+
+    .e-milestone-bottom {
+        border-top-color: #7ab748 !important;
+        border-top: 1px solid #3f51b5;
+    }
+
+    .e-custom-moments {
+        background-color: #7ab748;
+        border: 1px solid #3f51b5;
+    }
+</style>
+
+@code{
+    public SfGantt<TaskData> Gantt;
+    public List<TaskData> TaskCollection { get; set; }
+    public string message{ get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    public async Task Created()
+    {   
+     
+    }
+     public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string? FieldName { get; set; }
+        public DateTime? Begining { get; set; }
+        public DateTime? Ending { get; set; }
+        public string? Period { get; set; }
+        public int? Breakthrough { get; set; }
+        public int? ParentId { get; set; }
+        public string? Predecessor { get; set; }
+        public string? Custom { get; set; }
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+
+        new TaskData() {
+            TaskId = 1,
+            FieldName = "Project initiation",
+            Begining = new DateTime(2019, 04, 02),
+            Ending = new DateTime(2019, 04, 21),
+            Custom ="Custom 1"
+        },
+        new TaskData() {
+            TaskId = 2,
+            FieldName = "Identify Site location",
+            Begining = new DateTime(2019, 04, 02),
+            Period = "0",
+            Breakthrough = 30,
+            ParentId = 1,
+            Custom ="Custom 2"
+        },
+        new TaskData() {
+            TaskId = 3,
+            FieldName = "Perform soil test",
+            Begining = new DateTime(2019, 04, 02),
+            Period = "4",
+            Breakthrough = 40,
+            ParentId = 1,
+        },
+        new TaskData() {
+            TaskId = 4,
+            FieldName = "Soil test approval",
+            Begining = new DateTime(2019, 04, 02),
+            Period = "0",
+            Breakthrough = 30,
+            ParentId = 1,
+            Custom ="Custom 3"
+        },
+        new TaskData() {
+            TaskId = 5,
+            FieldName = "Project estimation",
+            Begining = new DateTime(2019, 04, 02),
+            Ending = new DateTime(2019, 04, 21)
+        },
+        new TaskData() {
+            TaskId = 6,
+            FieldName = "Develop floor plan for estimation",
+            Begining = new DateTime(2019, 04, 04),
+            Period = "3",
+            Breakthrough = 30,
+            ParentId = 5,
+            Predecessor="3,4",
+            Custom ="Custom 4"
+        },
+        new TaskData() {
+            TaskId = 7,
+            FieldName = "List materials",
+            Begining = new DateTime(2019, 04, 04),
+            Period = "3",
+            Breakthrough = 40,
+            ParentId = 5,
+        },
+        new TaskData() {
+            TaskId = 8,
+            FieldName = "Estimation approval",
+            Begining = new DateTime(2019, 04, 04),
+            Period = "0",
+            Breakthrough = 30,
+            ParentId = 5,
+            Predecessor="7",
+        },
+        new TaskData() {
+            TaskId = 9,
+            FieldName = "Project initiation",
+            Begining = new DateTime(2019, 04, 02),
+            Ending = new DateTime(2019, 04, 21),
+            Custom ="Custom 5"
+        },
+        new TaskData() {
+            TaskId = 10,
+            FieldName = "Identify Site location",
+            Begining = new DateTime(2019, 04, 02),
+            Period = "0",
+            Breakthrough = 30,
+            ParentId = 9
+        },
+        new TaskData() {
+            TaskId = 11,
+            FieldName = "Perform soil test",
+            Begining = new DateTime(2019, 04, 02),
+            Period = "4",
+            Breakthrough = 40,
+            ParentId = 9
+        },
+        new TaskData() {
+            TaskId = 12,
+            FieldName = "Soil test approval",
+            Begining = new DateTime(2019, 04, 02),
+            Period = "0",
+            Breakthrough = 30,
+            ParentId = 9
+        },
+        new TaskData() {
+            TaskId = 13,
+            FieldName = "Project estimation",
+            Begining = new DateTime(2019, 04, 02),
+            Ending = new DateTime(2019, 04, 21)
+        },
+        new TaskData() {
+            TaskId = 14,
+            FieldName = "Develop floor plan for estimation",
+            Begining = new DateTime(2019, 04, 04),
+            Period = "3",
+            Breakthrough = 30,
+            ParentId = 13
+        },
+        new TaskData() {
+            TaskId = 15,
+            FieldName = "List materials",
+            Begining = new DateTime(2019, 04, 04),
+            Period = "3",
+            Breakthrough = 40,
+            ParentId = 13
+        },
+        new TaskData() {
+            TaskId = 16,
+            FieldName = "Estimation approval",
+            Begining = new DateTime(2019, 04, 04),
+            Period = "0",
+            Breakthrough = 30,
+            ParentId = 13
+        }
+    };
+        return Tasks;
+    }
+}

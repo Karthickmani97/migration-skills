@@ -1,0 +1,83 @@
+﻿@page "/BLAZ-939758"
+@* 1,Run the sample application.
+2,Click on the "SplitterIndex" button to move the splitter to a predefined position.
+3,Resize one of the panes by dragging the splitter to a new position.
+4,Click the "SplitterIndex" button again to attempt moving the splitter.
+5,Note that the splitter position does not update as expected on the second click. *@
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Navigations
+<div>@message</div>
+<button @onclick="SplitterIndex">SplitterIndex</button>
+<button @onclick="SplitterDefault">SplitterDefault</button>
+<button @onclick="SplitterChart">SplitterChart</button>
+<button @onclick="SplitterGrid">SplitterGrid</button>
+<SfGantt DataSource="@Tasks" @ref="Gantt" Height="450px" Width="100%" TreeColumnIndex="1" AllowSelection="true"
+>
+    <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" Dependency="Predecessor" ParentID="ParentID" BaselineStartDate="BaselineStartDate" BaselineEndDate="BaselineEndDate" ></GanttTaskFields>
+    <GanttColumns>
+        <GanttColumn Field="TaskID"></GanttColumn>
+                <GanttColumn Field="TaskName"></GanttColumn>
+                <GanttColumn Field="StartDate"></GanttColumn>
+                <GanttColumn Field="EndDate"></GanttColumn>
+                <GanttColumn Field="Progress" ></GanttColumn>
+                <GanttColumn Field="Duration"></GanttColumn>
+            </GanttColumns>
+    <GanttSplitterSettings ColumnIndex="3"></GanttSplitterSettings>
+    <GanttEvents TValue="TaskData" OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+
+@code {
+    private SfGantt<TaskData> Gantt;
+    private List<TaskData> EditingData { get; set; }
+    private List<Object> ToolbarItems { get; set; } = new List<Object>() { new ToolbarItem() {  Text= "Click", TooltipText= "Click", Id= "Click"  } };
+    public class TaskData
+    {
+        public int TaskID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public int Duration { get; set; }
+        public int Progress { get; set; }
+        public string Predecessor { get; set; }
+        public int? ParentID { get; set; }
+        public DateTime BaselineStartDate { get; set; }
+        public DateTime BaselineEndDate { get; set; }
+    }
+    public string message{ get; set; } 
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+    protected override void OnInitialized()
+    {
+        EditingData = Tasks;
+    }
+    private async void SplitterChart()
+    {
+        await this.Gantt.SetSplitterPositionAsync(SplitterView.Chart);
+    }
+    private async void SplitterGrid()
+    {
+        await this.Gantt.SetSplitterPositionAsync(SplitterView.Grid);
+    }
+    private async void SplitterDefault()
+    {
+        await this.Gantt.SetSplitterPositionAsync(SplitterView.Default);
+    }
+    private async void SplitterIndex()
+    {
+        await this.Gantt.SetSplitterPositionAsync(2);
+    }
+    public List<TaskData> Tasks = new List<TaskData>
+    {
+        new TaskData { TaskID = 1, TaskName = "New Task 1", StartDate = new DateTime(2023, 5, 22), EndDate = new DateTime(2023, 5, 22), BaselineStartDate = new DateTime(2023, 5, 22), BaselineEndDate = new DateTime(2023, 5, 22), Progress = 59, Duration = 1 },
+        new TaskData { TaskID = 2, TaskName = "433", StartDate = new DateTime(2023, 5, 22), EndDate = new DateTime(2023, 5, 22), BaselineStartDate = new DateTime(2023, 5, 22), BaselineEndDate = new DateTime(2023, 5, 22), Progress = 45, Duration = 1, Predecessor = "1FS" },
+        new TaskData { TaskID = 3, TaskName = "New Task 3", StartDate = new DateTime(2023, 5, 23), EndDate = new DateTime(2023, 5, 23), Duration = 0 },
+        new TaskData { TaskID = 4, TaskName = "New Task 4", StartDate = new DateTime(2023, 5, 22), EndDate = new DateTime(2023, 5, 22), Progress = 38, Duration = 1 },
+        new TaskData { TaskID = 5, TaskName = "New Task 5", StartDate = new DateTime(2023, 5, 22), EndDate = new DateTime(2023, 5, 22), Progress = 68, Duration = 1, Predecessor = "4" },
+        new TaskData { TaskID = 6, TaskName = "New Task 6", StartDate = new DateTime(2023, 5, 22), EndDate = new DateTime(2023, 5, 22), Progress = 57, Duration = 1, Predecessor = "5" },
+        new TaskData { TaskID = 7, TaskName = "New Task 7", StartDate = new DateTime(2023, 5, 30), EndDate = new DateTime(2023, 5, 30), Progress = 0, Duration = 1 }
+    };
+
+}

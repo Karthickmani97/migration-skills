@@ -1,0 +1,117 @@
+@page "/Task-type"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+<div>@message</div>
+<SfGantt @ref="Gantt" ID="Gantt" DataSource="@TaskCollection" Height="450px" Width="900px" HighlightWeekends="true" ProjectStartDate="@ProjectStart" ProjectEndDate="@ProjectEnd">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId"
+        Work="Work" TaskType="TaskType"></GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+    <GanttResource DataSource="@ResourceCollection" Id="ResourceId" Name="ResourceName" MaxUnits="Unit" TResources="ResourceAlloacteData" TValue="TaskData"></GanttResource>
+<GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="@nameof(AssignmentModel.PrimaryId)" TaskID="@nameof(AssignmentModel.TaskId)" ResourceID="@nameof(AssignmentModel.ResourceId)" Units="@nameof(AssignmentModel.Unit)" TValue="TaskData" TAssignment="AssignmentModel">
+    </GanttAssignmentFields>
+    <GanttLabelSettings TValue="TaskData" RightLabel="Resources"></GanttLabelSettings>
+    <GanttEvents TValue="TaskData" OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+
+@code{
+    private DateTime ProjectStart = new DateTime(2022, 03, 25);
+    private DateTime ProjectEnd = new DateTime(2022, 05, 10);
+    public SfGantt<TaskData> Gantt;
+    private List<TaskData> TaskCollection { get; set; }
+    private List<ResourceAlloacteData> ResourceCollection { get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        this.ResourceCollection = GetResources;
+        AssignmentCollection = GetAssignmentCollection();
+    }
+    public string message{ get; set; } 
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+
+    public class ResourceAlloacteData
+    {
+        public int ResourceId { get; set; }
+        public string ResourceName { get; set; }
+        public double Unit { get; set; }
+    }
+    public static List<ResourceAlloacteData> GetResources = new List<ResourceAlloacteData>()
+    {
+        new ResourceAlloacteData() { ResourceId= 1, ResourceName= "Martin Tamer"},
+        new ResourceAlloacteData() { ResourceId= 2, ResourceName= "Rose Fuller" },
+        new ResourceAlloacteData() { ResourceId= 3, ResourceName= "Margaret Buchanan" },
+        new ResourceAlloacteData() { ResourceId= 4, ResourceName= "Fuller King" },
+        new ResourceAlloacteData() { ResourceId= 5, ResourceName= "Davolio Fuller" },
+        new ResourceAlloacteData() { ResourceId= 7, ResourceName= "Fuller Buchanan" },
+        new ResourceAlloacteData() { ResourceId= 8, ResourceName= "Jack Davolio" },
+        new ResourceAlloacteData() { ResourceId= 9, ResourceName= "Tamer Vinet" },
+        new ResourceAlloacteData() { ResourceId= 10, ResourceName= "Vinet Fuller" },
+        new ResourceAlloacteData() { ResourceId= 11, ResourceName= "Bergs Anton" },
+        new ResourceAlloacteData() { ResourceId= 12, ResourceName= "Construction Supervisor" }
+    };
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public TaskType TaskType { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public double Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Notes { get; set; }
+        public double? Work { get; set; }
+        public List<ResourceAlloacteData> Resources { get; set; }
+    }
+
+    private static List<AssignmentModel> AssignmentCollection { get; set; } = new();
+
+
+
+ public class AssignmentModel
+        {
+            public int PrimaryId { get; set; }
+            public int TaskId { get; set; }
+            public int ResourceId { get; set; }
+            public double? Unit { get; set; }
+        }
+
+    public static List<TaskData> GetTaskCollection()
+{
+    List<TaskData> Tasks = new List<TaskData>()
+    {
+        new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 04, 05), EndDate = new DateTime(2022, 04, 21) },
+        new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 30, Notes = "Measure the total property area alloted for construction", ParentId = 1 },
+        new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 04, 05), Duration = "4", Notes = "Obtain an engineered soil test of a plot where construction is planned from an engineer or company specializing in soil testing", ParentId = 1 },
+        new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 30, ParentId = 1 },
+        new TaskData() { TaskId = 5, TaskName = "Project estimation", StartDate = new DateTime(2022, 04, 06), EndDate = new DateTime(2022, 04, 21) },
+        new TaskData() { TaskId = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 30, Notes = "Develop floor plans and obtain a materials list for estimations", ParentId = 5 },
+        new TaskData() { TaskId = 7, TaskName = "List materials", StartDate = new DateTime(2022, 04, 06), Duration = "3", Notes = "", ParentId = 5 },
+        new TaskData() { TaskId = 8, TaskName = "Estimation approval", StartDate = new DateTime(2022, 04, 06), Duration = "0", Notes = "", ParentId = 5 }
+    };
+    return Tasks;
+}
+public static List<AssignmentModel> GetAssignmentCollection()
+{
+    List<AssignmentModel> assignments = new List<AssignmentModel>()
+    {
+        // Task 2 has ResourceId 1
+        new AssignmentModel(){ PrimaryId = 1, TaskId = 2, ResourceId = 1 },
+
+        // Task 3 has ResourceId 2 and 3
+        new AssignmentModel(){ PrimaryId = 2, TaskId = 3, ResourceId = 2 },
+        new AssignmentModel(){ PrimaryId = 3, TaskId = 3, ResourceId = 3 },
+
+        // Task 6 has ResourceId 4
+        new AssignmentModel(){ PrimaryId = 4, TaskId = 6, ResourceId = 4 },
+
+        // Task 8 has ResourceId 1 and 5
+        new AssignmentModel(){ PrimaryId = 5, TaskId = 8, ResourceId = 1 },
+        new AssignmentModel(){ PrimaryId = 6, TaskId = 8, ResourceId = 5 }
+    };
+    return assignments;
+}
+}

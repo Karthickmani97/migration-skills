@@ -1,0 +1,456 @@
+﻿@page "/gantt-expando-validator"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Calendars
+@using System.ComponentModel.DataAnnotations;
+@using ColumnValidationComponents
+
+@using System.Dynamic
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt EnableContextMenu="true" RenderBaseline="true" TValue="ExpandoObject" AllowSorting="true" AllowFiltering="true" DataSource="@GanttExpandoData" Height="450px" Width="1400px" HighlightWeekends="true"
+                     Toolbar="@(new List<string>(){ "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll","Indent","Outdent"})"
+                     AllowSelection="true" TreeColumnIndex="1">
+
+                <GanttTaskFields Id="TaskId" Name="ActivityName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                                 Dependency="Predecessor" BaselineEndDate="BaselineEndDate" BaselineStartDate="BaselineStartDate" Notes="Notes" ParentID="ParentId"
+                                 TaskType="TaskType" Work="Work"></GanttTaskFields>
+
+                <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true">
+                    <Validator>
+                        @{
+                            ValidatorTemplateContext txt = context as ValidatorTemplateContext;
+                        }
+                        <GanttCustomValidator context="@txt"></GanttCustomValidator>
+                    </Validator>
+                </GanttEditSettings>
+                <GanttColumns>
+                    <GanttColumn Field="TaskId" HeaderText="Task ID" IsPrimaryKey="true" Width="80"
+                                 TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+                    </GanttColumn>
+
+                    <GanttColumn Field="ActivityName" HeaderText="Task Name" Width="160" />
+
+                    <GanttColumn Field="Duration" HeaderText="Duration" Width="100"
+                                 TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+                    </GanttColumn>
+
+                    <GanttColumn Field="Predecessor" HeaderText="Dependency" Width="100"
+                                 TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+                    </GanttColumn>
+
+                    <GanttColumn Field="Progress" HeaderText="Progress" Width="100"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.NumericEdit"
+                                 TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+                    </GanttColumn>
+
+                    <GanttColumn Field="Email" HeaderText="Email" Width="200"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DefaultEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="StartDate" HeaderText="Start Date" Width="150" Format="d"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="EndDate" HeaderText="End Date" Width="150" Format="g"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="Work" HeaderText="Work">
+                    </GanttColumn>
+
+                    <GanttColumn Field="BaselineStartDate" HeaderText="Baseline Start" Width="150" Format="d"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit" />
+
+                    <GanttColumn Field="BaselineEndDate" HeaderText="Baseline End" Width="150" Format="d"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit" />
+
+                    <GanttColumn Field="Username" HeaderText="Username" Width="150"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DefaultEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="Password" HeaderText="Password" Width="150"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DefaultEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="Website" HeaderText="Website" Width="200"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DefaultEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="CustomData" HeaderText="Custom Data (String)" Width="200"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DefaultEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="Notes" HeaderText="Notes" />
+
+                    <GanttColumn Field="TaskType" HeaderText="Task Type" Width="120"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DropDownEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="ProjectBudget" HeaderText="Project Budget" Width="150"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.NumericEdit" Format="C2" />
+
+                    <GanttColumn Field="ReviewDate" HeaderText="Review Date" Width="150" Format="d"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit" />
+                </GanttColumns>
+                <GanttLabelSettings LeftLabel="ActivityName" TValue="ExpandoObject">
+                </GanttLabelSettings>
+                <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="ExpandoObject" TSegments="SegmentModel" DataSource="SegmentCollection"></GanttSegmentFields>
+                <GanttSplitterSettings Position="40%"> </GanttSplitterSettings>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+<style>
+    html, body {
+        height: 100%;
+    }
+</style>
+@code {
+    private DateTime ProjectStartDate { get; set; } = new DateTime(2021, 01, 04);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2021, 03, 07);
+    private List<ExpandoObject> GanttExpandoData { get; set; } = new List<ExpandoObject>();
+    private List<SegmentModel> SegmentCollection { get; set; } = new List<SegmentModel>();
+    private static int ParentRecordID { get; set; }
+    private static int ChildRecordID { get; set; }
+
+    protected override void OnInitialized()
+    {
+        SegmentCollection = GanttData.GetSegmentCollection();
+        this.GanttExpandoData = GetData().ToList();
+    }
+    public static List<ExpandoObject> GetData()
+    {
+        var data = new List<ExpandoObject>();
+
+        // 1 - Product concept (root)
+        dynamic t1 = new ExpandoObject();
+        t1.TaskId = 1;
+        t1.ActivityName = "Product concept";
+        t1.StartDate = new DateTime(2021, 04, 02);
+        t1.EndDate = new DateTime(2021, 04, 08);
+        t1.Duration = 5;
+        t1.Progress = 60;
+        t1.Email = "concept@example.com";
+        t1.Username = "product_concept";
+        t1.Password = "PassWord123";
+        t1.Website = "https://concept.example.com";
+        t1.CustomData = "Initial Brainstorm";
+        t1.TaskType = "FixedWork";
+        t1.BaselineStartDate = new DateTime(2021, 03, 29);
+        t1.BaselineEndDate = new DateTime(2021, 04, 04);
+        t1.Work = 40;
+        t1.ProjectBudget = 10000;
+        t1.ReviewDate = new DateTime(2021, 04, 07);
+        t1.Notes = "Initial phase of the product development.";
+        t1.ParentId = null;
+        data.Add((ExpandoObject)t1);
+
+        // 2 - Defining the product usage (child of 1)
+        dynamic t2 = new ExpandoObject();
+        t2.TaskId = 2;
+        t2.ActivityName = "Defining the product usage";
+        t2.StartDate = new DateTime(2021, 04, 02);
+        t2.EndDate = new DateTime(2021, 04, 08);
+        t2.Duration = 3;
+        t2.Progress = 70;
+        t2.TaskType = "FixedUnit";
+        t2.BaselineStartDate = new DateTime(2021, 03, 30);
+        t2.BaselineEndDate = new DateTime(2021, 04, 05);
+        t2.Work = 24;
+        t2.ProjectBudget = 5000;
+        t2.ReviewDate = new DateTime(2021, 04, 06);
+        t2.ParentId = 1;
+        data.Add((ExpandoObject)t2);
+
+        // 3 - Defining the target audience (child of 1)
+        dynamic t3 = new ExpandoObject();
+        t3.TaskId = 3;
+        t3.ActivityName = "Defining the target audience";
+        t3.StartDate = new DateTime(2021, 04, 02);
+        t3.EndDate = new DateTime(2021, 04, 04);
+        t3.Duration = 3;
+        t3.Progress = 80;
+        t3.Email = "audience@example.com";
+        t3.Username = "target_audience";
+        t3.Password = "PassWord123";
+        t3.Website = "https://audience.example.com";
+        t3.CustomData = "Market Research";
+        t3.TaskType = "FixedWork";
+        t3.BaselineStartDate = new DateTime(2021, 03, 30);
+        t3.BaselineEndDate = new DateTime(2021, 04, 02);
+        t3.Work = 20;
+        t3.ProjectBudget = 7500;
+        t3.ReviewDate = new DateTime(2021, 04, 03);
+        t3.Notes = "Identifying the primary users for the product.";
+        t3.ParentId = 1;
+        data.Add((ExpandoObject)t3);
+
+        // 4 - Prepare product sketch and notes (child of 1)
+        dynamic t4 = new ExpandoObject();
+        t4.TaskId = 4;
+        t4.ActivityName = "Prepare product sketch and notes";
+        t4.StartDate = new DateTime(2021, 04, 05);
+        t4.EndDate = new DateTime(2021, 04, 08);
+        t4.Duration = 2;
+        t4.Progress = 90;
+        t4.Predecessor = "2";
+        t4.Email = "sketch@example.com";
+        t4.Username = "product_sketch";
+        t4.Password = "PassWord123";
+        t4.Website = "https://sketch.example.com";
+        t4.CustomData = "Initial Designs";
+        t4.TaskType = "FixedDuration";
+        t4.BaselineStartDate = new DateTime(2021, 04, 03);
+        t4.BaselineEndDate = new DateTime(2021, 04, 06);
+        t4.Work = 16;
+        t4.ProjectBudget = 3000;
+        t4.ReviewDate = new DateTime(2021, 04, 07);
+        t4.Notes = "Drafting preliminary visual representations of the product.";
+        t4.ParentId = 1;
+        data.Add((ExpandoObject)t4);
+
+        // 5 - Concept approval (child of 1)
+        dynamic t5 = new ExpandoObject();
+        t5.TaskId = 5;
+        t5.ActivityName = "Concept approval";
+        t5.StartDate = new DateTime(2021, 04, 08);
+        t5.EndDate = new DateTime(2021, 04, 08);
+        t5.Duration = 0;
+        t5.Progress = 100;
+        t5.Predecessor = "3,4";
+        t5.Email = "approval@example.com";
+        t5.Username = "concept_approval";
+        t5.Password = "PassWord123";
+        t5.Website = "https://approval.example.com";
+        t5.CustomData = "Stakeholder Review";
+        t5.TaskType = "FixedWork";
+        t5.BaselineStartDate = new DateTime(2021, 04, 06);
+        t5.BaselineEndDate = new DateTime(2021, 04, 06);
+        t5.Work = 8;
+        t5.ProjectBudget = 1000;
+        t5.ReviewDate = new DateTime(2021, 04, 08);
+        t5.Notes = "Official sign-off on the product concept.";
+        t5.ParentId = 1;
+        data.Add((ExpandoObject)t5);
+
+        // 6 - Market research (root)
+        dynamic t6 = new ExpandoObject();
+        t6.TaskId = 6;
+        t6.ActivityName = "Market research";
+        t6.StartDate = new DateTime(2021, 04, 09);
+        t6.EndDate = new DateTime(2021, 04, 18);
+        t6.Duration = 4;
+        t6.Progress = 30;
+        t6.Email = "research@example.com";
+        t6.Username = "market_research";
+        t6.Password = "PassWord123";
+        t6.Website = "https://research.example.com";
+        t6.CustomData = "Market Analysis";
+        t6.TaskType = "FixedDuration";
+        t6.BaselineStartDate = new DateTime(2021, 04, 06);
+        t6.BaselineEndDate = new DateTime(2021, 04, 15);
+        t6.Work = 32;
+        t6.ProjectBudget = 15000;
+        t6.ReviewDate = new DateTime(2021, 04, 12);
+        t6.Notes = "Comprehensive analysis of market trends and conditions.";
+        t6.ParentId = null;
+        data.Add((ExpandoObject)t6);
+
+        // 7 - Demand analysis (child of 6)
+        dynamic t7 = new ExpandoObject();
+        t7.TaskId = 7;
+        t7.ActivityName = "Demand analysis";
+        t7.StartDate = new DateTime(2021, 04, 09);
+        t7.EndDate = new DateTime(2021, 04, 12);
+        t7.Duration = 4;
+        t7.Progress = 40;
+        t7.Email = "demand@example.com";
+        t7.Username = "demand_analysis";
+        t7.Password = "PassWord123";
+        t7.Website = "https://demand.example.com";
+        t7.CustomData = "Consumer insights";
+        t7.TaskType = "FixedWork";
+        t7.BaselineStartDate = new DateTime(2021, 04, 07);
+        t7.BaselineEndDate = new DateTime(2021, 04, 10);
+        t7.Work = 28;
+        t7.ProjectBudget = 8000;
+        t7.ReviewDate = new DateTime(2021, 04, 11);
+        t7.Notes = "Analyzing market demand for the product.";
+        t7.ParentId = 6;
+        data.Add((ExpandoObject)t7);
+
+        // 8 - Customer strength (child of 7)
+        dynamic t8 = new ExpandoObject();
+        t8.TaskId = 8;
+        t8.ActivityName = "Customer strength";
+        t8.StartDate = new DateTime(2021, 04, 09);
+        t8.EndDate = new DateTime(2021, 04, 12);
+        t8.Duration = 4;
+        t8.Progress = 30;
+        t8.Predecessor = "5";
+        t8.Email = "strength@example.com";
+        t8.Username = "cust_strength";
+        t8.Password = "PassWord123";
+        t8.Website = "https://strength.example.com";
+        t8.CustomData = "Customer metrics";
+        t8.TaskType = "FixedUnit";
+        t8.BaselineStartDate = new DateTime(2021, 04, 07);
+        t8.BaselineEndDate = new DateTime(2021, 04, 10);
+        t8.Work = 24;
+        t8.ProjectBudget = 6000;
+        t8.ReviewDate = new DateTime(2021, 04, 11);
+        t8.Notes = "Assessment of existing and potential customer base.";
+        t8.ParentId = 7;
+        data.Add((ExpandoObject)t8);
+
+        // 9 - Market opportunity analysis (child of 7)
+        dynamic t9 = new ExpandoObject();
+        t9.TaskId = 9;
+        t9.ActivityName = "Market opportunity analysis";
+        t9.StartDate = new DateTime(2021, 04, 09);
+        t9.EndDate = new DateTime(2021, 04, 12);
+        t9.Duration = 4;
+        t9.Predecessor = "5";
+        t9.Email = "opportunity@example.com";
+        t9.Username = "market_opp";
+        t9.Password = "PassWord123";
+        t9.Website = "https://opportunity.example.com";
+        t9.CustomData = "Growth areas";
+        t9.TaskType = "FixedWork";
+        t9.BaselineStartDate = new DateTime(2021, 04, 07);
+        t9.BaselineEndDate = new DateTime(2021, 04, 10);
+        t9.Work = 28;
+        t9.ProjectBudget = 7000;
+        t9.ReviewDate = new DateTime(2021, 04, 11);
+        t9.Notes = "Identifying untapped market segments and opportunities.";
+        t9.ParentId = 7;
+        data.Add((ExpandoObject)t9);
+
+        // 10 - Competitor analysis (child of 6)
+        dynamic t10 = new ExpandoObject();
+        t10.TaskId = 10;
+        t10.ActivityName = "Competitor analysis";
+        t10.StartDate = new DateTime(2021, 04, 15);
+        t10.EndDate = new DateTime(2021, 04, 18);
+        t10.Duration = 4;
+        t10.Progress = 30;
+        t10.Predecessor = "7,8";
+        t10.Email = "competitor@example.com";
+        t10.Username = "competitor_analysis";
+        t10.Password = "PassWord123";
+        t10.Website = "https://competitor.example.com";
+        t10.CustomData = "Competitor strategies";
+        t10.TaskType = "FixedDuration";
+        t10.BaselineStartDate = new DateTime(2021, 04, 12);
+        t10.BaselineEndDate = new DateTime(2021, 04, 15);
+        t10.Work = 32;
+        t10.ProjectBudget = 9000;
+        t10.ReviewDate = new DateTime(2021, 04, 17);
+        t10.Notes = "Evaluating strategies and performance of competitors.";
+        t10.ParentId = 6;
+        data.Add((ExpandoObject)t10);
+
+        // 11 - Product strength analysis (child of 6)
+        dynamic t11 = new ExpandoObject();
+        t11.TaskId = 11;
+        t11.ActivityName = "Product strength analysis";
+        t11.StartDate = new DateTime(2021, 04, 15);
+        t11.EndDate = new DateTime(2021, 04, 18);
+        t11.Duration = 4;
+        t11.Progress = 40;
+        t11.Predecessor = "9";
+        t11.Email = "strength_prod@example.com";
+        t11.Username = "prod_strength";
+        t11.Password = "PassWord123";
+        t11.Website = "https://prodstrength.example.com";
+        t11.CustomData = "Product advantages";
+        t11.TaskType = "FixedWork";
+        t11.BaselineStartDate = new DateTime(2021, 04, 12);
+        t11.BaselineEndDate = new DateTime(2021, 04, 15);
+        t11.Work = 28;
+        t11.ProjectBudget = 7000;
+        t11.ReviewDate = new DateTime(2021, 04, 17);
+        t11.Notes = "Assessing the unique selling propositions of the product.";
+        t11.ParentId = 6;
+        data.Add((ExpandoObject)t11);
+
+        // 12 - Research completed (child of 6)
+        dynamic t12 = new ExpandoObject();
+        t12.TaskId = 12;
+        t12.ActivityName = "Research completed";
+        t12.StartDate = new DateTime(2021, 04, 18);
+        t12.EndDate = new DateTime(2021, 04, 18);
+        t12.Duration = 0;
+        t12.Progress = 30;
+        t12.Predecessor = "10";
+        t12.Email = "research_done@example.com";
+        t12.Username = "research_completed";
+        t12.Password = "PassWord123";
+        t12.Website = "https://researchdone.example.com";
+        t12.CustomData = "Final research report";
+        t12.TaskType = "FixedUnit";
+        t12.BaselineStartDate = new DateTime(2021, 04, 16);
+        t12.BaselineEndDate = new DateTime(2021, 04, 16);
+        t12.Work = 8;
+        t12.ProjectBudget = 500;
+        t12.ReviewDate = new DateTime(2021, 04, 18);
+        t12.Notes = "Marker for the completion of all research activities.";
+        t12.ParentId = 6;
+        data.Add((ExpandoObject)t12);
+
+        // 13 - Product design and development (root)
+        dynamic t13 = new ExpandoObject();
+        t13.TaskId = 13;
+        t13.ActivityName = "Product design and development";
+        t13.StartDate = new DateTime(2021, 04, 19);
+        t13.EndDate = new DateTime(2021, 05, 16);
+        t13.Duration = 20;
+        t13.Predecessor = "6";
+        t13.Email = "design_dev@example.com";
+        t13.Username = "design_dev";
+        t13.Password = "PassWord123";
+        t13.Website = "https://designdev.example.com";
+        t13.CustomData = "Development phase started";
+        t13.TaskType = "FixedWork";
+        t13.BaselineStartDate = new DateTime(2021, 04, 16);
+        t13.BaselineEndDate = new DateTime(2021, 05, 13);
+        t13.Work = 160;
+        t13.ProjectBudget = 50000;
+        t13.ReviewDate = new DateTime(2021, 04, 25);
+        t13.Notes = "Core phase for product creation and implementation.";
+        t13.ParentId = null;
+        data.Add((ExpandoObject)t13);
+
+        // 14 - Functionality design (child of 13)
+        dynamic t14 = new ExpandoObject();
+        t14.TaskId = 14;
+        t14.ActivityName = "Functionality design";
+        t14.StartDate = new DateTime(2021, 04, 19);
+        t14.EndDate = new DateTime(2021, 04, 23);
+        t14.Duration = 3;
+        t14.Progress = 30;
+        t14.Predecessor = "12";
+        t14.Email = "func_design@example.com";
+        t14.Username = "func_design";
+        t14.Password = "PassWord123";
+        t14.Website = "https://funcdesign.example.com";
+        t14.CustomData = "Feature specification";
+        t14.TaskType = "FixedDuration";
+        t14.BaselineStartDate = new DateTime(2021, 04, 17);
+        t14.BaselineEndDate = new DateTime(2021, 04, 21);
+        t14.Work = 24;
+        t14.ProjectBudget = 12000;
+        t14.ReviewDate = new DateTime(2021, 04, 22);
+        t14.Notes = "Detailed design of product features and behaviors.";
+        t14.ParentId = 13;
+        data.Add((ExpandoObject)t14);
+
+        return data;
+    }
+}

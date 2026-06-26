@@ -1,0 +1,152 @@
+@page "/UndoRedo/undo-redo"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Inputs
+@using System;
+@using Syncfusion.Blazor.Data
+@using System.Collections.Generic
+@using System.Dynamic
+
+<SfDropDownList @bind-Value="selectedIdType" Width="25%" DataSource="@IdTypes" TValue="string" TItem="string" Placeholder="Select ID Type">
+    <DropDownListFieldSettings Text="Text" Value="Value"></DropDownListFieldSettings>
+    <DropDownListEvents TValue="string" TItem="string" ValueChange="OnIdTypeChange"></DropDownListEvents>
+</SfDropDownList>
+@if (currentDataType == "Segment")
+{
+    <SfGantt @ref="Gantt" ID="Gantt" DataSource="@TaskCollection" FrozenColumns="2" AllowReordering="true" AllowFreezeLineMoving="true" ScrollToTaskbarOnClick="true" Height="650px" Width="100%" Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll", "Undo", "Redo" })" EnableUndoRedo="true" UndoRedoActions="@undoRedoAction" EnableContextMenu="true">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                         ParentID="ParentId" Dependency="Predecessor"></GanttTaskFields>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" TValue="TaskInfoModel" TResources="ResourceInfoModel"></GanttResource>
+        <GanttAssignmentFields ResourceAssignmentChanging="AssignmentHandler" DataSource="AssignmentCollection" PrimaryKey="PrimaryId" TaskID="TaskId" ResourceID="ResourceId" TValue="TaskInfoModel" TAssignment="AssignmentModel">
+        </GanttAssignmentFields>
+        <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="TaskInfoModel" TSegments="SegmentModel" DataSource="SegmentCollection"></GanttSegmentFields>
+        <GanttLabelSettings TValue="TaskInfoModel" TaskLabel="Progress" RightLabel="Resources"></GanttLabelSettings>
+        <GanttColumns>
+            <GanttColumn Field="TaskId" HeaderText="ID"></GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Event Name"></GanttColumn>
+            <GanttResourceColumn HeaderText="Event Resources"></GanttResourceColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        </GanttColumns>
+        <GanttSplitterSettings Position="55%" Collapsible="true"></GanttSplitterSettings>
+    </SfGantt>
+}
+else if (currentDataType == "UnScheduled")
+{
+    <SfGantt @ref="Gantt" ID="Gantt" DataSource="@TaskCollection" ScrollToTaskbarOnClick="true" AllowFiltering="true" AllowReordering="true" ShowColumnMenu="true" AllowResizing="true" AllowSorting="true" AllowRowDragAndDrop="true"
+             TaskMode="ScheduleMode.Custom" EnableUndoRedo="true" UndoRedoActions="@undoRedoAction" Height="450px" Width="100%" AllowUnscheduledTasks="true" Toolbar="@(new List<string>() { "Add", "Cancel", "Update", "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit", "Undo", "Redo", "PrevTimeSpan", "NextTimeSpan", "Search" })" EnableContextMenu="true">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                         ParentID="ParentId" Manual="IsManual"></GanttTaskFields>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+        <GanttLabelSettings TValue="TaskInfoModel" RightLabel="Resources"></GanttLabelSettings>
+        <GanttColumns>
+            <GanttColumn Field="TaskId" HeaderText="ID"></GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Event Name"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        </GanttColumns>
+    </SfGantt>
+}
+else if (currentDataType == "expando")
+{
+    <SfGantt ID="Gantt" TValue="ExpandoObject" DataSource="@TaskCollectionExpando" @ref="GanttExpando" ScrollToTaskbarOnClick="true" EnableUndoRedo="true" UndoRedoActions="@undoRedoAction" EnableCriticalPath="true" Height="450px" Width="100%" AllowFiltering="true" AllowReordering="true" ShowColumnMenu="true" AllowResizing="true" AllowSorting="true" AllowRowDragAndDrop="true"
+             TreeColumnIndex="1" Toolbar="@(new List<Object>() { "Add", "Cancel", "Update", "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit", "Undo", "Redo", "PrevTimeSpan", "NextTimeSpan", "Search" })" EnableContextMenu="true">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor">
+        </GanttTaskFields>
+        <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="ExpandoObject" TSegments="SegmentModel" DataSource="SegmentCollection"></GanttSegmentFields>
+        <GanttLabelSettings LeftLabel="TaskName" TValue="ExpandoObject"></GanttLabelSettings>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttSplitterSettings Position="55%"></GanttSplitterSettings>
+    </SfGantt>
+
+}
+else if (currentDataType == "dynamic object")
+{
+    <SfGantt ID="Gantt" TValue="DynamicDictionary" DataSource="@TaskCollectionDynamic" @ref="GanttDynamic" ScrollToTaskbarOnClick="true" Height="450px" EnableCriticalPath="true" Width="100%" AllowFiltering="true" AllowReordering="true" ShowColumnMenu="true" AllowResizing="true" AllowSorting="true" AllowRowDragAndDrop="true"
+             EnableUndoRedo="true" UndoRedoActions="@undoRedoAction" TreeColumnIndex="1" Toolbar="@(new List<Object>() { "Add", "Cancel", "Update", "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit", "PrevTimeSpan", "NextTimeSpan", "Undo", "Redo", "Search" })" EnableContextMenu="true">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor">
+        </GanttTaskFields>
+        <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="DynamicDictionary" TSegments="SegmentModel" DataSource="SegmentCollection"></GanttSegmentFields>
+        <GanttLabelSettings LeftLabel="TaskName" TValue="DynamicDictionary"></GanttLabelSettings>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttSplitterSettings Position="55%"></GanttSplitterSettings>
+    </SfGantt>
+}
+else if (currentDataType == "Virtual")
+{
+    <SfGantt @ref="Gantt" ID="Gantt" DataSource="@TaskCollection" EnableRowVirtualization="true" EnableColumnVirtualization="true" EnableTimelineVirtualization="true" AllowFiltering="true" AllowReordering="true"
+             ShowColumnMenu="true" AllowResizing="true" AllowSorting="true" AllowRowDragAndDrop="true" EnableUndoRedo="true" UndoRedoActions="@undoRedoAction" ScrollToTaskbarOnClick="true" Height="450px" Width="100%" Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Delete", "Cancel", "Indent", "Outdent", "NextTimeSpan", "Search", "ZoomIn", "ZoomOut", "ZoomToFit", "PrevTimeSpan", "ExpandAll", "CollapseAll", "Undo", "Redo" })" EnableContextMenu="true">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                         ParentID="ParentId" Dependency="Predecessor"></GanttTaskFields>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttLabelSettings TValue="TaskInfoModel" TaskLabel="Progress"></GanttLabelSettings>
+        <GanttSplitterSettings Position="55%"></GanttSplitterSettings>
+        <GanttColumns>
+            <GanttColumn Field="TaskId" HeaderText="ID"></GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Event Name"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+            <GanttColumn Field="Predecessor" HeaderText="Predecessor"></GanttColumn>
+        </GanttColumns>
+    </SfGantt>
+}
+else if (currentDataType == "RTL")
+{
+    <SfGantt @ref="Gantt" ID="Gantt" DataSource="@TaskCollection" EnableRtl="true" ScrollToTaskbarOnClick="true" Height="450px" Width="100%" EnableUndoRedo="true" UndoRedoActions="@undoRedoAction" Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Update", "Indent", "Outdent", "NextTimeSpan", "Search", "ZoomIn", "ZoomOut", "ZoomToFit", "PrevTimeSpan", "ExpandAll", "CollapseAll", "Undo", "Redo" })" EnableContextMenu="true">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                         ParentID="ParentId" Work="Work" TaskType="TaskType"></GanttTaskFields>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" TValue="TaskInfoModel" TResources="ResourceInfoModel"></GanttResource>
+        <GanttAssignmentFields ResourceAssignmentChanging="AssignmentHandler" DataSource="AssignmentCollection" PrimaryKey="PrimaryId" TaskID="TaskId" ResourceID="ResourceId" Units="Unit" TValue="TaskInfoModel" TAssignment="AssignmentModel">
+        </GanttAssignmentFields>
+        <GanttLabelSettings TValue="TaskInfoModel" RightLabel="Resources"></GanttLabelSettings>
+        <GanttSplitterSettings Position="55%"></GanttSplitterSettings>
+        <GanttColumns>
+            <GanttColumn Field="TaskId" HeaderText="ID"></GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Event Name"></GanttColumn>
+            <GanttResourceColumn HeaderText="Event Resources"></GanttResourceColumn>
+            <GanttColumn Field="Work" HeaderText="Work"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+            <GanttColumn Field="TaskType" HeaderText="Task Type"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        </GanttColumns>
+    </SfGantt>
+}
+else if (currentDataType == "custom adaptor")
+{
+    <SfGantt @ref="GanttInstance" ID="CustomAdaptor" TValue="TaskData" Height="450px" Width="100%" AllowFiltering="true" AllowResizing="true" AllowReordering="true" AllowMultiSorting="true" AllowRowDragAndDrop="true"
+             AllowSelection="true" AllowSorting="true" EnableContextMenu="true" LoadChildOnDemand="true" EnableUndoRedo="true" UndoRedoActions="@undoRedoAction" ShowColumnMenu="true"
+             Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Update", "Indent", "Outdent","NextTimeSpan","Search","ZoomIn","ZoomOut","ZoomToFit","PrevTimeSpan","ExpandAll", "CollapseAll", "Undo","Redo" })">
+        <SfDataManager AdaptorInstance="@typeof(CustomAdaptor)" Adaptor="Adaptors.CustomAdaptor"></SfDataManager>
+        <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Progress="Progress" Duration="Duration" ParentID="ParentID">
+        </GanttTaskFields>
+        <GanttColumns>
+            <GanttColumn Field="TaskID" HeaderText="ID"></GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Event Name">
+            </GanttColumn>
+            <GanttResourceColumn HeaderText="Event Resources">
+            </GanttResourceColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+        </GanttColumns>
+        <GanttEditSettings AllowEditing="true" AllowAdding="true" AllowDeleting="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttFilterSettings HierarchyMode="FilterHierarchyMode.Both"></GanttFilterSettings>
+        <GanttSearchSettings HierarchyMode="FilterHierarchyMode.Both"></GanttSearchSettings>
+        <GanttResource DataSource="@ResourceCustomAdaptorCollection" Id="ResourceId" Name="ResourceName" MaxUnits="Unit" TResources="ResourceAlloacteData" TValue="TaskData"></GanttResource>
+        <GanttAssignmentFields DataSource="AssignmentCustomAdaptorCollection" PrimaryKey="@nameof(AssignmentModel.PrimaryId)" TaskID="@nameof(AssignmentModel.TaskId)" ResourceID="@nameof(AssignmentModel.ResourceId)" Units="@nameof(AssignmentModel.Unit)" TValue="TaskData" TAssignment="AssignmentModel">
+        </GanttAssignmentFields>
+        <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+        <GanttEvents RowDropping="RowDroppingHandler" TValue="TaskData"></GanttEvents>
+    </SfGantt>
+}

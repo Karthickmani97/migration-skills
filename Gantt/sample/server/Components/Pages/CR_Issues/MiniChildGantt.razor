@@ -1,0 +1,99 @@
+﻿@using Syncfusion.Blazor.Gantt
+@rendermode InteractiveServer
+<div>@messsage</div>
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt DataSource="@TaskCollection" Height="350px" Width="100%" HighlightWeekends="true"
+                     Toolbar="@(new List<string>(){ "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll","Indent","Outdent"})"
+                     AllowSelection="true" GridLines="Syncfusion.Blazor.Gantt.GridLine.Both" TreeColumnIndex="1"
+                     ProjectStartDate="@ProjectStart" ProjectEndDate="@ProjectEnd">
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                                 Dependency="Predecessor" ParentID="ParentId"></GanttTaskFields>
+                <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+                <GanttColumns>
+                    <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+                    <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+                    <GanttColumn Field="StartDate" HeaderText="Start Date" EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit"></GanttColumn>
+                    <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+                    <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+                    <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+                    <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+                </GanttColumns>
+                <GanttLabelSettings LeftLabel="TaskName" TValue="TaskData">
+                </GanttLabelSettings>
+                <GanttSplitterSettings Position="40%"> </GanttSplitterSettings>
+                <GanttEvents TValue="TaskData" OnActionFailure="ActionFailureHandler"></GanttEvents>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+<style>
+    html, body {
+        height: 100%;
+    }
+</style>
+
+@code {
+    private DateTime ProjectStart = new DateTime(2021, 3, 25);
+    private DateTime ProjectEnd = new DateTime(2021, 7, 28);
+    private List<TaskData> TaskCollection { get; set; }
+    public string messsage{ get; set; }
+
+
+  public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = EditingData().ToList();
+    }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public string Predecessor { get; set; }
+        public string Notes { get; set; }
+        public int? ParentId { get; set; }
+    }
+    public static List<TaskData> EditingData()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+            new TaskData() {
+                TaskId = 1,
+                TaskName = "Product concept",
+                StartDate = new DateTime(2021, 04, 02),
+                EndDate = new DateTime(2021, 04, 08),
+                Duration = "5 days"
+            },
+            new TaskData() {
+                TaskId = 2,
+                TaskName = "Defining the product usage",
+                StartDate = new DateTime(2021, 04, 02),
+                EndDate = new DateTime(2021, 04, 08),
+                Duration = "3",
+                Progress = 30,
+                ParentId = 1
+            },
+            new TaskData() {
+                TaskId = 3,
+                TaskName = "Defining the target audience",
+                StartDate = new DateTime(2021, 04, 02),
+                EndDate = new DateTime(2021, 04, 04),
+                Duration = "3",
+                Progress = 40,
+                ParentId = 1
+            }
+        };
+
+        return Tasks;
+    }
+}
+

@@ -1,0 +1,196 @@
+@page "/BLAZ-908220"
+
+@rendermode InteractiveServer
+@using System.Net
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.PdfExport
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Inputs
+
+<div>
+
+
+    <button @onclick="PdfExport">PDF Export</button>
+
+    <SfGantt @ref="Gantt" DataSource="@TaskCollection" RenderBaseline="true" Height="450px" Width="1400px" AllowReordering="true" AllowResizing="true" GridLines="Syncfusion.Blazor.Gantt.GridLine.Both"  AutoCalculateDateScheduling="@autoCalculateDateScheduling" TreeColumnIndex="0" Toolbar="@(new List<string>() { "Add", "Delete", "Edit", "ZoomIn", "ZoomOut", "ZoomToFit" })" ScrollToTaskbarOnClick="true">
+        <GanttLabelSettings LeftLabel="TaskName" TValue="TaskData"></GanttLabelSettings>
+        <GanttTaskFields ParentID="ParentId"  Id="ID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"  Dependency="Predecessor">
+        </GanttTaskFields>
+        <GanttColumns>
+            <GanttColumn Field="ID" HeaderText="TaskId" Width="100" HeaderTextAlign="Syncfusion.Blazor.Grids.TextAlign.Right"></GanttColumn>
+            <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="TaskName"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+            <GanttColumn Field="Assignee" HeaderText="Assignee"></GanttColumn>
+            <GanttColumn Field="Reporter" HeaderText="Reporter"></GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Center" Visible="false"></GanttColumn>
+        </GanttColumns>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Auto" ShowDeleteConfirmDialog="true">
+        </GanttEditSettings>
+        <GanttTimelineSettings>
+            <GanttTopTierSettings Unit="TimelineViewMode.Week"></GanttTopTierSettings>
+            <GanttBottomTierSettings Unit="TimelineViewMode.Day"></GanttBottomTierSettings>
+        </GanttTimelineSettings>
+        <GanttHolidays>
+            <GanttHoliday From="@Holiday1" To="@Holiday2" Label="Public holidays"
+                          CssClass="e-custom-holiday"></GanttHoliday>
+
+        </GanttHolidays>
+        <GanttSplitterSettings Position="40%"></GanttSplitterSettings>
+        <GanttEventMarkers>
+            <GanttEventMarker Day="@Event1" Label="Project approval and kick-off"
+                              CssClass="e-custom-event-marker"></GanttEventMarker>
+            <GanttEventMarker Day="@Event2" Label="Project approval and kick-off"
+                              CssClass="e-custom-event-marker"></GanttEventMarker>
+        </GanttEventMarkers>
+        <GanttLabelSettings TValue="TaskData" LeftLabel="ID" RightLabel="TaskName" TaskLabel="Progress"></GanttLabelSettings>
+    </SfGantt>
+</div>
+
+
+<style>
+    .e-gantt .e-gantt-chart .e-custom-event-marker {
+        width: 1px;
+        border-left: 2px red dotted;
+    }
+</style>
+
+@code {
+    private SfGantt<TaskData> Gantt { get; set; }
+    private string DateFormat = "MM/dd/yyyy";
+    private DateTime ProjectStartDate = new DateTime(2000, 1, 1);
+    private DateTime ProjectEndDate = new DateTime(2025, 12, 31);
+    private DateTime Event1 = new DateTime(2000, 01, 11);
+    private DateTime Event2 = new DateTime(2000, 01, 15);
+    private DateTime Holiday1 = new DateTime(2000, 01, 11);
+    private DateTime Holiday2 = new DateTime(2000, 01, 12);
+    private DateTime Holiday3 = new DateTime(2022, 04, 01);
+    private DateTime Holiday4 = new DateTime(2022, 04, 01);
+    private bool autoCalculateDateScheduling = false;
+    private List<TaskData> TaskCollection { get; set; }
+    private static WebClient webClient = new WebClient();
+    private static byte[] imageBytes = webClient.DownloadData("https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_640.jpg");
+    private static MemoryStream imageStream = new MemoryStream(imageBytes);
+    public static PdfImage image = PdfImage.FromStream(imageStream);
+    private bool isRange;
+    private bool isColumnUpdated;
+    private bool isHeaderUpdated;
+    private bool isFooterUpdated;
+    private bool isStyleUpdated;
+    private bool isLandscape;
+    private bool isIncludeHiddenColumn;
+    private bool isIncludeTemplateColumn;
+    private string fileName = "Gantt-Pdf-export.pdf";
+    private string pdfHeaderText = "Gantt Chart Pdf Header Text";
+    private string pdfFooterText = "Gantt Chart Pdf Footer Text";
+    private string pageSize;
+    private string pdfTheme;
+    private List<string> pageSizeCollection = new List<string>() { "A0", "A1", "A2", "A3", "A4" };
+    private List<string> themeCollection = new List<string>() { "Fluent", "Bootstrap", "Material", "Fabric", "Bootstrap4" };
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = VirtualData.GetTreeVirtualData(20);
+    }
+
+    public async Task PdfExport()
+    {
+       
+        await Task.CompletedTask;
+    }
+
+    public class VirtualData
+    {
+        public static List<TaskData> GetTreeVirtualData(int count)
+        {
+            List<TaskData> DataCollection = new List<TaskData>();
+            Random rand = new Random();
+            var x = 0;
+            int duration = 0;
+            DateTime startDate = new DateTime(2000, 1, 5);
+            DateTime endDate = new DateTime(2000, 1, 12);
+            string[] assignee = { "Allison Janney", "Bryan Fogel", "Richard King", "Alex Gibson" };
+            string[] reporter = { "James Ivory", "Jordan Peele", "Guillermo del Toro", "Gary Oldman" };
+            for (var i = 1; i <= count / 5; i++)
+            {
+                var name = rand.Next(0, 100);
+                TaskData Parent = new TaskData()
+                    {
+                        ID = ++x,
+                        TaskName = "Task " + x,
+                        StartDate = startDate,
+                        EndDate = startDate.AddDays(26),
+                        Duration = "20",
+                        Assignee = "Mark Bridges",
+                        Reporter = "Kobe Bryant",
+                        Progress = 50,
+                    };
+                DataCollection.Add(Parent);
+                for (var j = 1; j <= 4; j++)
+                {
+                    startDate = startDate.AddDays(j == 1 ? 0 : duration + 2);
+                    duration = 5;
+                    DataCollection.Add(new TaskData()
+                        {
+                            ID = ++x,
+                            TaskName = "Task " + x,
+                            StartDate = startDate,
+                            EndDate = startDate.AddDays(5),
+                            Duration = duration.ToString(),
+                            Assignee = assignee[j - 1],
+                            Reporter = reporter[j - 1],
+                            Progress = 50,
+                            ParentId = Parent.ID,
+                            Predecessor = $"{x - 1}FS,{x + 1}FS"
+                        });
+                }
+            }
+            return DataCollection;
+        }
+    }
+    public class TaskData
+    {
+        public int ID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public string Assignee { get; set; }
+        public string Reporter { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; }
+    }
+
+    public class ExportProperties
+    {
+        public int Id { get; set; }
+        public string PropertyName { get; set; }
+        public string ParentId { get; set; }
+        public bool HasChild { get; set; }
+        public bool Expanded { get; set; }
+    }
+    private static List<ExportProperties> exportProperties = new List<ExportProperties>() {
+        new ExportProperties(){ Id = 1, PropertyName = "Columns" },
+        new ExportProperties(){ Id = 2, PropertyName = "Footer" },
+        new ExportProperties(){ Id = 3, PropertyName = "Header" },
+        new ExportProperties(){ Id = 4, PropertyName = "Style" },
+        new ExportProperties(){ Id = 5, PropertyName = "Page Orientation", HasChild = true, Expanded = true},
+        new ExportProperties(){ Id = 6, PropertyName = "Landscape", ParentId = "5"},
+        new ExportProperties(){ Id = 7, PropertyName = "IncludeHiddenColumn" },
+        new ExportProperties(){ Id = 8, PropertyName = "IncludeTemplateColumn" },
+    };
+    private void ValueChanged(List<string> args)
+    {
+        isColumnUpdated = args.Contains("1");
+        isFooterUpdated = args.Contains("2");
+        isHeaderUpdated = args.Contains("3");
+        isStyleUpdated = args.Contains("4");
+        isLandscape = args.Contains("6");
+        isIncludeHiddenColumn = args.Contains("7");
+        isIncludeTemplateColumn = args.Contains("8");
+    }
+}

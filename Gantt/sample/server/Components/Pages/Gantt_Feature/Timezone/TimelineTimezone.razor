@@ -1,0 +1,589 @@
+﻿@page "/timeline-timezone"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Buttons;
+@using Syncfusion.Blazor.DropDowns;
+@using Syncfusion.Blazor.Navigations;
+<div class="col-lg-8 control-section sb-property-border" style="float:left">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt @ref="GanttObject" DataSource="@TaskCollection" ScrollToTaskbarOnClick="true" DateFormat="d MMM yyyy hh:mm tt" IncludeWeekend="true" Toolbar="@toolbarItems" DurationUnit="@durationUnit" Timezone="@TimeZone" Height="450px" Width="800px" TreeColumnIndex="1"
+            RenderBaseline="true">
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                                 Dependency="Predecessor" ParentID="ParentId" Indicators="Indicators" BaselineEndDate="BaselineEndDate" BaselineStartDate="BaselineStartDate">
+                    <GanttColumns>
+                        <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+                        <GanttColumn Field="TaskName" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+                        <GanttColumn Field="StartDate" EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit" HeaderText="Start Date" MinWidth="120"></GanttColumn>
+                        <GanttColumn Field="EndDate" EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit" HeaderText="End Date" MinWidth="120"></GanttColumn>
+                        <GanttColumn Field="Duration" HeaderText="Duration" MinWidth="120"></GanttColumn>
+                        <GanttColumn Field="Progress" HeaderText="Progress" MinWidth="120"></GanttColumn>
+                        <GanttColumn Field="Predecessor" HeaderText="Dependency" MinWidth="200"></GanttColumn>
+                    </GanttColumns>
+                </GanttTaskFields>
+                <GanttLabelSettings LeftLabel="TaskName" TValue="TimelineData.TaskData">
+                </GanttLabelSettings>
+                <GanttSplitterSettings Position="42%"></GanttSplitterSettings>
+                <GanttTimelineSettings TimelineUnitSize="@DefaultUnitWidth" WeekStartDay="@weekstartDay">
+                    <GanttTopTierSettings Unit="@TopTierUnit" Count="@TopTierCount" Format="@TopTierFormat"></GanttTopTierSettings>
+                    <GanttBottomTierSettings Unit="@BottomTierUnit" Count="@BottomTierCount" Format="@BottomTierFormat"></GanttBottomTierSettings>
+                </GanttTimelineSettings>
+                <GanttDayWorkingTimeCollection>
+                    <GanttDayWorkingTime From="0" To="24"></GanttDayWorkingTime>
+                </GanttDayWorkingTimeCollection>
+                <GanttEventMarkers>
+                    <GanttEventMarker Day="new DateTime(2019, 3, 8, 12, 0, 0)" Label="Requirements Sign-Off"></GanttEventMarker>
+                    <GanttEventMarker Day="new DateTime(2019, 3, 9, 16, 0, 0)" Label="UI Design Complete"></GanttEventMarker>
+                    <GanttEventMarker Day="new DateTime(2019, 3, 11, 13, 0, 0)" Label="System Integration Started"></GanttEventMarker>
+                </GanttEventMarkers>
+                <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+<div class="col-lg-4 property-section" style="padding-left:10px;float:left">
+    <div class="property-panel-section">
+        <div class="property-panel-header">Properties</div><div class="property-panel-content">
+            <table id="property" title="Properties" class="property-panel-table">
+                <tbody>
+                    <tr>
+                        <td style="width: 50%">
+                            <div class="userselect">Unit width</div>
+                        </td>
+                        <td style="width: 50%;padding-right: 10px">
+                            <div>
+                                <SfNumericTextBox TValue="int?" Format="n0" Value="@DefaultUnitWidth" Min="10">
+                                    <NumericTextBoxEvents TValue="int?" ValueChange="@(e => { DefaultUnitWidth = e.Value ?? 33; })"></NumericTextBoxEvents>
+                                </SfNumericTextBox>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:30%;"><div><b>Top tier</b></div></td>
+                    </tr>
+                    <tr>
+                        <td style="width:30%;"><div>Count</div></td>
+                        <td style="width: 70%">
+                            <div>
+                                <SfNumericTextBox Enabled="@EnableTopNumericBox" TValue="int?" Format="n0" Value="@TopTierCount" Min="1" Max="50">
+                                    <NumericTextBoxEvents TValue="int?" ValueChange="@(e => { TopTierCount = e.Value ?? 1; })"></NumericTextBoxEvents>
+                                </SfNumericTextBox>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:30%;"><div>Unit</div></td>
+                        <td style="width: 70%">
+                            <div>
+                                <SfDropDownList Enabled="@EnableTopUnitDropDown" TValue="string" TItem="TimelineUnit" Placeholder="Day" DataSource="@TimelineUnits">
+                                    <DropDownListFieldSettings Text="Unit" Value="Id"></DropDownListFieldSettings>
+                                    <DropDownListEvents TValue="string" TItem="TimelineUnit" ValueChange="@TopUnitChange"></DropDownListEvents>
+                                </SfDropDownList>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:30%;"><div>Format</div></td>
+                        <td style="width: 70%">
+                            <div>
+                                <SfDropDownList Enabled="@EnableTopFormatDropDown" TValue="string" TItem="DayFormat" DataSource="@WeekFormatValue" Value="@TopTierFormat" Placeholder="Mon">
+                                    <DropDownListFieldSettings Text="Format" Value="Id"></DropDownListFieldSettings>
+                                    <DropDownListEvents TValue="string" TItem="DayFormat" ValueChange="@TopFormatChange"></DropDownListEvents>
+                                </SfDropDownList>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:30%;"><div><b>Bottom tier</b></div></td>
+                    </tr>
+                    <tr>
+                        <td style="width:30%;"><div>Count</div></td>
+                        <td style="width: 70%">
+                            <div>
+                                <SfNumericTextBox Enabled="@EnableBottomNumericBox" TValue="int?" Format="n0" Value="@BottomTierCount" Min="1" Max="50">
+                                    <NumericTextBoxEvents TValue="int?" ValueChange="@(e => { BottomTierCount = e.Value ?? 1; })"></NumericTextBoxEvents>
+                                </SfNumericTextBox>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:30%;"><div>Unit</div></td>
+                        <td style="width: 70%">
+                            <div>
+                                <SfDropDownList Enabled="@EnableBottomUnitDropDown" TValue="string" TItem="TimelineUnit" Placeholder="Hour" DataSource="@TimelineUnits">
+                                    <DropDownListFieldSettings Text="Unit" Value="Id"></DropDownListFieldSettings>
+                                    <DropDownListEvents TValue="string" TItem="TimelineUnit" ValueChange="@BottomUnitChange"></DropDownListEvents>
+                                </SfDropDownList>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:30%;"><div>Format</div></td>
+                        <td style="width: 70%">
+                            <div>
+                                <SfDropDownList Enabled="@EnableBottomFormatDropDown" TValue="string" TItem="DayFormat" DataSource="@DayFormatValue" Value="@BottomTierFormat" Placeholder="H">
+                                    <DropDownListFieldSettings Text="Format" Value="Id"></DropDownListFieldSettings>
+                                    <DropDownListEvents TValue="string" TItem="DayFormat" ValueChange="@BottomFormatChange"></DropDownListEvents>
+                                </SfDropDownList>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:30%;"><div>TimelineViewMode</div></td>
+                        <td style="width: 70%">
+                            <div>
+                                <SfDropDownList Enabled="@EnableTopUnitDropDown" TValue="string" TItem="TimelineUnit" Placeholder="Day" DataSource="@TimelineUnits">
+                                    <DropDownListFieldSettings Text="Unit" Value="Id"></DropDownListFieldSettings>
+                                    <DropDownListEvents TValue="string" TItem="TimelineUnit" ValueChange="@TimelineViewModeChanged"></DropDownListEvents>
+                                </SfDropDownList>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:30%;"><div>Duration Unit</div></td>
+                        <td style="width: 70%">
+                            <div>
+                                <SfDropDownList Enabled="@EnableTopUnitDropDown" TValue="string" TItem="CustomDurationUnit" Placeholder="Hour" DataSource="@DurationUnits">
+                                    <DropDownListFieldSettings Text="Unit" Value="Id"></DropDownListFieldSettings>
+                                    <DropDownListEvents TValue="string" TItem="CustomDurationUnit" ValueChange="@DurationUnitChanged"></DropDownListEvents>
+                                </SfDropDownList>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@code{
+    private DateTime ProjectStartDate { get; set; } = new DateTime(2021, 04, 02);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2021, 08, 21);
+    private List<TimelineData.TaskData> TaskCollection { get; set; }
+    private int DefaultUnitWidth { get; set; } = 50;
+    private int TopTierCount { get; set; } = 1;
+    private int BottomTierCount { get; set; } = 1;
+    private bool EnableTopNumericBox { get; set; } = true;
+    private bool EnableTopUnitDropDown { get; set; } = true;
+    private bool EnableTopFormatDropDown { get; set; } = true;
+    private bool EnableBottomNumericBox { get; set; } = true;
+    private bool EnableBottomUnitDropDown { get; set; } = true;
+    private bool EnableBottomFormatDropDown { get; set; } = true;
+    private string TopTierFormat { get; set; } = "MMM dd, yyyy";
+    private string BottomTierFormat { get; set; } = "hh:mm";
+    private TimelineViewMode TopTierUnit { get; set; } = TimelineViewMode.Day;
+    private TimelineViewMode BottomTierUnit { get; set; } = TimelineViewMode.Hour;
+    //private TimelineViewMode timelineViewMode { get; set; } = TimelineViewMode.Week;
+    private DurationUnit durationUnit { get; set; } = DurationUnit.Hour;
+    private SfGantt<TimelineData.TaskData> GanttObject { get; set; }
+    private int weekstartDay = 0;
+    private List<Object> toolbarItems;
+    public string TimeZone { get; set; } = TimeZoneValues[0];
+    private static List<string> TimeZoneValues = new List<string> {
+        "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
+        "America/Phoenix", "America/Sao_Paulo", "Europe/London", "Europe/Paris", "Europe/Berlin",
+        "Europe/Moscow", "Africa/Johannesburg", "Africa/Cairo", "Asia/Jerusalem", "Asia/Dubai", "Asia/Amman",
+        "Asia/Kolkata", "Asia/Kathmandu", "Asia/Shanghai", "Asia/Tokyo", "Asia/Seoul",
+        "Asia/Singapore", "Australia/Sydney", "Australia/Perth", "Pacific/Auckland", "Pacific/Honolulu","UTC",
+    };
+    private List<DayFormat> YearFormats = new List<DayFormat>()
+    {
+        new DayFormat { Id = "MMM yy", Format = "Jan 18" },
+        new DayFormat { Id = "yyyy", Format = "2018" },
+        new DayFormat { Id = "MMMM, y", Format = "January, 18" },
+    };
+    private List<DayFormat> MonthFormats = new List<DayFormat>()
+    {
+        new DayFormat { Id = "MMM dd, yyyy", Format = "Jan 01, 2018" },
+        new DayFormat { Id = "MMMM", Format = "January" },
+        new DayFormat { Id = "MMM", Format = "Jan" },
+    };
+    private List<DayFormat> WeekFormats = new List<DayFormat>()
+    {
+        new DayFormat { Id = "MMM dd, yyyy", Format = "Jan 01, 2021" },
+        new DayFormat { Id = "ddd MMM dd, yy", Format = "Mon Jan 01, 19" },
+        new DayFormat { Id = "ddd MMM dd", Format = "Mon Jan 01" },
+    };
+    private List<DayFormat> DayFormats = new List<DayFormat>()
+    {
+        new DayFormat { Id = "", Format = "M" },
+        new DayFormat { Id = "ddd", Format = "Mon" },
+        new DayFormat { Id = "dd", Format = "01" },
+    };
+    private List<DayFormat> HourFormats = new List<DayFormat>()
+    {
+        new DayFormat { Id = "hh", Format = "00" },
+        new DayFormat { Id = "hh : mm a", Format = "00 : 00 AM" },
+        new DayFormat { Id = "h : mm a", Format = "0 : 00 AM" },
+    };
+    private List<DayFormat> MinuteFormats = new List<DayFormat>()
+    {
+        new DayFormat { Id = "m", Format = "0" },
+        new DayFormat { Id = "mm", Format = "00" },
+    };
+    private List<TimelineUnit> TimelineUnits = new List<TimelineUnit>()
+    {
+        new TimelineUnit { Id = "Year", Unit = "Year" },
+        new TimelineUnit { Id = "Month", Unit = "Month" },
+        new TimelineUnit { Id = "Week", Unit = "Week" },
+        new TimelineUnit { Id = "Day", Unit = "Day" },
+        new TimelineUnit { Id = "Hour", Unit = "Hour" },
+        new TimelineUnit { Id = "Minute", Unit = "Minute" }
+    };
+    private List<DayFormat> WeekFormatValue = new List<DayFormat>()
+    {
+        new DayFormat { Id = "MMM dd, yyyy", Format = "Jan 01, 2021" },
+        new DayFormat { Id = "ddd MMM dd, yy", Format = "Mon Jan 01, 19" },
+        new DayFormat { Id = "ddd MMM dd", Format = "Mon Jan 01" },
+    };
+    private List<DayFormat> DayFormatValue = new List<DayFormat>()
+    {
+        new DayFormat { Id = "", Format = "M" },
+        new DayFormat { Id = "ddd", Format = "Mon" },
+        new DayFormat { Id = "dd", Format = "01" }
+    };
+    private List<CustomDurationUnit> DurationUnits = new List<CustomDurationUnit>()
+    {
+        new CustomDurationUnit {Id="Day",Unit="Day"},
+        new CustomDurationUnit {Id="Hour",Unit="Hour"},
+        new CustomDurationUnit {Id="Minute",Unit="Minute"}
+    };
+    public class TimelineUnit
+    {
+        public string Id { get; set; }
+        public string Unit { get; set; }
+    }
+    public class CustomDurationUnit
+    {
+        public string Id { get; set; }
+        public string Unit { get; set; }
+    }
+    public class DayFormat
+    {
+        public string Id { get; set; }
+        public string Format { get; set; }
+    }
+    public string SelectedTimeZone { get; set; } = TimeZoneValues[0];
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = TimelineData.TimelineRecord();
+        toolbarItems = new List<object>()
+        {
+            "Add",
+            "Edit",
+            "Update",
+            "Cancel",
+            "Delete",
+            "CollapseAll",
+            "ExpandAll",
+            "ZoomIn",
+            "ZoomOut",
+            "ZoomToFit",
+            "PrevTimeSpan",
+            "NextTimeSpan",
+            "Indent",
+            "Outdent",
+            new ItemModel
+            {
+                Id = "TimeZoneDropDown",
+                Template = (RenderFragment)(builder =>
+                {
+                    builder.OpenComponent<SfDropDownList<string, string>>(0);
+                    builder.AddAttribute(1, "Width", "175px");
+                    builder.AddAttribute(2, "DataSource", TimeZoneValues);
+                    builder.AddAttribute(3, "Value", SelectedTimeZone);
+                    builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<string>(this, v => SelectedTimeZone = v));
+                    builder.AddAttribute(5, "ChildContent", (RenderFragment)(childBuilder =>
+                    {
+                        childBuilder.OpenComponent<DropDownListEvents<string, string>>(0);
+                        childBuilder.AddAttribute(1, "ValueChange", EventCallback.Factory.Create<ChangeEventArgs<string, string>>(this, OnTimeZoneChanged));
+                        childBuilder.CloseComponent();
+                    }));
+                    builder.CloseComponent();
+                })
+            },
+        };
+    }
+    public void TimelineViewModeChanged(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, TimelineUnit> args)
+    {
+        TimelineViewMode changedTopUnit;
+        switch (args.Value)
+        {
+            case "Year":
+                changedTopUnit = TimelineViewMode.Year;
+                break;
+            case "Month":
+                changedTopUnit = TimelineViewMode.Month;
+                break;
+            case "Week":
+                changedTopUnit = TimelineViewMode.Week;
+                break;
+            case "Day":
+                changedTopUnit = TimelineViewMode.Day;
+                break;
+            case "Hour":
+                changedTopUnit = TimelineViewMode.Hour;
+                break;
+            case "Minute":
+                changedTopUnit = TimelineViewMode.Minutes;
+                break;
+            default:
+                changedTopUnit = TimelineViewMode.Week;
+                break;
+        }
+        //timelineViewMode = changedTopUnit;
+    }
+    public void DurationUnitChanged(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, CustomDurationUnit> args)
+    {
+        switch (args.Value)
+        {
+            case "Day":
+                durationUnit = DurationUnit.Day;
+                break;
+            case "Hour":
+                durationUnit = DurationUnit.Hour;
+                break;
+            case "Minute":
+                durationUnit = DurationUnit.Minute;
+                break;
+            default:
+                durationUnit = DurationUnit.Day;
+                break;
+        }
+    }
+    public void TopUnitChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, TimelineUnit> args)
+    {
+        TimelineViewMode changedTopUnit;
+        switch (args.Value)
+        {
+            case "Year":
+                changedTopUnit = TimelineViewMode.Year;
+                WeekFormatValue = YearFormats;
+                TopTierFormat = "MMM yy";
+                break;
+            case "Month":
+                changedTopUnit = TimelineViewMode.Month;
+                WeekFormatValue = MonthFormats;
+                TopTierFormat = "MMM dd, yyyy";
+                break;
+            case "Week":
+                changedTopUnit = TimelineViewMode.Week;
+                WeekFormatValue = WeekFormats;
+                TopTierFormat = "MMM dd,yyyy";
+                break;
+            case "Day":
+                changedTopUnit = TimelineViewMode.Day;
+                WeekFormatValue = DayFormats;
+                TopTierFormat = "ddd";
+                break;
+            case "Hour":
+                changedTopUnit = TimelineViewMode.Hour;
+                WeekFormatValue = HourFormats;
+                TopTierFormat = "hh : mm a";
+                break;
+            case "Minute":
+                changedTopUnit = TimelineViewMode.Minutes;
+                WeekFormatValue = MinuteFormats;
+                TopTierFormat = "mm";
+                break;
+            default:
+                changedTopUnit = TimelineViewMode.Week;
+                WeekFormatValue = WeekFormats;
+                TopTierFormat = "MMM dd, yyyy";
+                break;
+        }
+        this.UpdateUnitWidth(args.Value, "top");
+        TopTierUnit = changedTopUnit;
+    }
+    public void BottomUnitChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, TimelineUnit> args)
+    {
+        TimelineViewMode changedBottomUnit;
+        switch (args.Value)
+        {
+            case "Year":
+                changedBottomUnit = TimelineViewMode.Year;
+                DayFormatValue = YearFormats;
+                BottomTierFormat = "yyyy";
+                break;
+            case "Month":
+                changedBottomUnit = TimelineViewMode.Month;
+                DayFormatValue = MonthFormats;
+                BottomTierFormat = "MMM";
+                break;
+            case "Week":
+                changedBottomUnit = TimelineViewMode.Week;
+                DayFormatValue = WeekFormats;
+                BottomTierFormat = "MMM dd, yyyy";
+                break;
+            case "Day":
+                changedBottomUnit = TimelineViewMode.Day;
+                DayFormatValue = DayFormats;
+                BottomTierFormat = "dd";
+                break;
+            case "Hour":
+                changedBottomUnit = TimelineViewMode.Hour;
+                DayFormatValue = HourFormats;
+                BottomTierFormat = "hh";
+                break;
+            case "Minute":
+                changedBottomUnit = TimelineViewMode.Minutes;
+                DayFormatValue = MinuteFormats;
+                BottomTierFormat = "mm";
+                break;
+            default:
+                changedBottomUnit = TimelineViewMode.Day;
+                DayFormatValue = DayFormats;
+                BottomTierFormat = "dd";
+                break;
+        }
+        this.UpdateUnitWidth(args.Value, "bottom");
+        BottomTierUnit = changedBottomUnit;
+    }
+    public void TopFormatChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, DayFormat> args)
+    {
+        TopTierFormat = TopTierFormat != null ? args.Value != null ? args.Value : "MMM dd" : "MMM dd, yyyy";
+    }
+    public void BottomFormatChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, DayFormat> args)
+    {
+        BottomTierFormat = BottomTierFormat != null ? args.Value != null ? args.Value : "ddd MMM dd" : "MMM dd";
+    }
+    void UpdateUnitWidth(string unit, string tier)
+    {
+        int unitWidth;
+        string topUnit = tier == "top" ? unit : TopTierUnit.ToString();
+        string bottomUnit = tier == "bottom" ? unit : BottomTierUnit.ToString();
+        string[] units = new string[6] { "None", "Hour", "Day", "Week", "Month", "Year" };
+        string bootomCellUnit;
+        if (Array.IndexOf(units, topUnit) == 0 && Array.IndexOf(units, bottomUnit) == 0)
+        {
+            bootomCellUnit = "Day";
+        }
+        else if (Array.IndexOf(units, topUnit) == 0 && Array.IndexOf(units, bottomUnit) > 0)
+        {
+            bootomCellUnit = bottomUnit;
+        }
+        else if (Array.IndexOf(units, topUnit) > 0 && Array.IndexOf(units, bottomUnit) == 0)
+        {
+            bootomCellUnit = topUnit;
+        }
+        else if (Array.IndexOf(units, topUnit) <= Array.IndexOf(units, bottomUnit))
+        {
+            bootomCellUnit = topUnit;
+        }
+        else
+        {
+            bootomCellUnit = bottomUnit;
+        }
+        switch (bootomCellUnit)
+        {
+            case "Year":
+                unitWidth = 2000;
+                break;
+            case "Month":
+                unitWidth = 300;
+                break;
+            case "Week":
+                unitWidth = 150;
+                break;
+            case "Day":
+                unitWidth = 33;
+                break;
+            case "Hour":
+                unitWidth = 25;
+                break;
+            case "Minute":
+                unitWidth = 40;
+                break;
+            default:
+                unitWidth = 33;
+                break;
+        }
+        DefaultUnitWidth = unitWidth;
+    }
+    public async void OnTimeZoneChanged(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, string> args)
+    {
+        TimeZone = args.Value;
+        await Task.CompletedTask;
+    }
+    public class TimelineData
+    {
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string TaskName { get; set; }
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public string Duration { get; set; }
+            public int Progress { get; set; }
+            public string Predecessor { get; set; }
+            public int? ParentId { get; set; }
+            public List<GanttIndicator> Indicators { get; set; }
+            public DateTime? BaselineStartDate { get; set; }
+            public DateTime? BaselineEndDate { get; set; }
+        }
+        public static List<TaskData> TimelineRecord()
+        {
+            var Tasks = new List<TaskData>
+            {
+                //Project summary (Parent)
+                new TaskData { TaskId=1, TaskName="Website Redesign Project", StartDate=new DateTime(2019,3,8,8,0,0), EndDate=new DateTime(2019,3,11,17,0,0), Duration = "34", Progress = 0 },
+
+                // 08/03/2019
+                new TaskData { TaskId=2, TaskName="Kick-off Meeting", StartDate=new DateTime(2019,3,8,8,0,0), EndDate=new DateTime(2019,3,8,9,0,0), Duration = "1", Progress=100, ParentId=1 },
+                new TaskData { TaskId=3, TaskName="Requirement Analysis", StartDate=new DateTime(2019,3,8,9,0,0), EndDate=new DateTime(2019,3,8,12,0,0), Duration="3", Progress=80, ParentId=1,
+                    BaselineStartDate=new DateTime(2019,3,8,9,0,0), BaselineEndDate=new DateTime(2019,3,8,12,0,0),
+                    Indicators = new List<GanttIndicator> { new GanttIndicator { Name="Analysis Complete", Date=new DateTime(2019,3,8,12,0,0), IconClass="e-notes-info", Tooltip="Analysis approved" } }
+                },
+                new TaskData { TaskId=4, TaskName="Stakeholder Interview", StartDate=new DateTime(2019,3,8,12,0,0), EndDate=new DateTime(2019,3,8,14,0,0), Duration="2", Progress=60, ParentId=1, Predecessor="3FS" },
+                new TaskData { TaskId=5, TaskName="Draft Requirement Document", StartDate=new DateTime(2019,3,8,14,0,0), EndDate=new DateTime(2019,3,8,16,0,0), Duration="2", Progress=75, ParentId=1, Predecessor="4FS" },
+                new TaskData { TaskId=6, TaskName="Requirements Review", StartDate=new DateTime(2019,3,8,16,0,0), EndDate=new DateTime(2019,3,8,17,0,0), Duration="1", Progress=30, ParentId=1, Predecessor="5FS",
+                    Indicators=new List<GanttIndicator>{ new GanttIndicator{ Name="Review Complete", Date=new DateTime(2019,3,8,17,0,0), IconClass="e-notes-info", Tooltip="Review signed off"} }
+                },
+                // 09/03/2019
+                new TaskData { TaskId=7, TaskName="Create Wireframes", StartDate=new DateTime(2019,3,9,8,0,0), EndDate=new DateTime(2019,3,9,10,0,0), Duration="2", Progress=20, ParentId=1, Predecessor="6FS" },
+                new TaskData { TaskId=8, TaskName="Wireframe Review", StartDate=new DateTime(2019,3,9,10,0,0), EndDate=new DateTime(2019,3,9,11,0,0), Duration="1", Progress=35, ParentId=1, Predecessor="7FS" },
+                new TaskData { TaskId=9, TaskName="UI Design - Home", StartDate=new DateTime(2019,3,9,11,0,0), EndDate=new DateTime(2019,3,9,13,0,0), Duration="2", Progress=60, ParentId=1, Predecessor="8FS" },
+                new TaskData { TaskId=10, TaskName="UI Design - About", StartDate=new DateTime(2019,3,9,13,0,0), EndDate=new DateTime(2019,3,9,15,0,0), Duration="2", Progress=45, ParentId=1, Predecessor="9FS" },
+                new TaskData { TaskId=11, TaskName="UI Design Review", StartDate=new DateTime(2019,3,9,15,0,0), EndDate=new DateTime(2019,3,9,16,0,0), Duration="1", Progress=25, ParentId=1, Predecessor="10FS",
+                    Indicators = new List<GanttIndicator> { new GanttIndicator { Name="UI Approved", Date=new DateTime(2019,3,9,16,0,0), IconClass="e-notes-info", Tooltip="UI approved" } }
+                },
+                new TaskData { TaskId=12, TaskName="Logo Design", StartDate=new DateTime(2019,3,9,16,0,0), EndDate=new DateTime(2019,3,9,18,0,0), Duration="2", Progress=70, ParentId=1 },
+                new TaskData { TaskId=13, TaskName="Front-End Dev Kickoff", StartDate=new DateTime(2019,3,9,18,0,0), EndDate=new DateTime(2019,3,9,19,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="12FS" },
+
+                // 10/03/2019
+                new TaskData { TaskId=14, TaskName="Setup Dev Environment", StartDate=new DateTime(2019,3,10,8,0,0), EndDate=new DateTime(2019,3,10,10,0,0), Duration="2", Progress=40, ParentId=1, Predecessor="13FS" },
+                new TaskData { TaskId=15, TaskName="Build Home Page", StartDate=new DateTime(2019,3,10,10,0,0), EndDate=new DateTime(2019,3,10,12,0,0), Duration="2", Progress=25, ParentId=1, Predecessor="14FS" },
+                new TaskData { TaskId=16, TaskName="Build About Page", StartDate=new DateTime(2019,3,10,12,0,0), EndDate=new DateTime(2019,3,10,13,0,0), Duration="1", Progress=30, ParentId=1 },
+                new TaskData { TaskId=17, TaskName="Build Contact Page", StartDate=new DateTime(2019,3,10,13,0,0), EndDate=new DateTime(2019,3,10,15,0,0), Duration="2", Progress=20, ParentId=1 },
+                new TaskData { TaskId=18, TaskName="Sprint Planning Meeting", StartDate=new DateTime(2019,3,10,15,0,0), EndDate=new DateTime(2019,3,10,16,0,0), Duration="1", Progress=100, ParentId=1 },
+                new TaskData { TaskId=19, TaskName="Functional Testing", StartDate=new DateTime(2019,3,10,16,0,0), EndDate=new DateTime(2019,3,10,18,0,0), Duration="2", Progress=0, ParentId=1, Predecessor="17FS,18FS" },
+                new TaskData { TaskId=20, TaskName="Bugfix Cycle 1", StartDate=new DateTime(2019,3,10,18,0,0), EndDate=new DateTime(2019,3,10,20,0,0), Duration="2", Progress=0, ParentId=1, Predecessor="19FS" },
+                new TaskData { TaskId=21, TaskName="Bug Review Meeting", StartDate=new DateTime(2019,3,10,20,0,0), EndDate=new DateTime(2019,3,10,21,0,0), Duration="1", Progress=0, ParentId=1 },
+
+                // 11/03/2019
+                new TaskData { TaskId=22, TaskName="Backend API Design", StartDate=new DateTime(2019,3,11,8,0,0), EndDate=new DateTime(2019,3,11,10,0,0), Duration="2", Progress=0, ParentId=1 },
+                new TaskData { TaskId=23, TaskName="Backend Implementation", StartDate=new DateTime(2019,3,11,10,0,0), EndDate=new DateTime(2019,3,11,12,0,0), Duration="2", Progress=0, ParentId=1, Predecessor="22FS" },
+                new TaskData { TaskId=24, TaskName="API Integration", StartDate=new DateTime(2019,3,11,12,0,0), EndDate=new DateTime(2019,3,11,13,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="23FS" },
+                new TaskData { TaskId=25, TaskName="System Integration Testing", StartDate=new DateTime(2019,3,11,13,0,0), EndDate=new DateTime(2019,3,11,15,0,0), Duration="2", Progress=0, ParentId=1, Predecessor="24FS" },
+                new TaskData { TaskId=26, TaskName="Performance Tuning", StartDate=new DateTime(2019,3,11,15,0,0), EndDate=new DateTime(2019,3,11,16,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="25FS" },
+                new TaskData { TaskId=27, TaskName="Bugfix Cycle 2", StartDate=new DateTime(2019,3,11,16,0,0), EndDate=new DateTime(2019,3,11,17,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="26FS" },
+                new TaskData { TaskId=28, TaskName="UAT Preparation", StartDate=new DateTime(2019,3,11,17,0,0), EndDate=new DateTime(2019,3,11,18,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="27FS" },
+                new TaskData { TaskId=29, TaskName="UAT Execution", StartDate=new DateTime(2019,3,11,18,0,0), EndDate=new DateTime(2019,3,11,20,0,0), Duration="2", Progress=0, ParentId=1, Predecessor="28FS" },
+                new TaskData { TaskId=30, TaskName="Go-Live & Project Closeout", StartDate=new DateTime(2019,3,11,20,0,0), EndDate=new DateTime(2019,3,11,21,0,0), Duration="1", Progress=0, ParentId=1, Predecessor="29FS" },
+            };
+            return Tasks;
+        }
+    }
+}
+<style>
+    .userselect {
+        -webkit-user-select: none;
+        /* Safari 3.1+ */
+        -moz-user-select: none;
+        /* Firefox 2+ */
+        -ms-user-select: none;
+        /* IE 10+ */
+        user-select: none;
+        /* Standard syntax */
+    }
+</style>

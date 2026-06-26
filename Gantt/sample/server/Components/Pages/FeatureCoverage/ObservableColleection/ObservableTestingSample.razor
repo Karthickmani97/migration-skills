@@ -1,0 +1,238 @@
+﻿@page "/observable-testing-sample"
+@rendermode InteractiveServer
+@using System.Collections.Specialized
+@using System.Collections.ObjectModel
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Buttons
+@using System.ComponentModel
+<div>
+    <div>
+        <button @onclick="ChangeDataSource">Change dataSource</button>
+<button id="add" @onclick="AddRecords">Add Data</button>
+<button id="del" @onclick="DelRecords">Delete Data</button>
+<button id="update" @onclick="UpdateRecords">Update Data</button>
+<button id="durationUpdate" @onclick="UpdateChildDuration">Update child duration</button>
+<button @onclick="UpdateChildEndDate">Update child EndDate</button>
+<button @onclick="UpdateChildProgress">Update child Progress</button>
+<button @onclick="RearrangeRecord">Rearranging records</button>
+<button @onclick="InsertRecord">Inserting record</button>
+<button @onclick="InsertRecords">Inserting records</button>
+<button @onclick="InsertChildRecord">Inserting a child records</button>
+<button @onclick="RowDragDrop">Moving one child taskbar to another </button>
+    </div>
+    <div>
+        <SfGantt AllowRowDragAndDrop="true" DataSource="GanttData" EnableContextMenu="true" Toolbar="@(new List<string>() { "Add", "Cancel", "CollapseAll", "Delete", "Edit", "ExpandAll", "NextTimeSpan", "PrevTimeSpan", "Search", "Update", "Indent", "Outdent" })" Width="700px" Height="450px" AllowFiltering ="true" AllowSorting="true">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId">
+    </GanttTaskFields>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" HeaderText="Task ID" MinWidth="150" MaxWidth="250" AllowReordering="false"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Task Name">
+            <Template>
+                @{
+                    @if (context != null)
+                    {
+                        <SfButton CssClass="e-bigger" Content="@((context as TaskData).TaskName)"></SfButton>
+                    }
+                }
+            </Template>
+        </GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+    </GanttColumns>
+    <GanttEditSettings AllowEditing="true" AllowAdding="true" AllowDeleting="true" AllowTaskbarEditing="true"></GanttEditSettings>
+
+</SfGantt>
+    </div>
+</div>
+
+@code {
+
+
+
+    public void ChangeDataSource()
+    {
+        GanttData = GetNewDataSource();
+    }
+
+    public ObservableCollection<TaskData> GetNewDataSource(){
+        ObservableCollection<TaskData> data =  new ObservableCollection<TaskData>()
+                {
+                    new TaskData(1, "new task 1", new DateTime(2022, 04, 05), new DateTime(2022, 04, 21)),
+                    new TaskData(2, "new task 2", new DateTime(2022, 04, 05), new DateTime(2022, 04, 21), "2 Days", 30, 1)
+
+                };
+        data.CollectionChanged += TaskData.records_CollectionChanged;
+        return data;
+    }
+    public void AddRecords()
+    {
+        GanttData.Add(new TaskData(3, "New task", new DateTime(2022, 04, 05), new DateTime(2022, 04, 21), "5", 30));
+    }
+
+    public void DelRecords()
+    {
+        GanttData.Remove(GanttData.First());
+    }
+
+    public void UpdateRecords()
+    {
+        var a = GanttData.First();
+        a.TaskName = "Update";
+    }
+
+    public void UpdateChildDuration()
+    {
+        var b = GanttData.Last();
+        b.Duration = "4 Days";
+    }
+    public void UpdateChildEndDate()
+    {
+        var b = GanttData.Last();
+        b.EndDate = new DateTime(2022, 04, 24);
+    }
+
+    public void UpdateChildProgress()
+    {
+        var b = GanttData.Last();
+        b.Progress = 100;
+    }
+
+    public void RearrangeRecord()
+    {
+        GanttData.Move(2, 3);
+    }
+
+    public void InsertRecord(){
+        GanttData.Insert(0, new TaskData() { TaskId = 9, TaskName = "Newly inserted record", StartDate = new DateTime(2022, 4, 4), Duration = "12Days" });
+    }
+    public void InsertRecords(){
+        GanttData.Insert(0, new TaskData() { TaskId = 9, TaskName = "Newly inserted records1", StartDate = new DateTime(2022, 4, 4), Duration = "12Days" });
+        GanttData.Insert(0, new TaskData() { TaskId = 10, TaskName = "Newly inserted records2", StartDate = new DateTime(2022, 4, 4), Duration = "12Days" });
+    }
+    public void InsertChildRecord()
+    {
+        GanttData.Insert(2, new TaskData() { TaskId = 6, TaskName = "New child record", StartDate = new DateTime(2022, 4, 7), Duration = "3",ParentId=1 });
+    }
+    public void RowDragDrop()
+    {
+        GanttData.Move(2, 6); 
+    }
+
+    public ObservableCollection<TaskData> GanttData { get; set; }
+
+
+    protected override void OnInitialized()
+    {
+        GanttData = TaskData.GetRecords();
+    }
+
+    public static List<string> PropertyName { get; set; } = new List<string>();
+
+    public static void updatePropertyName(string name)
+    {
+        PropertyName.Add(name);
+    }
+
+    public class TaskData : INotifyPropertyChanged
+    {
+        
+        public int TaskId { get; set; }
+        public string taskName { get; set; }
+        public string TaskName
+        {
+            get { return taskName; }
+            set
+            {
+                taskName = value;
+                NotifyPropertyChanged("TaskName");
+            }
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String propertyName)
+        {
+            if (PropertyChanged != null)
+            {
+                updatePropertyName(propertyName);
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        
+        public DateTime StartDate { get; set; }
+        public DateTime? endDate{get;set;}
+        public DateTime? EndDate { 
+            get 
+            {
+                return endDate;
+            } 
+            set
+            {
+                endDate = value;
+                NotifyPropertyChanged("EndDate");
+            } 
+        }
+#nullable enable
+        public string? duration { get; set; }
+        public string? Duration
+        {
+            get { return duration; }
+            set
+            {
+                duration = value;
+                NotifyPropertyChanged("Duration");
+            }
+        }
+        public int? progress{ get; set; }
+        public int? Progress
+        {
+            get
+            {
+                return progress;
+            }
+            set
+            {
+                progress = value;
+                NotifyPropertyChanged("Progress");
+            }
+        }
+        public int? ParentId { get; set; }
+
+        public TaskData()
+        {
+
+        }
+
+        public TaskData(int TaskId, string TaskName, DateTime StartDate, DateTime? EndDate, string? Duration = null, int? Progress = null, int? ParentId = null)
+        {
+            this.TaskId = TaskId;
+            this.TaskName = TaskName;
+            this.StartDate = StartDate;
+            this.EndDate = EndDate != null ? (DateTime)EndDate : null;
+            this.Duration = Duration;
+            this.Progress = Progress;
+            this.ParentId = ParentId;
+
+        }
+#nullable disable
+        public static void records_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+
+        }
+
+        
+        public static ObservableCollection<TaskData> GetRecords()
+        {
+            ObservableCollection<TaskData> records = new ObservableCollection<TaskData>();
+            records.CollectionChanged += records_CollectionChanged;
+            records.Add(new TaskData(1, "Project initiation", new DateTime(2022, 04, 05), new DateTime(2022, 04, 21),"2 Days"));
+            records.Add(new TaskData(2, "Identify Site location", new DateTime(2022, 04, 05), new DateTime(2022, 04, 21), "2 Days", 30, 1));
+            records.Add(new TaskData(3, "Perform soil test", new DateTime(2022, 04, 05), new DateTime(2022, 04, 05), "4", 30, 1));
+            records.Add(new TaskData(4, "Soil test approval", new DateTime(2022, 04, 05), new DateTime(2022, 04, 21), "2 Days", 30, 1));
+            records.Add(new TaskData(5,  "Project estimation",  new DateTime(2022, 04, 06), new DateTime(2022, 04, 21) ));
+            records.Add(new TaskData( 6,  "Develop floor plan for estimation",  new DateTime(2022, 04, 06), null, "3",  30,  5 ));
+            records.Add(new TaskData(  7,  "List materials",  new DateTime(2022, 04, 06), null, "3",  40,  5 ));
+            records.Add(new TaskData(8,  "Estimation approval",  new DateTime(2022, 04, 06), null,  "0",  30,  5));
+            return records;
+        }
+        
+    }
+
+}

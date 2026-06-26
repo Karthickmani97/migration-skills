@@ -1,0 +1,118 @@
+@page "/E2EMigration/zoom-to-fit"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+<div>@message</div>
+<button @onclick="change">Zoom</button>
+<SfGantt @ref="Gantt" ID="Zoom" DataSource="@TaskCollection" Height="450px" Width="900" Toolbar="@(new List<string>{ "ZoomIn","ZoomOut","ZoomToFit"})" IncludeWeekend="false" ProjectStartDate="ProjectStart" ProjectEndDate="ProjectEnd" TreeColumnIndex="1">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                        Dependency="Predecessor" ParentID="ParentId"></GanttTaskFields>
+    <GanttLabelSettings LeftLabel="TaskName" TValue="ZoomingData.TaskData">
+    </GanttLabelSettings>
+    <GanttDayWorkingTimeCollection>
+        <GanttDayWorkingTime From="0" To="24"></GanttDayWorkingTime>
+    </GanttDayWorkingTimeCollection>
+    <GanttSplitterSettings Position="30%"></GanttSplitterSettings>
+        <GanttTimelineSettings TimelineViewMode="TimelineViewMode.Hour"></GanttTimelineSettings>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+    <GanttEvents TValue="object" OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+
+@code{
+    public SfGantt<ZoomingData.TaskData> Gantt{ get; set; }
+    public string message{ get; set; }
+    public DateTime ProjectStart =  DateTime.Parse("2022-10-29");
+    public DateTime ProjectEnd = DateTime.Parse("2022-10-31T23:00:00");
+
+    public List<ZoomingData.TaskData> TaskCollection { get; set; }
+    public void change()
+    {
+        Gantt.ZoomToFitAsync();
+    }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = ZoomingData.ZoomData();
+    }
+     public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+
+    public class ZoomingData
+    {
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string TaskName { get; set; }
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public DateTime? BaselineStartDate { get; set; }
+            public DateTime? BaselineEndDate { get; set; }
+            public string? Duration { get; set; }
+            public int? Progress { get; set; }
+            public string? Predecessor { get; set; }
+            public List<TaskData> SubTasks { get; set; }
+            public object? ResourceId { get; set; }
+            public int?ParentId { get; set; }
+            public string? Notes { get; set; }
+            public string? TaskType { get; set; }
+        }
+
+
+        public static List<TaskData> ZoomData()
+        {
+            
+                List<TaskData> Tasks = new List<TaskData>()
+                {
+
+                    new TaskData()
+                    {
+                        TaskId = 1,
+                        TaskName = "Initialise",
+                        StartDate = DateTime.Parse("2022-10-30T18:34:07"),
+                        EndDate = DateTime.Parse("2022-10-30T18:34:07") 
+                    },
+                    new TaskData()
+                    {
+                        TaskId = 2,
+                        TaskName = "Defining the product usage",
+                       StartDate = DateTime.Parse("2022-10-30T18:34:07"),
+                        EndDate = DateTime.Parse("2022-10-30T18:45:46")
+
+                    },
+                    new TaskData()
+                    {
+                        TaskId = 3,
+                        TaskName = "Defining the Target audience",
+                         StartDate = DateTime.Parse("2022-10-30T18:47:08"),
+                        EndDate = DateTime.Parse("2022-10-30T18:47:56")
+                    },
+                    new TaskData()
+                    {
+                        TaskId = 4,
+                        TaskName = "Prepare product sketch and notes",
+                         StartDate = DateTime.Parse("2022-10-30T18:47:56"),
+                        EndDate = DateTime.Parse("2022-10-30T18:48:46")
+                    },
+                    new TaskData()
+                    {
+                        TaskId = 5,
+                        TaskName = "Concept approval",
+                        StartDate = DateTime.Parse("2022-10-30T18:58:51"),
+                        EndDate = DateTime.Parse("2022-10-30T18:58:51") 
+
+                    },
+                    new TaskData()
+                    {
+                        TaskId = 6,
+                        TaskName = "Market Research",StartDate = DateTime.Parse("2022-10-30T18:58:53"),
+                        EndDate = DateTime.Parse("2022-10-30T19:43:26")
+
+                    }
+                };
+            return Tasks;
+        }
+
+    }
+}
+
+

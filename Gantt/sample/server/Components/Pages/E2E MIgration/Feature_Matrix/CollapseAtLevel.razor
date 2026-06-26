@@ -1,0 +1,138 @@
+@page "/E2EMigration/CollapseAtlevel"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Popups
+@using Syncfusion.Blazor.Navigations
+<div>@messsage</div>
+<SfGantt id="CollapseAtLevel" DataSource="@TaskCollection" ProjectStartDate="@ProjectStart"@ref="Gantt" ProjectEndDate="@ProjectEnd" Toolbar="Tools" Height="500px" Width="1400px">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId">
+    </GanttTaskFields>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Width="150"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250"></GanttColumn>
+        <GanttColumn Field="StartDate" Width="250"></GanttColumn>
+        <GanttColumn Field="EndDate" Width="250"></GanttColumn>
+        <GanttColumn Field="Duration" Width="250"></GanttColumn>
+        <GanttColumn Field="Progress" Width="250"></GanttColumn>
+    </GanttColumns>
+    <GanttEvents  OnToolbarClick="ToolBarClick" TValue="TaskData" Created="Created" OnActionFailure="ActionFailureHandler"></GanttEvents>
+   
+    <GanttEditSettings AllowTaskbarEditing="true" AllowEditing="true" AllowAdding="true" AllowDeleting="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Auto"></GanttEditSettings>
+</SfGantt>
+@code{ 
+    public SfGantt<TaskData> Gantt;
+    public DateTime ProjectStart = new DateTime(2019, 03, 25);
+    public DateTime ProjectEnd = new DateTime(2019, 04, 30);
+    public List<object> Tools = new List<object>();
+    public List<TaskData> TaskCollection { get; set; }
+    public string messsage{ get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        Tools.Add("ZoomOut");
+        Tools.Add(new ToolbarItem() { Id = "expandAtLevel", Text = "ExpandAtLevel", Align = ItemAlign.Left, TooltipText = "ExpandAtLevel" });
+        Tools.Add(new ToolbarItem() { Id = "collapseAtLevel", Text = "CollapseAtLevel", Align = ItemAlign.Left, TooltipText = "CollapseAtLevel" });
+
+    }
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? Duration { get; set; }
+        public int? Progress { get; set; }
+        public int? ParentId { get; set; }
+
+ 
+    }
+   @* public void BeforeTooltipRender(BeforeTooltipRenderEventArgs<TaskData> args)
+    {
+        args.Cancel = true;
+    }*@
+    public void ToolBarClick(Syncfusion.Blazor.Navigations.ClickEventArgs Args)
+    {
+        if (Args.Item.Id == "expandAtLevel")
+        {
+            this.Gantt.ExpandAtLevelAsync(1);
+        }
+        if (Args.Item.Id == "collapseAtLevel")
+        {
+            this.Gantt.CollapseAtLevelAsync(1);
+        }
+    }
+    public async Task Created()
+    {   
+     
+    }
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+    new TaskData() {
+        TaskId = 1,
+        TaskName = "Project initiation",
+        StartDate = new DateTime(2019, 04, 02),
+        EndDate = new DateTime(2019, 04, 21)
+    },
+    new TaskData() {
+        TaskId = 2,
+        TaskName = "Identify Site location",
+        StartDate = new DateTime(2019, 04, 02),
+        Duration = "10",
+        Progress = 30,
+        ParentId = 1
+    },
+    new TaskData() {
+        TaskId = 3,
+        TaskName = "Perform soil test",
+        StartDate = new DateTime(2019, 04, 02),
+        Duration = "4",
+        Progress = 40,
+        ParentId = 2,
+    },
+    new TaskData() {
+        TaskId = 4,
+        TaskName = "Soil test approval",
+        StartDate = new DateTime(2019, 04, 02),
+        Duration = "3",
+        Progress = 30,
+        ParentId = 3,
+    },
+    new TaskData() {
+        TaskId = 5,
+        TaskName = "Project estimation",
+        StartDate = new DateTime(2019, 04, 02),
+        EndDate = new DateTime(2019, 04, 21)
+    },
+    new TaskData() {
+        TaskId = 6,
+        TaskName = "Develop floor plan for estimation",
+        StartDate = new DateTime(2019, 04, 04),
+        Duration = "3",
+        Progress = 30,
+        ParentId = 5,
+    },
+    new TaskData() {
+        TaskId = 7,
+        TaskName = "List materials",
+        StartDate = new DateTime(2019, 04, 04),
+        Duration = "13",
+        Progress = 40,
+        ParentId = 6,
+    },
+    new TaskData() {
+        TaskId = 8,
+        TaskName = "Estimation approval",
+        StartDate = new DateTime(2019, 04, 04),
+        Duration = "25",
+        Progress = 30,
+    },
+        };
+        return Tasks;
+    } }

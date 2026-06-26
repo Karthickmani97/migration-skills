@@ -1,0 +1,391 @@
+@page "/BLAZ-977816"
+@rendermode InteractiveServer
+
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.TreeGrid
+@using Syncfusion.Blazor.Navigations
+<div style="width:1500px">
+    <button @onclick="Resource">Change ViewType</button>
+    <button @onclick="ZoomIn" class="bg-primary text-white mx-1">Zoom In</button>
+    <button @onclick="ZoomOut" class="bg-primary text-white mx-1">Zoom Out</button>
+    <button @onclick="ZoomToFit" class="bg-primary text-white mx-1">ZoomToFit</button>
+    <button @onclick="ClearFiltering" class="bg-primary text-white mx-1">Clear Filtering</button>
+    <button @onclick="ClearSorting" class="bg-primary text-white mx-1">ClearSorting</button>
+    <button @onclick="CollapseAll" class="bg-primary text-white mx-1">CollapseAll</button>
+    <button @onclick="ExpandAll" class="bg-primary text-white mx-1">ExpandAll</button>
+    <button @onclick="OpenAddDialog" class="bg-primary text-white mx-1">OpenAddDialog</button>
+    <button @onclick="EditDialog" class="bg-primary text-white mx-1">EditDialog</button>
+    <button id="Scroll_Rows" class="btn btn-primary" @onclick="Scroll">Scroll</button>
+    <button id="Scroll_center" class="btn btn-primary" @onclick="Center">Scroll-center</button>
+    <br> <br>
+
+    <SfGantt @ref="Gantt" ID="Gantt" RenderBaseline="true" EnableMultiTaskbar="true" EnableRowVirtualization="true" EnableTimelineVirtualization="true" ShowOverallocation="true" DataSource="@TaskCollection" Height="600px" Width="100%" Toolbar="@(new List<string>() { "Add", "Cancel", "Update" , "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit" ,"NextTimeSpan", "PrevTimeSpan", "Search" })" EnableContextMenu AllowFiltering AllowSelection AllowMultiSorting AllowReordering AllowResizing AllowRowDragAndDrop AllowSorting ViewType="ViewType.ResourceView">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                         ParentID="ParentId" Work="Work" TaskType="TaskType" BaselineEndDate="BaselineEndDate" BaselineStartDate="BaselineStartDate" Dependency="Predecessor">
+        </GanttTaskFields>
+        @*<GanttFilterSettings HierarchyMode="Syncfusion.Blazor.Gantt.FilterHierarchyMode.Both"></GanttFilterSettings>*@
+        <GanttEventMarkers>
+            <GanttEventMarker Day="new DateTime(2022, 04, 05)" Label="Holiday"></GanttEventMarker>
+            <GanttEventMarker Day="new DateTime(2022, 04, 11)" Label="Holiday"></GanttEventMarker>
+        </GanttEventMarkers>
+        <GanttHolidays>
+            <GanttHoliday From="new DateTime(2022, 04, 13)" To="new DateTime(2022, 04, 15)"></GanttHoliday>
+            <GanttHoliday From="new DateTime(2022, 04, 19)" To="new DateTime(2022, 04, 22)"></GanttHoliday>
+        </GanttHolidays>
+        <GanttResource Group="ResourceGroup" DataSource="@ResourceCollection" Id="ResourceId" Name="ResourceName" MaxUnits="Unit" TResources="ResourceAlloacteData" TValue="TaskData"></GanttResource>
+        <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="@nameof(AssignmentModel.PrimaryId)" TaskID="@nameof(AssignmentModel.TaskId)" ResourceID="@nameof(AssignmentModel.ResourceId)" Units="@nameof(AssignmentModel.Unit)" TValue="TaskData" TAssignment="AssignmentModel"></GanttAssignmentFields>
+
+        <GanttLabelSettings RightLabel="Resources" LeftLabel="Resources" TValue="TaskData"></GanttLabelSettings>
+        <GanttEditSettings AllowAdding AllowDeleting AllowEditing AllowTaskbarEditing></GanttEditSettings>
+        <GanttEvents TValue="TaskData" RowDropped="RowDropped" RowDragStarting="OnRowDragStart" RowDataBound="RowDataBoundHandler"
+                     Destroyed="DestroyHandler" OnLoad="LoadHandler" Created="CreatedHandler" OnActionFailure="ActionFailureHandler"
+                     OnToolbarClick="ToolBarClick" OnActionComplete="ActionComplete" OnActionBegin="ActionBegin"
+                     EndEdit="EndEdit"
+                     SplitterResizeStart="Resizestart" BeforeTooltipRender="BeforeTooltipRender" OnCellEdit="CellEditHandler"
+                     SplitterResizing="Resized" SplitterCreated="SplitterCreate" RowSelecting="RowSelectingHandler"
+                     RowSelected="rowSelect" RowDeselecting="RowDeselectingHandler" RowDeselected="RowDeselectHandler"
+                     CellSelecting="CellSelecting" CellSelected="CellSelectedHandler" CellDeselecting="CellDeselectingHandler" CellDeselected="CellDeselectedHandler"
+                     ColumnMenuClicked="ColumnMenuClickedHandler" ContextMenuItemClicked="ContextMenuItemClickedHandler"
+                     ContextMenuOpen="ContextMenuOpenHandler" Collapsed="Collapsed" Collapsing="Collapsed" Expanding="Expanding"
+                     Expanded="ExpandedHandler" TaskbarEdited="TaskbarEdited">
+        </GanttEvents>
+        <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+    </SfGantt>
+</div>
+@code {
+    public SfGantt<TaskData> Gantt;
+    private DateTime ProjectStart = new DateTime(2022, 03, 25);
+    private DateTime ProjectEnd = new DateTime(2022, 05, 10);
+    private List<TaskData> TaskCollection { get; set; }
+    private List<ResourceAlloacteData> ResourceCollection { get; set; }
+    private static List<AssignmentModel> AssignmentCollection { get; set; } = new();
+    private ViewType viewType { get; set; } = ViewType.ProjectView;
+
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        this.ResourceCollection = GetResources;
+    }
+    private async Task Scroll()
+    {
+        Gantt.ScrollIntoViewAsync(0, 250);
+    }
+    private async Task Center()
+    {
+        Gantt.ScrollIntoViewAsync(0, 78);
+    }
+    public class ResourceAlloacteData
+    {
+        public int ResourceId { get; set; }
+        public string ResourceName { get; set; }
+        public double? Unit { get; set; }
+        public string? ResourceGroup { get; set; }
+    }
+
+    public static List<ResourceAlloacteData> GetResources = new List<ResourceAlloacteData>()
+    {
+
+        new ResourceAlloacteData() { ResourceId= 1, ResourceName= "Martin Tamer", ResourceGroup="Martin"},
+        new ResourceAlloacteData() { ResourceId= 2, ResourceName= "Rose Fuller" },
+        new ResourceAlloacteData() { ResourceId= 3, ResourceName= "Margaret Buchanan" },
+        new ResourceAlloacteData() { ResourceId= 4, ResourceName= "Fuller King" },
+        new ResourceAlloacteData() { ResourceId= 5, ResourceName= "Davolio Fuller" },
+        new ResourceAlloacteData() { ResourceId= 6, ResourceName= "Fuller Buchanan" },
+        new ResourceAlloacteData() { ResourceId= 7, ResourceName= "Jack Davolio" },
+        new ResourceAlloacteData() { ResourceId= 8, ResourceName= "Tamer Vinet" },
+        new ResourceAlloacteData() { ResourceId= 9, ResourceName= "Vinet Fuller" },
+        new ResourceAlloacteData() { ResourceId= 10, ResourceName= "Bergs Anton" },
+        new ResourceAlloacteData() { ResourceId= 11, ResourceName= "Construction Supervisor" }
+    };
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; }
+        public string Notes { get; set; }
+        public double? Work { get; set; }
+        public string TaskType { get; set; }
+        public DateTime BaselineStartDate { get; set; }
+        public DateTime BaselineEndDate { get; set; }
+        public string? Details { get; set; }
+    }
+    public class AssignmentModel
+    {
+        public int PrimaryId { get; set; }
+        public int TaskId { get; set; }
+        public int ResourceId { get; set; }
+        public double? Unit { get; set; }
+    }
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>();
+        int rowCount = 0;
+        int parentId = 0;
+        int assignmentCount = 0;
+        AssignmentCollection = new List<AssignmentModel>();
+        for (int count = 0; count < 20; count++)
+        {
+            Tasks.Add(new TaskData() { TaskId = ++rowCount, TaskName = "Project" + count, StartDate = new DateTime(2022, 03, 28), EndDate = new DateTime(2022, 07, 28), TaskType = "FixedDuration", Work = 128, Duration = "4" });
+            ++parentId;
+            for (int childCount = 0; childCount < 10; childCount++)
+            {
+                if (childCount < 3)
+                {
+                    Tasks.Add(new TaskData() { TaskId = ++rowCount, TaskName = "Task" + rowCount, StartDate = new DateTime(2022, 03, 29), TaskType = "FixedUnit", BaselineStartDate = new DateTime(2022, 03, 29), BaselineEndDate = new DateTime(2022, 03, 31), Progress = 30, ParentId = parentId, Duration = "2", Work = 16 });
+                    AssignmentCollection.Add(new AssignmentModel() { PrimaryId = ++assignmentCount, ResourceId = childCount, TaskId = rowCount, Unit = 70 });
+                }
+                else if (childCount > 3 && childCount < 7)
+                {
+                    Tasks.Add(new TaskData() { TaskId = ++rowCount, TaskName = "Task" + rowCount, StartDate = new DateTime(2022, 03, 29), TaskType = "FixedDuration", BaselineStartDate = new DateTime(2022, 03, 29), BaselineEndDate = new DateTime(2022, 03, 31), Progress = 30, ParentId = parentId, Duration = "2", Work = 16 });
+                    AssignmentCollection.Add(new AssignmentModel() { PrimaryId = ++assignmentCount, ResourceId = childCount, TaskId = rowCount, Unit = 50 });
+                }
+                else
+                {
+                    Tasks.Add(new TaskData() { TaskId = ++rowCount, TaskName = "Task" + rowCount, StartDate = new DateTime(2022, 03, 29), TaskType = "FixedWork", BaselineStartDate = new DateTime(2022, 03, 29), BaselineEndDate = new DateTime(2022, 03, 31), Progress = 30, ParentId = parentId, Duration = "3", Work = 16 });
+                    AssignmentCollection.Add(new AssignmentModel() { PrimaryId = ++assignmentCount, ResourceId = childCount, TaskId = rowCount, Unit = 20 });
+                }
+            }
+        }
+        return Tasks;
+    }
+    public static List<ResourceAlloacteData> GetResourceCollection()
+    {
+        List<ResourceAlloacteData> Resources = new List<ResourceAlloacteData>();
+        for (int count = 0; count < 10; count++)
+        {
+            Resources.Add(new ResourceAlloacteData() { ResourceId = count, ResourceName = "Resource" + count });
+        }
+        return Resources;
+    }
+
+    public void Resource()
+    {
+        if (viewType == ViewType.ResourceView)
+        {
+            viewType = ViewType.ProjectView;
+        }
+        else
+        {
+            viewType = ViewType.ResourceView;
+        }
+        StateHasChanged();
+    }
+
+    public void rowSelect(RowSelectEventArgs<TaskData> args)
+    {
+        //Here you can customize your code
+    }
+    public void ExpandedHandler(RowExpandedEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void Expanding(Syncfusion.Blazor.TreeGrid.RowExpandingEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void Collapsed(RowCollapsingEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void Collapsed(RowCollapsedEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void ContextMenuOpenHandler(ContextMenuOpenEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void ContextMenuItemClickedHandler(ContextMenuClickEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void ColumnMenuClickedHandler(ColumnMenuClickEventArgs args)
+    {
+        // Here you can customize your code
+    }
+    public void CellDeselectedHandler(CellDeselectEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void CellDeselectingHandler(CellDeselectEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void CellSelectedHandler(CellSelectEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void CellSelecting(Syncfusion.Blazor.Grids.CellSelectingEventArgs<TaskData> args)
+    {
+        //Here you can customize your code
+
+    }
+    public void RowDeselectHandler(RowDeselectEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void RowDeselectingHandler(RowDeselectEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void RowSelectingHandler(RowSelectingEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+        //args.Console.ReadLine();
+    }
+    public void Resized(Syncfusion.Blazor.Layouts.ResizingEventArgs args)
+    {
+        // Here you can customize your code
+    }
+    public void CellEditHandler(CellEditArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void Resizestart(Syncfusion.Blazor.Layouts.ResizeEventArgs args)
+    {
+        // Here you can customize your code
+    }
+    public void BeforeTooltipRender(BeforeTooltipRenderEventArgs<TaskData> args)
+    {
+        // Here you can get the error details in the args
+    }
+    public void EndEdit(TaskbarEditedEventArgs<TaskData> args)
+    {
+        // Here you can get the error details in the args
+    }
+    public void QueryCellInfoHandler(QueryCellInfoEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void QueryChartRowInfo(QueryChartRowInfoEventArgs<TaskData> args)
+    {
+        // Here you can get the error details in the args
+    }
+
+    public void SplitterCreate(object args)
+    {
+        //   await this.Gantt.ZoomToFitAsync();
+    }
+    public void DestroyHandler(object args)
+    {
+        // Here you can customize your code
+    }
+    public void LoadHandler(object args)
+    {
+        // Here you can customize your code
+    }
+    public void CreatedHandler(object args)
+    {
+        // await this.Gantt.ZoomToFitAsync();
+    }
+    public void RowDataBoundHandler(RowDataBoundEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+        // Here you can get the error details in the args
+    }
+    public void OnRowDragStart(RowDragStartingEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void RowDropped(RowDroppedEventArgs<TaskData> args)
+    {
+        // Here you can customize your code
+    }
+    public void ActionComplete(GanttActionEventArgs<TaskData> args)
+    {
+        var records = args.ModifiedTaskData;
+        var flatData = Gantt.FlatData;
+        var currentViewData = Gantt.CurrentViewData;
+    }
+
+    public void ActionBegin(Syncfusion.Blazor.Gantt.GanttActionEventArgs<TaskData> args)
+    {
+        var records = args.ModifiedTaskData;
+        var flatData = Gantt.FlatData;
+        var currentViewData = Gantt.CurrentViewData;
+    }
+
+    public void ToolBarClick(Syncfusion.Blazor.Navigations.ClickEventArgs Args)
+    {
+
+    }
+
+    private void TaskbarEdited(TaskbarEditedEventArgs<TaskData> args)
+    {
+        var previousData = args.PreviousData;
+    }
+
+    public async Task AddRow()
+    {
+        // await this.Gantt.AddRecordAsync(record, 0, Syncfusion.Blazor.Gantt.RowPosition.Above);
+    }
+
+    public async Task Delete()
+    {
+        await this.Gantt.DeleteRecordAsync();
+    }
+
+    public async Task ZoomIn()
+    {
+        await this.Gantt.ZoomInAsync();
+    }
+
+    public async Task ZoomOut()
+    {
+        await this.Gantt.ZoomOutAsync();
+    }
+
+    public async Task ZoomToFit()
+    {
+        await this.Gantt.ZoomToFitAsync();
+    }
+
+    public async Task ClearFiltering()
+    {
+        await this.Gantt.ClearFilteringAsync();
+    }
+
+    public async Task ClearSorting()
+    {
+        await this.Gantt.ClearSortingAsync();
+    }
+
+    public async Task CollapseAll()
+    {
+        await this.Gantt.CollapseAllAsync();
+    }
+
+    public async Task ExpandAll()
+    {
+        await this.Gantt.ExpandAllAsync();
+    }
+
+    public async Task Indent()
+    {
+        await this.Gantt.IndentAsync();
+    }
+
+    public async Task Outdent()
+    {
+        this.Gantt.OutdentAsync();
+    }
+
+    public async Task OpenAddDialog()
+    {
+        this.Gantt.OpenAddDialogAsync();
+    }
+    public async Task EditDialog()
+    {
+        this.Gantt.OpenEditDialogAsync();
+    }
+}

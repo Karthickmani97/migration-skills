@@ -1,0 +1,207 @@
+@page "/E2EMigration/AddEditDialog"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Gantt
+<div>@messsage</div>
+<SfGantt @ref="Gantt" DataSource="@TaskCollection" ID="AddEditDialog" Toolbar="@(new List<string>() { "Add", "Edit" })" Height="500px" Width="1400px" >
+
+<GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate"
+                 Duration="Duration" Progress="Progress" Child="SubTasks" Notes="Notes" Dependency="Predecessor">
+</GanttTaskFields>
+
+<GanttResource TValue="TaskData" TResources="TaskResources" Name="ResourceName" Id="ResourceId" DataSource="@ResourceCollection"></GanttResource>
+
+<GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="@nameof(AssignmentModel.PrimaryId)" TaskID="@nameof(AssignmentModel.TaskId)" ResourceID="@nameof(AssignmentModel.ResourceId)" TValue="TaskData" TAssignment="AssignmentModel">
+    </GanttAssignmentFields>
+    <GanttEditSettings AllowTaskbarEditing="true" AllowEditing="true" AllowAdding="true" AllowDeleting="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Auto"></GanttEditSettings>
+
+ <GanttEditDialogFields>
+    <GanttEditDialogField Type="GanttDialogFieldType.General" HeaderText="General">
+    </GanttEditDialogField>
+
+    <GanttEditDialogField Type="GanttDialogFieldType.Dependency"></GanttEditDialogField>
+
+    <GanttEditDialogField Type="GanttDialogFieldType.Resources"></GanttEditDialogField>
+
+    <GanttEditDialogField Type="GanttDialogFieldType.Notes"></GanttEditDialogField>
+</GanttEditDialogFields>
+
+<GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+
+<GanttAddDialogFields>
+    <GanttAddDialogField Type="GanttDialogFieldType.General" HeaderText="General Tab"></GanttAddDialogField>
+    <GanttAddDialogField Type="GanttDialogFieldType.Dependency"></GanttAddDialogField>
+</GanttAddDialogFields>
+
+<GanttEvents TValue="TaskData" Created="Created"OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+
+@code{
+public SfGantt<TaskData> Gantt;
+public string messsage{ get; set; }
+public List<TaskData> TaskCollection { get; set; }
+public List<TaskResources> ResourceCollection { get; set; }
+private static List<AssignmentModel> AssignmentCollection { get; set; } = new();
+protected override void OnInitialized()
+{
+    this.TaskCollection = GetTaskCollection();
+    this.ResourceCollection = GetResourceCollections();
+    AssignmentCollection = GetAssignmentCollection();
+}
+ public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+
+public async Task Created()
+    {   
+     
+    }
+public class TaskData
+{
+    public int TaskId { get; set; }
+    public string TaskName { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+    public string Duration { get; set; }
+    public int? Progress { get; set; }
+    public List<TaskData> SubTasks { get; set; }
+    public string? Notes { get; set; }
+    public string? Predecessor { get; set; }
+}
+public class AssignmentModel
+{
+    public int PrimaryId { get; set; }
+    public int TaskId { get; set; }
+    public int ResourceId { get; set; }
+    public double? Unit { get; set; }
+}
+public class TaskResources
+{
+    public int ResourceId { get; set; }
+    public string ResourceName { get; set; }
+}
+
+public static List <TaskResources> GetResourceCollections() {
+List <TaskResources> Resources = new List <TaskResources> () {
+    new TaskResources() {
+        ResourceId = 1,
+        ResourceName = "Martin Tamer"
+    },
+    new TaskResources() {
+        ResourceId = 2,
+        ResourceName = "Rose Fuller"
+    },
+    new TaskResources() {
+        ResourceId = 3,
+        ResourceName = "Margaret Buchanan"
+    },
+    new TaskResources() {
+        ResourceId = 4,
+        ResourceName = "Fuller King"
+    },
+    new TaskResources() {
+        ResourceId= 5,
+        ResourceName= "Davolio Fuller"
+    },
+};
+return Resources;
+}
+
+public static List <TaskData> GetTaskCollection() {
+List <TaskData> Tasks = new List <TaskData> () {
+    new TaskData() {
+        TaskId = 1,
+        TaskName = "Project initiation",
+        EndDate = new DateTime(2019, 04, 21),
+        SubTasks = (new List <TaskData> () {
+            new TaskData() {
+                TaskId = 2,
+                TaskName = "Identify Site location",
+                StartDate = new DateTime(2019, 04, 02),
+                EndDate = new DateTime(2019, 04, 02),
+                Duration = "0",
+                Progress = 30,
+                Notes = "Measure the total property area alloted for construction"
+            },
+            new TaskData() {
+                TaskId = 3,
+                TaskName = "Perform soil test",
+                StartDate = new DateTime(2019, 04, 03),
+                EndDate = new DateTime(2019, 04, 08),
+                Duration = "4",
+                Predecessor = "2",
+                Notes = "Obtain an engineered soil test of lot where construction is planned.From an engineer or company specializing in soil testing"
+
+            },
+            new TaskData() {
+                TaskId = 4,
+                TaskName = "Soil test approval",
+                StartDate = new DateTime(2019, 04, 02),
+                EndDate = new DateTime(2019, 04, 06),
+                Duration = "5",
+                Progress = 30,
+                Predecessor = "3"
+            },
+        })
+    },
+    new TaskData() {
+        TaskId = 5,
+        TaskName = "Project estimation",
+        EndDate = new DateTime(2019, 04, 21),
+        SubTasks = (new List <TaskData> () {
+            new TaskData() {
+                TaskId = 6,
+                TaskName = "Develop floor plan for estimation",
+                StartDate = new DateTime(2019, 04, 11),
+                EndDate = new DateTime(2019, 04, 14),
+                Duration = "3",
+                Progress = 30,
+                Predecessor = "4",
+                Notes = "Develop floor plans and obtain a materials list for estimations"
+            },
+            new TaskData() {
+                TaskId = 7,
+                TaskName = "List materials",
+                StartDate = new DateTime(2019, 04, 08),
+                Duration = "3",
+                Predecessor = "6",
+                Notes = ""
+            },
+            new TaskData() {
+                TaskId = 8,
+                TaskName = "Estimation approval",
+                StartDate = new DateTime(2019, 04, 15),
+                EndDate = new DateTime(2019, 04, 18),
+                Duration = "0",
+                Predecessor = "7",
+                Notes = "Labalbaa"
+            }
+        })
+    }
+};
+
+return Tasks;
+}
+
+public static List<AssignmentModel> GetAssignmentCollection()
+{
+    List<AssignmentModel> assignments = new List<AssignmentModel>()
+    {
+        // Task 2 has ResourceId 1
+        new AssignmentModel(){ PrimaryId = 1, TaskId = 2, ResourceId = 1 },
+
+        // Task 3 has ResourceId 2 and 3
+        new AssignmentModel(){ PrimaryId = 2, TaskId = 3, ResourceId = 2 },
+        new AssignmentModel(){ PrimaryId = 3, TaskId = 3, ResourceId = 3 },
+
+        // Task 6 has ResourceId 4
+        new AssignmentModel(){ PrimaryId = 4, TaskId = 6, ResourceId = 4 },
+
+        // Task 8 has ResourceId 1 and 5
+        new AssignmentModel(){ PrimaryId = 5, TaskId = 8, ResourceId = 1 },
+        new AssignmentModel(){ PrimaryId = 6, TaskId = 8, ResourceId = 5 }
+    };
+    return assignments;
+}
+}

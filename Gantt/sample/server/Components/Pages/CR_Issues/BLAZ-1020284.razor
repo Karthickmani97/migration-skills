@@ -1,0 +1,133 @@
+@page "/BLAZ-1020284"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Navigations
+@using System.Collections.ObjectModel
+@using System.ComponentModel
+@using System.Runtime.CompilerServices@using Syncfusion.Blazor.Gantt
+<h3>Syncfusion SfGantt - Segmented Tasks (No Subtasks) • .NET 10 Blazor WebAssembly</h3><p>Each task has 4–6 split segments. Timeline: Top tier = Day, Bottom tier = Hour. Project range = 15 days.</p>
+<SfGantt TValue="TaskData"
+    DataSource="@taskCollection"
+    Height="700px"
+    Width="100%"
+    ProjectStartDate="@projectStart"
+    ProjectEndDate="@projectEnd"
+    DurationUnit="DurationUnit.Hour"
+    EnableRowVirtualization="false">
+    <GanttTaskFields 
+        Id="TaskID"
+        Name="TaskName"
+        StartDate="StartDate"
+        EndDate="EndDate"
+        Progress="Progress">
+     </GanttTaskFields><!-- Correct segmented tasks binding (official way) -->
+     <GanttSegmentFields TValue="TaskData"
+        TSegments="SegmentModel"
+        PrimaryKey="Id"
+        ForeignKey="TaskID"
+        StartDate="SegmentStartDate"
+        EndDate="SegmentEndDate"
+        DataSource="@segmentCollection">
+        </GanttSegmentFields><!-- Timeline Settings -->
+        <GanttTimelineSettings TimelineUnitSize="60">
+            <GanttTopTierSettings Unit="TimelineViewMode.Day" Format="ddd, MMM dd"></GanttTopTierSettings>
+            <GanttBottomTierSettings Unit="TimelineViewMode.Hour" Format="HH:mm"></GanttBottomTierSettings>
+        </GanttTimelineSettings>
+        <GanttDayWorkingTimeCollection>
+            <GanttDayWorkingTime From="0" To="24"></GanttDayWorkingTime>
+        </GanttDayWorkingTimeCollection>
+        <GanttColumns>
+            <GanttColumn Field="TaskID" HeaderText="ID" Width="80" IsPrimaryKey="true"></GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Task Name" Width="280"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Overall Start" Width="170" Format="M/d/yyyy HH:mm"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="Overall End" Width="170" Format="M/d/yyyy HH:mm"></GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress (%)" Width="110"></GanttColumn>
+        </GanttColumns>
+        <GanttEditSettings AllowEditing="true"AllowAdding="true"AllowDeleting="true"AllowTaskbarEditing="true"Mode="Syncfusion.Blazor.Gantt.EditMode.Dialog"></GanttEditSettings>
+    </SfGantt>
+
+@code {
+    private DateTime projectStart = new DateTime(2026, 4, 6, 0, 0, 0);
+    private DateTime projectEnd = new DateTime(2026, 4, 21, 23, 59, 59);
+
+    private List<TaskData> taskCollection = new();
+    private List<SegmentModel> segmentCollection = new();
+
+    protected override void OnInitialized()
+    {
+        taskCollection = GetTaskCollection();
+        segmentCollection = GetSegmentCollection();
+    }
+
+    public class TaskData
+    {
+        public int TaskID { get; set; }
+        public string TaskName { get; set; } = string.Empty;
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public int Progress { get; set; }
+    }
+
+    public class SegmentModel
+    {
+        public int Id { get; set; }
+        public int TaskID { get; set; }
+        public DateTime SegmentStartDate { get; set; }
+        public DateTime SegmentEndDate { get; set; }
+    }
+
+    private List<TaskData> GetTaskCollection()
+    {
+        return new List<TaskData>
+        {
+            new TaskData { TaskID = 1, TaskName = "UI Wireframing",      StartDate = new DateTime(2026, 4, 6, 9, 20, 0), EndDate = new DateTime(2026, 4, 14, 19, 0, 0), Progress = 75 },
+            new TaskData { TaskID = 2, TaskName = "Backend API Design",   StartDate = new DateTime(2026, 4, 6, 13, 0, 0), EndDate = new DateTime(2026, 4, 15, 15, 0, 0), Progress = 60 },
+            new TaskData { TaskID = 3, TaskName = "Database Schema",      StartDate = new DateTime(2026, 4, 7, 7, 0, 0),  EndDate = new DateTime(2026, 4, 13, 18, 0, 0), Progress = 90 },
+            new TaskData { TaskID = 4, TaskName = "Authentication Module", StartDate = new DateTime(2026, 4, 8, 8, 0, 0),  EndDate = new DateTime(2026, 4, 16, 17, 0, 0), Progress = 40 },
+            new TaskData { TaskID = 5, TaskName = "Testing & QA",         StartDate = new DateTime(2026, 4, 11, 8, 0, 0), EndDate = new DateTime(2026, 4, 18, 18, 0, 0), Progress = 30 }
+        };
+    }
+
+    private List<SegmentModel> GetSegmentCollection()
+    {
+        var segments = new List<SegmentModel>();
+
+        // Task 1 – First segment exactly as you requested (8:00 AM Apr 6 → 7:00 AM Apr 7)
+        segments.Add(new SegmentModel { Id = 1, TaskID = 1, SegmentStartDate = new DateTime(2026, 4, 6, 9, 20, 0), SegmentEndDate = new DateTime(2026, 4, 7, 7, 30, 0) });
+        segments.Add(new SegmentModel { Id = 2, TaskID = 1, SegmentStartDate = new DateTime(2026, 4, 8, 10, 0, 0), SegmentEndDate = new DateTime(2026, 4, 8, 15, 0, 0) });
+        segments.Add(new SegmentModel { Id = 3, TaskID = 1, SegmentStartDate = new DateTime(2026, 4, 10, 9, 0, 0), SegmentEndDate = new DateTime(2026, 4, 10, 17, 0, 0) });
+        segments.Add(new SegmentModel { Id = 4, TaskID = 1, SegmentStartDate = new DateTime(2026, 4, 12, 8, 0, 0), SegmentEndDate = new DateTime(2026, 4, 12, 12, 0, 0) });
+        segments.Add(new SegmentModel { Id = 5, TaskID = 1, SegmentStartDate = new DateTime(2026, 4, 14, 14, 0, 0), SegmentEndDate = new DateTime(2026, 4, 14, 18, 0, 0) });
+
+        // Task 2 – 4 segments
+        segments.Add(new SegmentModel { Id = 6, TaskID = 2, SegmentStartDate = new DateTime(2026, 4, 6, 14, 0, 0), SegmentEndDate = new DateTime(2026, 4, 6, 18, 0, 0) });
+        segments.Add(new SegmentModel { Id = 7, TaskID = 2, SegmentStartDate = new DateTime(2026, 4, 8, 9, 0, 0), SegmentEndDate = new DateTime(2026, 4, 8, 16, 0, 0) });
+        segments.Add(new SegmentModel { Id = 8, TaskID = 2, SegmentStartDate = new DateTime(2026, 4, 10, 11, 0, 0), SegmentEndDate = new DateTime(2026, 4, 10, 15, 0, 0) });
+        segments.Add(new SegmentModel { Id = 9, TaskID = 2, SegmentStartDate = new DateTime(2026, 4, 15, 8, 0, 0), SegmentEndDate = new DateTime(2026, 4, 15, 14, 0, 0) });
+
+        // Task 3 – 6 segments
+        segments.Add(new SegmentModel { Id = 10, TaskID = 3, SegmentStartDate = new DateTime(2026, 4, 7, 8, 0, 0), SegmentEndDate = new DateTime(2026, 4, 7, 12, 0, 0) });
+        segments.Add(new SegmentModel { Id = 11, TaskID = 3, SegmentStartDate = new DateTime(2026, 4, 7, 13, 30, 0), SegmentEndDate = new DateTime(2026, 4, 7, 17, 0, 0) });
+        segments.Add(new SegmentModel { Id = 12, TaskID = 3, SegmentStartDate = new DateTime(2026, 4, 8, 10, 0, 0), SegmentEndDate = new DateTime(2026, 4, 8, 13, 0, 0) });
+        segments.Add(new SegmentModel { Id = 13, TaskID = 3, SegmentStartDate = new DateTime(2026, 4, 9, 14, 0, 0), SegmentEndDate = new DateTime(2026, 4, 9, 18, 0, 0) });
+        segments.Add(new SegmentModel { Id = 14, TaskID = 3, SegmentStartDate = new DateTime(2026, 4, 12, 9, 0, 0), SegmentEndDate = new DateTime(2026, 4, 12, 11, 30, 0) });
+        segments.Add(new SegmentModel { Id = 15, TaskID = 3, SegmentStartDate = new DateTime(2026, 4, 13, 15, 0, 0), SegmentEndDate = new DateTime(2026, 4, 13, 17, 0, 0) });
+
+        // Task 4 – 4 segments
+        segments.Add(new SegmentModel { Id = 16, TaskID = 4, SegmentStartDate = new DateTime(2026, 4, 8, 9, 0, 0), SegmentEndDate = new DateTime(2026, 4, 8, 17, 0, 0) });
+        segments.Add(new SegmentModel { Id = 17, TaskID = 4, SegmentStartDate = new DateTime(2026, 4, 10, 10, 0, 0), SegmentEndDate = new DateTime(2026, 4, 10, 14, 0, 0) });
+        segments.Add(new SegmentModel { Id = 18, TaskID = 4, SegmentStartDate = new DateTime(2026, 4, 14, 11, 0, 0), SegmentEndDate = new DateTime(2026, 4, 14, 16, 0, 0) });
+        segments.Add(new SegmentModel { Id = 19, TaskID = 4, SegmentStartDate = new DateTime(2026, 4, 16, 8, 0, 0), SegmentEndDate = new DateTime(2026, 4, 16, 12, 0, 0) });
+
+        // Task 5 – 5 segments
+        segments.Add(new SegmentModel { Id = 20, TaskID = 5, SegmentStartDate = new DateTime(2026, 4, 11, 9, 0, 0), SegmentEndDate = new DateTime(2026, 4, 11, 13, 0, 0) });
+        segments.Add(new SegmentModel { Id = 21, TaskID = 5, SegmentStartDate = new DateTime(2026, 4, 12, 14, 0, 0), SegmentEndDate = new DateTime(2026, 4, 12, 18, 0, 0) });
+        segments.Add(new SegmentModel { Id = 22, TaskID = 5, SegmentStartDate = new DateTime(2026, 4, 15, 10, 0, 0), SegmentEndDate = new DateTime(2026, 4, 15, 15, 0, 0) });
+        segments.Add(new SegmentModel { Id = 23, TaskID = 5, SegmentStartDate = new DateTime(2026, 4, 17, 8, 0, 0), SegmentEndDate = new DateTime(2026, 4, 17, 11, 30, 0) });
+        segments.Add(new SegmentModel { Id = 24, TaskID = 5, SegmentStartDate = new DateTime(2026, 4, 18, 13, 0, 0), SegmentEndDate = new DateTime(2026, 4, 18, 17, 0, 0) });
+
+        return segments;
+    }
+}

@@ -1,0 +1,420 @@
+﻿@page "/gantt-hierarchy-custom-validator"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Calendars
+@using System.ComponentModel.DataAnnotations;
+@using ColumnValidationComponents
+
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt EnableContextMenu="true" RenderBaseline="true" TValue="GanttData.TaskData" AllowSorting="true" AllowFiltering="true" DataSource="@TaskCollection" Height="450px" Width="1400px" HighlightWeekends="true"
+                     Toolbar="@(new List<string>(){ "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll","Indent","Outdent"})"
+                     AllowSelection="true" TreeColumnIndex="1">
+
+                <GanttTaskFields Id="TaskId" Name="ActivityName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                                 Dependency="Predecessor" BaselineEndDate="BaselineEndDate" BaselineStartDate="BaselineStartDate" Notes="Notes" Child="SubTasks"
+                                 TaskType="TaskType" Work="Work"></GanttTaskFields>
+
+                <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true">
+                    <Validator>
+                        @{
+                            ValidatorTemplateContext txt = context as ValidatorTemplateContext;
+                        }
+                        <GanttCustomValidator context="@txt"></GanttCustomValidator>
+                    </Validator>
+                </GanttEditSettings>
+                <GanttColumns>
+                    <GanttColumn Field="TaskId" HeaderText="Task ID" IsPrimaryKey="true" Width="80"
+                                 TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+                    </GanttColumn>
+
+                    <GanttColumn Field="ActivityName" HeaderText="Task Name" Width="160" />
+
+                    <GanttColumn Field="Duration" HeaderText="Duration" Width="100"
+                                 TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+                    </GanttColumn>
+
+                    <GanttColumn Field="Predecessor" HeaderText="Dependency" Width="100"
+                                 TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+                    </GanttColumn>
+
+                    <GanttColumn Field="Progress" HeaderText="Progress" Width="100"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.NumericEdit"
+                                 TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right">
+                    </GanttColumn>
+
+                    <GanttColumn Field="Email" HeaderText="Email" Width="200"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DefaultEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="StartDate" HeaderText="Start Date" Width="150" Format="d"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="EndDate" HeaderText="End Date" Width="150" Format="g"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="Work" HeaderText="Work">
+                    </GanttColumn>
+
+                    <GanttColumn Field="BaselineStartDate" HeaderText="Baseline Start" Width="150" Format="d"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit" />
+
+                    <GanttColumn Field="BaselineEndDate" HeaderText="Baseline End" Width="150" Format="d"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit" />
+
+                    <GanttColumn Field="Username" HeaderText="Username" Width="150"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DefaultEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="Password" HeaderText="Password" Width="150"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DefaultEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="Website" HeaderText="Website" Width="200"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DefaultEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="CustomData" HeaderText="Custom Data (String)" Width="200"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DefaultEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="Notes" HeaderText="Notes" />
+
+                    <GanttColumn Field="TaskType" HeaderText="Task Type" Width="120"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DropDownEdit">
+                    </GanttColumn>
+
+                    <GanttColumn Field="ProjectBudget" HeaderText="Project Budget" Width="150"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.NumericEdit" Format="C2" />
+
+                    <GanttColumn Field="ReviewDate" HeaderText="Review Date" Width="150" Format="d"
+                                 EditType="Syncfusion.Blazor.Grids.EditType.DateTimePickerEdit" />
+                </GanttColumns>
+                <GanttLabelSettings LeftLabel="ActivityName" TValue="GanttData.TaskData">
+                </GanttLabelSettings>
+                <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="GanttData.TaskData" TSegments="SegmentModel" DataSource="SegmentCollection"></GanttSegmentFields>
+                <GanttSplitterSettings Position="40%"> </GanttSplitterSettings>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+<style>
+    html, body {
+        height: 100%;
+    }
+</style>
+@code {
+    private DateTime ProjectStart = new DateTime(2021, 3, 25);
+    private DateTime ProjectEnd = new DateTime(2021, 7, 28);
+    private List<GanttData.TaskData> TaskCollection { get; set; }
+    private List<SegmentModel> SegmentCollection { get; set; } = new List<SegmentModel>();
+
+    protected override void OnInitialized()
+    {
+        SegmentCollection = GanttData.GetSegmentCollection();
+        this.TaskCollection = GetTaskCollection().ToList();
+    }
+    public static List<GanttData.TaskData> GetTaskCollection()
+    {
+        List<GanttData.TaskData> Tasks = new List<GanttData.TaskData>() {
+        new GanttData.TaskData() {
+            TaskId = 1,
+            ActivityName = "Product concept",
+            StartDate = new DateTime(2021, 04, 02),
+            EndDate = new DateTime(2021, 04, 08),
+            Duration = 5,
+            Progress = 60,
+            Email = "concept@example.com",
+            Username = "product_concept",
+            Password = "PassWord123",
+            Website = "https://concept.example.com",
+            CustomData = "Initial Brainstorm",
+            TaskType = "FixedWork",
+            BaselineStartDate = new DateTime(2021, 03, 29),
+            BaselineEndDate = new DateTime(2021, 04, 04),
+            Work = 40,
+            ProjectBudget = 10000,
+            ReviewDate = new DateTime(2021, 04, 07),
+            Notes = "Initial phase of the product development.",
+            SubTasks = (new List<GanttData.TaskData>() {
+                new GanttData.TaskData() {
+                    TaskId = 2,
+                    ActivityName = "Defining the product usage",
+                    StartDate = new DateTime(2021, 04, 02),
+                    EndDate = new DateTime(2021, 04, 08),
+                    Duration = 3,
+                    Progress = 70,
+                    TaskType = "FixedUnit",
+                    BaselineStartDate = new DateTime(2021, 03, 30),
+                    BaselineEndDate = new DateTime(2021, 04, 05),
+                    Work = 24,
+                    ProjectBudget = 5000,
+                    ReviewDate = new DateTime(2021, 04, 06),
+                },
+                new GanttData.TaskData() {
+                    TaskId = 3,
+                    ActivityName = "Defining the target audience",
+                    StartDate = new DateTime(2021, 04, 02),
+                    EndDate = new DateTime(2021, 04, 04),
+                    Duration = 3,
+                    Progress = 80,
+                    Email = "audience@example.com",
+                    Username = "target_audience",
+                    Password = "PassWord123",
+                    Website = "https://audience.example.com",
+                    CustomData = "Market Research",
+                    TaskType = "FixedWork",
+                    BaselineStartDate = new DateTime(2021, 03, 30),
+                    BaselineEndDate = new DateTime(2021, 04, 02),
+                    Work = 20,
+                    ProjectBudget = 7500,
+                    ReviewDate = new DateTime(2021, 04, 03),
+                    Notes = "Identifying the primary users for the product."
+                },
+                new GanttData.TaskData() {
+                    TaskId = 4,
+                    ActivityName = "Prepare product sketch and notes",
+                    StartDate = new DateTime(2021, 04, 05),
+                    EndDate = new DateTime(2021, 04, 08),
+                    Duration = 2,
+                    Progress = 90,
+                    Predecessor = "2",
+                    Email = "sketch@example.com",
+                    Username = "product_sketch",
+                    Password = "PassWord123",
+                    Website = "https://sketch.example.com",
+                    CustomData = "Initial Designs",
+                    TaskType = "FixedDuration",
+                    BaselineStartDate = new DateTime(2021, 04, 03),
+                    BaselineEndDate = new DateTime(2021, 04, 06),
+                    Work = 16,
+                    ProjectBudget = 3000,
+                    ReviewDate = new DateTime(2021, 04, 07),
+                    Notes = "Drafting preliminary visual representations of the product."
+                },
+                new GanttData.TaskData() {
+                    TaskId = 5,
+                    ActivityName = "Concept approval",
+                    StartDate = new DateTime(2021, 04, 08),
+                    EndDate = new DateTime(2021, 04, 08),
+                    Duration = 0,
+                    Progress = 100,
+                    Predecessor = "3,4",
+                    Email = "approval@example.com",
+                    Username = "concept_approval",
+                    Password = "PassWord123",
+                    Website = "https://approval.example.com",
+                    CustomData = "Stakeholder Review",
+                    TaskType = "FixedWork",
+                    BaselineStartDate = new DateTime(2021, 04, 06),
+                    BaselineEndDate = new DateTime(2021, 04, 06),
+                    Work = 8,
+                    ProjectBudget = 1000,
+                    ReviewDate = new DateTime(2021, 04, 08),
+                    Notes = "Official sign-off on the product concept."
+                },
+            })
+        },
+        new GanttData.TaskData() {
+            TaskId = 6,
+            ActivityName = "Market research",
+            StartDate = new DateTime(2021, 04, 09),
+            EndDate = new DateTime(2021, 04, 18),
+            Duration = 4,
+            Progress = 30,
+            Email = "research@example.com",
+            Username = "market_research",
+            Password = "PassWord123",
+            Website = "https://research.example.com",
+            CustomData = "Market Analysis",
+            TaskType = "FixedDuration",
+            BaselineStartDate = new DateTime(2021, 04, 06),
+            BaselineEndDate = new DateTime(2021, 04, 15),
+            Work = 32,
+            ProjectBudget = 15000,
+            ReviewDate = new DateTime(2021, 04, 12),
+            Notes = "Comprehensive analysis of market trends and conditions.",
+            SubTasks = (new List<GanttData.TaskData>() {
+                new GanttData.TaskData() {
+                    TaskId = 7,
+                    ActivityName = "Demand analysis",
+                    StartDate = new DateTime(2021, 04, 09),
+                    EndDate = new DateTime(2021, 04, 12),
+                    Duration = 4,
+                    Progress = 40,
+                    Email = "demand@example.com",
+                    Username = "demand_analysis",
+                    Password = "PassWord123",
+                    Website = "https://demand.example.com",
+                    CustomData = "Consumer insights",
+                    TaskType = "FixedWork",
+                    BaselineStartDate = new DateTime(2021, 04, 07),
+                    BaselineEndDate = new DateTime(2021, 04, 10),
+                    Work = 28,
+                    ProjectBudget = 8000,
+                    ReviewDate = new DateTime(2021, 04, 11),
+                    Notes = "Analyzing market demand for the product.",
+                    SubTasks = (new List<GanttData.TaskData>() {
+                        new GanttData.TaskData() {
+                            TaskId = 8,
+                            ActivityName = "Customer strength",
+                            StartDate = new DateTime(2021, 04, 09),
+                            EndDate = new DateTime(2021, 04, 12),
+                            Duration = 4,
+                            Progress = 30,
+                            Predecessor = "5",
+                            Email = "strength@example.com",
+                            Username = "cust_strength",
+                            Password = "PassWord123",
+                            Website = "https://strength.example.com",
+                            CustomData = "Customer metrics",
+                            TaskType = "FixedUnit",
+                            BaselineStartDate = new DateTime(2021, 04, 07),
+                            BaselineEndDate = new DateTime(2021, 04, 10),
+                            Work = 24,
+                            ProjectBudget = 6000,
+                            ReviewDate = new DateTime(2021, 04, 11),
+                            Notes = "Assessment of existing and potential customer base."
+                        },
+                        new GanttData.TaskData() {
+                            TaskId = 9,
+                            ActivityName = "Market opportunity analysis",
+                            StartDate = new DateTime(2021, 04, 09),
+                            EndDate = new DateTime(2021, 04, 12),
+                            Duration = 4,
+                            Predecessor = "5",
+                            Email = "opportunity@example.com",
+                            Username = "market_opp",
+                            Password = "PassWord123",
+                            Website = "https://opportunity.example.com",
+                            CustomData = "Growth areas",
+                            TaskType = "FixedWork",
+                            BaselineStartDate = new DateTime(2021, 04, 07),
+                            BaselineEndDate = new DateTime(2021, 04, 10),
+                            Work = 28,
+                            ProjectBudget = 7000,
+                            ReviewDate = new DateTime(2021, 04, 11),
+                            Notes = "Identifying untapped market segments and opportunities."
+                        },
+                    })
+                },
+                new GanttData.TaskData() {
+                    TaskId = 10,
+                    ActivityName = "Competitor analysis",
+                    StartDate = new DateTime(2021, 04, 15),
+                    EndDate = new DateTime(2021, 04, 18),
+                    Duration = 4,
+                    Progress = 30,
+                    Predecessor = "7,8",
+                    Email = "competitor@example.com",
+                    Username = "competitor_analysis",
+                    Password = "PassWord123",
+                    Website = "https://competitor.example.com",
+                    CustomData = "Competitor strategies",
+                    TaskType = "FixedDuration",
+                    BaselineStartDate = new DateTime(2021, 04, 12),
+                    BaselineEndDate = new DateTime(2021, 04, 15),
+                    Work = 32,
+                    ProjectBudget = 9000,
+                    ReviewDate = new DateTime(2021, 04, 17),
+                    Notes = "Evaluating strategies and performance of competitors."
+                },
+                new GanttData.TaskData() {
+                    TaskId = 11,
+                    ActivityName = "Product strength analysis",
+                    StartDate = new DateTime(2021, 04, 15),
+                    EndDate = new DateTime(2021, 04, 18),
+                    Duration = 4,
+                    Progress = 40,
+                    Predecessor = "9",
+                    Email = "strength_prod@example.com",
+                    Username = "prod_strength",
+                    Password = "PassWord123",
+                    Website = "https://prodstrength.example.com",
+                    CustomData = "Product advantages",
+                    TaskType = "FixedWork",
+                    BaselineStartDate = new DateTime(2021, 04, 12),
+                    BaselineEndDate = new DateTime(2021, 04, 15),
+                    Work = 28,
+                    ProjectBudget = 7000,
+                    ReviewDate = new DateTime(2021, 04, 17),
+                    Notes = "Assessing the unique selling propositions of the product."
+                },
+                new GanttData.TaskData() {
+                    TaskId = 12,
+                    ActivityName = "Research completed",
+                    StartDate = new DateTime(2021, 04, 18),
+                    EndDate = new DateTime(2021, 04, 18),
+                    Duration = 0,
+                    Progress = 30,
+                    Predecessor = "10",
+                    Email = "research_done@example.com",
+                    Username = "research_completed",
+                    Password = "PassWord123",
+                    Website = "https://researchdone.example.com",
+                    CustomData = "Final research report",
+                    TaskType = "FixedUnit",
+                    BaselineStartDate = new DateTime(2021, 04, 16),
+                    BaselineEndDate = new DateTime(2021, 04, 16),
+                    Work = 8,
+                    ProjectBudget = 500,
+                    ReviewDate = new DateTime(2021, 04, 18),
+                    Notes = "Marker for the completion of all research activities."
+                },
+            })
+        },
+        new GanttData.TaskData() {
+            TaskId = 13,
+            ActivityName = "Product design and development",
+            StartDate = new DateTime(2021, 04, 19),
+            EndDate = new DateTime(2021, 05, 16),
+            Duration = 20,
+            Predecessor = "6",
+            Email = "design_dev@example.com",
+            Username = "design_dev",
+            Password = "PassWord123",
+            Website = "https://designdev.example.com",
+            CustomData = "Development phase started",
+            TaskType = "FixedWork",
+            BaselineStartDate = new DateTime(2021, 04, 16),
+            BaselineEndDate = new DateTime(2021, 05, 13),
+            Work = 160,
+            ProjectBudget = 50000,
+            ReviewDate = new DateTime(2021, 04, 25),
+            Notes = "Core phase for product creation and implementation.",
+            SubTasks = (new List<GanttData.TaskData>() {
+                new GanttData.TaskData() {
+                    TaskId = 14,
+                    ActivityName = "Functionality design",
+                    StartDate = new DateTime(2021, 04, 19),
+                    EndDate = new DateTime(2021, 04, 23),
+                    Duration = 3,
+                    Progress = 30,
+                    Predecessor = "12",
+                    Email = "func_design@example.com",
+                    Username = "func_design",
+                    Password = "PassWord123",
+                    Website = "https://funcdesign.example.com",
+                    CustomData = "Feature specification",
+                    TaskType = "FixedDuration",
+                    BaselineStartDate = new DateTime(2021, 04, 17),
+                    BaselineEndDate = new DateTime(2021, 04, 21),
+                    Work = 24,
+                    ProjectBudget = 12000,
+                    ReviewDate = new DateTime(2021, 04, 22),
+                    Notes = "Detailed design of product features and behaviors."
+                },
+            })
+        }
+    };
+        return Tasks;
+    }
+}
+

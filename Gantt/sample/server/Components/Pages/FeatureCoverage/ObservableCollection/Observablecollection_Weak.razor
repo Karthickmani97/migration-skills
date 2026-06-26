@@ -1,0 +1,360 @@
+@page "/ObservableCollection_Weak"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Navigations
+@using System.Collections.ObjectModel
+@using System.ComponentModel
+@using System.Runtime.CompilerServices
+<div>@messsage</div>
+<SfButton OnClick="() => TaskCollection = GetTaskCollection()">Get Tasks</SfButton>
+<SfButton OnClick="CustomIndent">Indent Task</SfButton>
+<SfButton OnClick="CustomOutdent">Outdent Task</SfButton>
+<SfButton OnClick="CustomAdd">Add below</SfButton>
+<SfButton OnClick="CustomDescEdit">Edit Desc</SfButton>
+<SfButton OnClick="ClearPredecessors">Clear Predecessors</SfButton>
+@if (IsGanttVisible)
+{
+    <SfGantt @ref="Gantt" class="gantt" ID="ScheduleBuilder" DataSource="@TaskCollection" Height="500px" Width="100%" TreeColumnIndex="0" EnableRowVirtualization
+             CopyHierarchyMode="Syncfusion.Blazor.TreeGrid.CopyHierarchyType.None"
+             AllowFiltering="true" AllowReordering="true" AllowResizing="true" AllowRowDragAndDrop="true"  Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll","Indent", "Outdent","CollapseAll","ZoomIn","ZoomOut","ZoomToFit" })" AllowSorting="true"
+             ShowColumnMenu="true" ShowColumnChooser="true" ScrollToTaskbarOnClick ColumnMenuItems="@ColumnMenuItems" EnableContextMenu="true">
+        <GanttColumns>
+            <GanttColumn Field="TaskID" HeaderText="ID" Width="120">
+                <Template>
+                    @{
+                        var data = context as TaskData;
+                    }
+                    <span>@($"#{data?.TaskID}")</span>
+                </Template>
+            </GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Task Name" Width="250"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date" Format="yyyy-MM-dd" Width="150"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date" Format="yyyy-MM-dd" Width="150"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration" Width="80"></GanttColumn>
+
+        </GanttColumns>
+        <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Work="Work" TaskType="TaskType" Dependency="Predecessor" Manual="IsManual" ExpandState="IsExpanded" Notes="Notes">
+        </GanttTaskFields>
+        <GanttFilterSettings></GanttFilterSettings>
+        <GanttTooltipSettings TValue="TaskData" ShowTooltipOnEditing="false"></GanttTooltipSettings>
+        <GanttEditSettings AllowSchedulingOnDrag="@true" AllowAdding="@true" AllowDeleting="false" AllowEditing="@true" AllowTaskbarEditing="@true" ShowDeleteConfirmDialog="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Auto">
+        </GanttEditSettings>
+        <GanttSplitterSettings Position="35%"> </GanttSplitterSettings>
+        <GanttEvents TValue="TaskData" ContextMenuOpen="() => { }" RowSelected="OnRowSelected" DataBound="DataBoundEvent" OnActionFailure="ActionFailureHandler"></GanttEvents>
+        <GanttSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Both" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple" AllowDragSelection EnableToggle />
+    </SfGantt>
+
+
+}
+@code {
+    public int SelectedRowIndex { get; set; } = -1;
+    public string messsage{ get; set; }
+    public bool IsGanttVisible { get; set; } = true;
+    public SfGantt<TaskData> Gantt;
+    public int scrollIndex = 0;
+    public bool dataReassign = false;
+    public string[] ColumnMenuItems = new string[] { "AutoFitAll", "AutoFit", "SortAscending", "SortDescending", "Filter", "ColumnChooser" };
+
+
+    private ObservableCollection<TaskData> TaskCollection { get; set; }
+
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    public void ActionFailureHandler(object args)
+    {
+       try
+       {
+           messsage += " OnAction failure Event triggered: " + (args?.ToString() ?? "(no details)");
+       }
+       catch
+       {
+           messsage += " OnAction failure Event triggered (error reading args)";
+       }
+    }
+
+    public class TaskData : INotifyPropertyChanged
+    {
+        private int _taskID;
+        private string _taskName = string.Empty;
+        private DateTime _startDate;
+        private DateTime? _endDate;
+        private string _duration = string.Empty;
+        private int _progress;
+        private int? _parentId;
+        private string? _predecessor;
+        private bool _isManual;
+        private bool _isExpanded = true;
+        private double? _work;
+        private string? _taskType;
+        private string? _notes;
+
+        public int TaskID
+        {
+            get => _taskID;
+            set => SetProperty(ref _taskID, value);
+        }
+
+        public string TaskName
+        {
+            get => _taskName;
+            set => SetProperty(ref _taskName, value);
+        }
+
+        public DateTime StartDate
+        {
+            get => _startDate;
+            set => SetProperty(ref _startDate, value);
+        }
+
+        public DateTime? EndDate
+        {
+            get => _endDate;
+            set => SetProperty(ref _endDate, value);
+        }
+
+        public string Duration
+        {
+            get => _duration;
+            set => SetProperty(ref _duration, value);
+        }
+
+        public int Progress
+        {
+            get => _progress;
+            set => SetProperty(ref _progress, value);
+        }
+
+        public int? ParentId
+        {
+            get => _parentId;
+            set => SetProperty(ref _parentId, value);
+        }
+
+        public string? Predecessor
+        {
+            get => _predecessor;
+            set => SetProperty(ref _predecessor, value);
+        }
+
+        public bool IsManual
+        {
+            get => _isManual;
+            set => SetProperty(ref _isManual, value);
+        }
+
+        public bool IsExpanded
+        {
+            get => _isExpanded;
+            set => SetProperty(ref _isExpanded, value);
+        }
+
+        public double? Work
+        {
+            get => _work;
+            set => SetProperty(ref _work, value);
+        }
+
+        public string? TaskType
+        {
+            get => _taskType;
+            set => SetProperty(ref _taskType, value);
+        }
+
+        public string? Notes
+        {
+            get => _notes;
+            set => SetProperty(ref _notes, value);
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        /// <summary>
+        /// Sets the field to the provided value and raises PropertyChanged if the value changed.
+        /// Returns true if the value was changed; otherwise false.
+        /// </summary>
+        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+    }
+
+    public void OnRowSelected(RowSelectEventArgs<TaskData> args)
+    {
+        SelectedRowIndex = args.RowIndex;
+    }
+
+    public void CustomDescEdit()
+    {
+        var task = TaskCollection.FirstOrDefault();
+
+        if (task != null)
+        {
+            task.TaskName = $"Task {task.TaskID}";
+        }
+
+    }
+    public async Task ClearPredecessors()
+    {
+        if (SelectedRowIndex < 0 || SelectedRowIndex >= TaskCollection.Count)
+        {
+            return;
+        }
+
+        var task = TaskCollection[SelectedRowIndex];
+        // task.TaskName = "updated";
+        task.Predecessor = string.Empty;
+        // await Gantt.UpdateRecordByIDAsync(task);
+    }
+
+    public void CustomAdd()
+    {
+        var selectedTask = TaskCollection[SelectedRowIndex];
+        var newTask = new TaskData() { TaskID = TaskCollection.Select(o => o.TaskID).Max() + 1, TaskName = "Estimation approval", StartDate = new DateTime(2024, 04, 26), Duration = "1", EndDate = new DateTime(2024, 04, 27), Progress = 30, ParentId = selectedTask.ParentId };
+        if (SelectedRowIndex >= TaskCollection.Count - 1)
+        {
+            TaskCollection.Add(newTask);
+        }
+        else
+        {
+            TaskCollection.Insert(SelectedRowIndex + 1, newTask);
+        }
+        // this.scrollIndex = SelectedRowIndex;
+        // this.dataReassign = true;
+    }
+
+    public async Task DataBoundEvent()
+    {
+        if (this.dataReassign)
+        {
+            this.Gantt.ScrollIntoViewAsync(0, this.scrollIndex);
+            this.dataReassign = false;
+        }
+    }
+
+    public void CustomIndent()
+    {
+        if (SelectedRowIndex - 1 < 0 || SelectedRowIndex >= TaskCollection.Count)
+        {
+            return;
+        }
+
+        TaskCollection[SelectedRowIndex].ParentId = TaskCollection[SelectedRowIndex - 1].TaskID;
+    }
+
+    public void CustomOutdent()
+    {
+        if (SelectedRowIndex < 0 || SelectedRowIndex >= TaskCollection.Count)
+        {
+            return;
+        }
+
+        TaskCollection[SelectedRowIndex].ParentId = TaskCollection.FirstOrDefault(o => o.TaskID == TaskCollection[SelectedRowIndex].ParentId)?.ParentId;
+
+    }
+    public static ObservableCollection<TaskData> GetTaskCollection()
+    {
+        ObservableCollection<TaskData> Tasks = new ObservableCollection<TaskData>()
+    {
+        // === Phase 1: Initiation ===
+        new TaskData() { TaskID = 1, TaskName = "Project initiation", StartDate = new DateTime(2024, 04, 05), EndDate = new DateTime(2024, 04, 07)},
+        new TaskData() { TaskID = 2, TaskName = "Identify site location", StartDate = new DateTime(2024, 04, 05), Duration = "0", Progress = 30, ParentId = 1 },
+        new TaskData() { TaskID = 3, TaskName = "Perform soil test", StartDate = new DateTime(2024, 04, 03), Duration = "4", Progress = 40, ParentId = 1, Predecessor = "2FS"},
+        new TaskData() { TaskID = 4, TaskName = "Soil test approval", StartDate = new DateTime(2024, 04, 07), Duration = "0", Progress = 30, ParentId = 1, Predecessor = "3FS"},
+
+        // === Phase 2: Estimation ===
+        new TaskData() { TaskID = 5, TaskName = "Project estimation", StartDate = new DateTime(2024, 04, 08), EndDate = new DateTime(2024, 04, 21)},
+        new TaskData() { TaskID = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2024, 04, 08), Duration = "3", Progress = 30, ParentId = 5, Predecessor = "4FS"},
+        new TaskData() { TaskID = 7, TaskName = "List materials", StartDate = new DateTime(2024, 04, 11), Duration = "3", Progress = 40, ParentId = 5, Predecessor = "6FS"},
+        new TaskData() { TaskID = 8, TaskName = "Cost calculation", StartDate = new DateTime(2024, 04, 14), Duration = "4", Progress = 30, ParentId = 5, Predecessor = "7FS"},
+        new TaskData() { TaskID = 9, TaskName = "Estimation approval", StartDate = new DateTime(2024, 04, 18), Duration = "1", Progress = 30, ParentId = 5, Predecessor = "8FS"},
+
+        // === Phase 3: Design ===
+        new TaskData() { TaskID = 10, TaskName = "Design phase", StartDate = new DateTime(2024, 04, 22), EndDate = new DateTime(2024, 05, 10)},
+        new TaskData() { TaskID = 11, TaskName = "Architectural design", StartDate = new DateTime(2024, 04, 22), Duration = "5", Progress = 20, ParentId = 10, Predecessor = "9FS"},
+        new TaskData() { TaskID = 12, TaskName = "Structural design", StartDate = new DateTime(2024, 04, 27), Duration = "5", Progress = 20, ParentId = 10, Predecessor = "11FS"},
+        new TaskData() { TaskID = 13, TaskName = "MEP design", StartDate = new DateTime(2024, 05, 02), Duration = "4", Progress = 20, ParentId = 10, Predecessor = "12FS"},
+        new TaskData() { TaskID = 14, TaskName = "Design review", StartDate = new DateTime(2024, 05, 06), Duration = "2", Progress = 10, ParentId = 10, Predecessor = "13FS"},
+        new TaskData() { TaskID = 15, TaskName = "Design sign-off", StartDate = new DateTime(2024, 05, 08), Duration = "0", Progress = 0, ParentId = 10, Predecessor = "14FS"},
+        new TaskData() { TaskID = 16, TaskName = "Permit drawings", StartDate = new DateTime(2024, 05, 08), Duration = "2", Progress = 0, ParentId = 10, Predecessor = "14FS"},
+        new TaskData() { TaskID = 17, TaskName = "Apply for permits", StartDate = new DateTime(2024, 05, 10), Duration = "0", Progress = 0, ParentId = 10, Predecessor = "16FS"},
+        new TaskData() { TaskID = 18, TaskName = "Permit review by authority", StartDate = new DateTime(2024, 05, 10), Duration = "5", Progress = 0, ParentId = 10, Predecessor = "17FS"},
+        new TaskData() { TaskID = 19, TaskName = "Permit approval", StartDate = new DateTime(2024, 05, 15), Duration = "0", Progress = 0, ParentId = 10, Predecessor = "18FS"},
+
+        // === Phase 4: Procurement ===
+        new TaskData() { TaskID = 20, TaskName = "Procurement phase", StartDate = new DateTime(2024, 05, 16), EndDate = new DateTime(2024, 06, 05)},
+        new TaskData() { TaskID = 21, TaskName = "Prepare RFQs", StartDate = new DateTime(2024, 05, 16), Duration = "3", Progress = 0, ParentId = 20, Predecessor = "19FS"},
+        new TaskData() { TaskID = 22, TaskName = "Send RFQs to vendors", StartDate = new DateTime(2024, 05, 19), Duration = "0", Progress = 0, ParentId = 20, Predecessor = "21FS"},
+        new TaskData() { TaskID = 23, TaskName = "Receive quotations", StartDate = new DateTime(2024, 05, 19), Duration = "4", Progress = 0, ParentId = 20, Predecessor = "22FS"},
+        new TaskData() { TaskID = 24, TaskName = "Evaluate quotations", StartDate = new DateTime(2024, 05, 23), Duration = "3", Progress = 0, ParentId = 20, Predecessor = "23FS"},
+        new TaskData() { TaskID = 25, TaskName = "Vendor selection", StartDate = new DateTime(2024, 05, 26), Duration = "1", Progress = 0, ParentId = 20, Predecessor = "24FS"},
+        new TaskData() { TaskID = 26, TaskName = "Negotiate contracts", StartDate = new DateTime(2024, 05, 27), Duration = "3", Progress = 0, ParentId = 20, Predecessor = "25FS"},
+        new TaskData() { TaskID = 27, TaskName = "Issue purchase orders", StartDate = new DateTime(2024, 05, 30), Duration = "0", Progress = 0, ParentId = 20, Predecessor = "26FS"},
+        new TaskData() { TaskID = 28, TaskName = "Materials delivery", StartDate = new DateTime(2024, 05, 30), Duration = "5", Progress = 0, ParentId = 20, Predecessor = "27FS"},
+        new TaskData() { TaskID = 29, TaskName = "Delivery inspection", StartDate = new DateTime(2024, 06, 04), Duration = "1", Progress = 0, ParentId = 20, Predecessor = "28FS"},
+
+        // === Phase 5: Construction ===
+        new TaskData() { TaskID = 30, TaskName = "Construction phase", StartDate = new DateTime(2024, 06, 06), EndDate = new DateTime(2024, 08, 15)},
+        new TaskData() { TaskID = 31, TaskName = "Site mobilization", StartDate = new DateTime(2024, 06, 06), Duration = "2", Progress = 0, ParentId = 30, Predecessor = "29FS"},
+        new TaskData() { TaskID = 32, TaskName = "Temporary utilities setup", StartDate = new DateTime(2024, 06, 08), Duration = "2", Progress = 0, ParentId = 30, Predecessor = "31FS"},
+        new TaskData() { TaskID = 33, TaskName = "Excavation", StartDate = new DateTime(2024, 06, 10), Duration = "5", Progress = 0, ParentId = 30, Predecessor = "32FS"},
+        new TaskData() { TaskID = 34, TaskName = "Foundation formwork", StartDate = new DateTime(2024, 06, 15), Duration = "3", Progress = 0, ParentId = 30, Predecessor = "33FS"},
+        new TaskData() { TaskID = 35, TaskName = "Rebar installation", StartDate = new DateTime(2024, 06, 18), Duration = "3", Progress = 0, ParentId = 30, Predecessor = "34FS"},
+        new TaskData() { TaskID = 36, TaskName = "Pour foundation", StartDate = new DateTime(2024, 06, 21), Duration = "1", Progress = 0, ParentId = 30, Predecessor = "35FS"},
+        new TaskData() { TaskID = 37, TaskName = "Foundation curing", StartDate = new DateTime(2024, 06, 22), Duration = "3", Progress = 0, ParentId = 30, Predecessor = "36FS"},
+        new TaskData() { TaskID = 38, TaskName = "Waterproofing", StartDate = new DateTime(2024, 06, 25), Duration = "2", Progress = 0, ParentId = 30, Predecessor = "37FS"},
+        new TaskData() { TaskID = 39, TaskName = "Backfilling", StartDate = new DateTime(2024, 06, 27), Duration = "2", Progress = 0, ParentId = 30, Predecessor = "38FS"},
+        new TaskData() { TaskID = 40, TaskName = "Ground floor slab", StartDate = new DateTime(2024, 06, 29), Duration = "3", Progress = 0, ParentId = 30, Predecessor = "39FS"},
+        new TaskData() { TaskID = 41, TaskName = "Column erection - Level 1", StartDate = new DateTime(2024, 07, 02), Duration = "3", Progress = 0, ParentId = 30, Predecessor = "40FS"},
+        new TaskData() { TaskID = 42, TaskName = "Beam & slab - Level 1", StartDate = new DateTime(2024, 07, 05), Duration = "3", Progress = 0, ParentId = 30, Predecessor = "41FS"},
+        new TaskData() { TaskID = 43, TaskName = "Column erection - Level 2", StartDate = new DateTime(2024, 07, 08), Duration = "3", Progress = 0, ParentId = 30, Predecessor = "42FS"},
+        new TaskData() { TaskID = 44, TaskName = "Beam & slab - Level 2", StartDate = new DateTime(2024, 07, 11), Duration = "3", Progress = 0, ParentId = 30, Predecessor = "43FS"},
+        new TaskData() { TaskID = 45, TaskName = "Staircase casting", StartDate = new DateTime(2024, 07, 14), Duration = "2", Progress = 0, ParentId = 30, Predecessor = "44FS"},
+        new TaskData() { TaskID = 46, TaskName = "Masonry - External walls", StartDate = new DateTime(2024, 07, 16), Duration = "4", Progress = 0, ParentId = 30, Predecessor = "45FS"},
+        new TaskData() { TaskID = 47, TaskName = "Masonry - Internal walls", StartDate = new DateTime(2024, 07, 20), Duration = "4", Progress = 0, ParentId = 30, Predecessor = "46FS"},
+        new TaskData() { TaskID = 48, TaskName = "Roof structure", StartDate = new DateTime(2024, 07, 24), Duration = "3", Progress = 0, ParentId = 30, Predecessor = "47FS"},
+        new TaskData() { TaskID = 49, TaskName = "Roof covering", StartDate = new DateTime(2024, 07, 27), Duration = "2", Progress = 0, ParentId = 30, Predecessor = "48FS"},
+        new TaskData() { TaskID = 50, TaskName = "External plastering", StartDate = new DateTime(2024, 07, 29), Duration = "3", Progress = 0, ParentId = 30, Predecessor = "49FS"},
+        new TaskData() { TaskID = 51, TaskName = "Internal plastering", StartDate = new DateTime(2024, 08, 01), Duration = "3", Progress = 0, ParentId = 30, Predecessor = "50FS"},
+        new TaskData() { TaskID = 52, TaskName = "Electrical rough-in", StartDate = new DateTime(2024, 08, 04), Duration = "3", Progress = 0, ParentId = 30, Predecessor = "51FS"},
+        new TaskData() { TaskID = 53, TaskName = "Plumbing rough-in", StartDate = new DateTime(2024, 08, 07), Duration = "3", Progress = 0, ParentId = 30, Predecessor = "52FS"},
+        new TaskData() { TaskID = 54, TaskName = "HVAC rough-in", StartDate = new DateTime(2024, 08, 10), Duration = "2", Progress = 0, ParentId = 30, Predecessor = "53FS"},
+        new TaskData() { TaskID = 55, TaskName = "Windows & doors installation", StartDate = new DateTime(2024, 08, 12), Duration = "2", Progress = 0, ParentId = 30, Predecessor = "54FS"},
+        new TaskData() { TaskID = 56, TaskName = "Floor screed", StartDate = new DateTime(2024, 08, 14), Duration = "2", Progress = 0, ParentId = 30, Predecessor = "55FS"},
+        new TaskData() { TaskID = 57, TaskName = "Interior painting - first coat", StartDate = new DateTime(2024, 08, 16), Duration = "2", Progress = 0, ParentId = 30, Predecessor = "56FS"},
+        new TaskData() { TaskID = 58, TaskName = "Ceiling works", StartDate = new DateTime(2024, 08, 18), Duration = "2", Progress = 0, ParentId = 30, Predecessor = "57FS"},
+        new TaskData() { TaskID = 59, TaskName = "Tiling", StartDate = new DateTime(2024, 08, 20), Duration = "3", Progress = 0, ParentId = 30, Predecessor = "58FS"},
+
+        // === Phase 6: Testing & Commissioning ===
+        new TaskData() { TaskID = 60, TaskName = "Testing & commissioning", StartDate = new DateTime(2024, 08, 23), EndDate = new DateTime(2024, 09, 10)},
+        new TaskData() { TaskID = 61, TaskName = "Electrical fixtures & testing", StartDate = new DateTime(2024, 08, 23), Duration = "3", Progress = 0, ParentId = 60, Predecessor = "59FS"},
+        new TaskData() { TaskID = 62, TaskName = "Plumbing fixtures & testing", StartDate = new DateTime(2024, 08, 26), Duration = "3", Progress = 0, ParentId = 60, Predecessor = "61FS"},
+        new TaskData() { TaskID = 63, TaskName = "HVAC balancing", StartDate = new DateTime(2024, 08, 29), Duration = "2", Progress = 0, ParentId = 60, Predecessor = "62FS"},
+        new TaskData() { TaskID = 64, TaskName = "Fire safety testing", StartDate = new DateTime(2024, 08, 31), Duration = "2", Progress = 0, ParentId = 60, Predecessor = "63FS"},
+        new TaskData() { TaskID = 65, TaskName = "Security systems setup", StartDate = new DateTime(2024, 09, 02), Duration = "2", Progress = 0, ParentId = 60, Predecessor = "64FS"},
+        new TaskData() { TaskID = 66, TaskName = "Network & comms setup", StartDate = new DateTime(2024, 09, 04), Duration = "2", Progress = 0, ParentId = 60, Predecessor = "65FS"},
+        new TaskData() { TaskID = 67, TaskName = "Final inspection - internal", StartDate = new DateTime(2024, 09, 06), Duration = "2", Progress = 0, ParentId = 60, Predecessor = "66FS"},
+        new TaskData() { TaskID = 68, TaskName = "Final inspection - authority", StartDate = new DateTime(2024, 09, 08), Duration = "1", Progress = 0, ParentId = 60, Predecessor = "67FS"},
+        new TaskData() { TaskID = 69, TaskName = "Commissioning sign-off", StartDate = new DateTime(2024, 09, 09), Duration = "0", Progress = 0, ParentId = 60, Predecessor = "68FS"},
+
+        // === Phase 7: Handover & Closeout ===
+        new TaskData() { TaskID = 70, TaskName = "Handover & closeout", StartDate = new DateTime(2024, 09, 10), EndDate = new DateTime(2024, 09, 25)},
+        new TaskData() { TaskID = 71, TaskName = "Snag list preparation", StartDate = new DateTime(2024, 09, 10), Duration = "3", Progress = 0, ParentId = 70, Predecessor = "69FS"},
+        new TaskData() { TaskID = 72, TaskName = "Snag rectification", StartDate = new DateTime(2024, 09, 13), Duration = "5", Progress = 0, ParentId = 70, Predecessor = "71FS"},
+        new TaskData() { TaskID = 73, TaskName = "Final cleaning", StartDate = new DateTime(2024, 09, 18), Duration = "2", Progress = 0, ParentId = 70, Predecessor = "72FS"},
+        new TaskData() { TaskID = 74, TaskName = "Client training & manuals", StartDate = new DateTime(2024, 09, 20), Duration = "3", Progress = 0, ParentId = 70, Predecessor = "73FS"},
+        new TaskData() { TaskID = 75, TaskName = "Project closeout & handover", StartDate = new DateTime(2024, 09, 23), Duration = "0", Progress = 0, ParentId = 70, Predecessor = "74FS"}
+    };
+        return Tasks;
+    }
+
+}

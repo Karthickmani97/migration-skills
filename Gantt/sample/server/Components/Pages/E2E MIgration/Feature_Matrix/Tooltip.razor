@@ -1,0 +1,198 @@
+@page "/E2EMigration/tooltip"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.TreeGrid
+@using Syncfusion.Blazor.Navigations
+<div>@message</div>
+<button id="TimelineTooltip" @onclick="TimelineTooltipFalse" > TimelineTooltip </button>
+<button id="LocalTooltip" @onclick="GanttTooltipFalse" >GanttTooltip</button>
+<button id="holidays" @onclick="ChangeHolidays">Change Holidays</button>
+<br>
+<br>
+
+
+<SfGantt @ref="Gantt" ID="GanttTooltip" DataSource="@TaskCollection" RenderBaseline="true" BaselineColor="Red" Height="450px" Width="1400px" ProjectStartDate="@ProjectStart" 
+    ProjectEndDate="@ProjectEnd" >
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" Dependency="Predecessor"
+                     BaselineStartDate="BaselineStartDate" BaselineEndDate="BaselineEndDate" Child="SubTasks"  Indicators="Indicators" Notes="Notes">
+    </GanttTaskFields>
+     <GanttColumns>
+        <GanttColumn Field="TaskId"></GanttColumn>
+        <GanttColumn Field="TaskName" Width="100" ClipMode="ClipMode.EllipsisWithTooltip"></GanttColumn>
+        <GanttColumn Field="StartDate"></GanttColumn>
+        <GanttColumn Field="Duration" ClipMode="ClipMode.Clip"></GanttColumn>
+        <GanttColumn Field="Progress"></GanttColumn>
+        <GanttColumn Field="Notes"></GanttColumn>
+    </GanttColumns>
+    <GanttEditSettings AllowEditing="true" AllowAdding="true" AllowDeleting="true"></GanttEditSettings>
+    <GanttEventMarkers>
+                    <GanttEventMarker Day="@Event1" Label="Research phase"
+                                      CssClass="e-custom-event-marker"></GanttEventMarker>
+                    <GanttEventMarker Day="@Event2" Label="Design phase"
+                                      CssClass="e-custom-event-marker"></GanttEventMarker>
+        </GanttEventMarkers>
+
+    <GanttHolidays>
+        @foreach (var (start, end) in holidayDates)
+        {
+            <GanttHoliday From="start" To="end" Label="Holiday"/>
+        }
+    </GanttHolidays>
+
+    <GanttSplitterSettings Position="30%"></GanttSplitterSettings>
+     <GanttEvents TValue="TaskData" Created="Created" OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+
+@code{
+    public SfGantt<TaskData> Gantt;
+    public List<TaskData> TaskCollection { get; set; }
+    public string message{ get; set; }
+    private List<(DateTime Start, DateTime End)> holidayDates = new();
+    
+    public DateTime Event1 = new DateTime(2019, 03, 30);
+    public DateTime Event2 = new DateTime(2019, 04, 30);
+    public DateTime ProjectStart = new DateTime(2019, 3, 27);
+    public DateTime ProjectEnd = new DateTime(2019, 7, 6);
+    
+    //Dynamic False Tooltips
+     private Task ChangeHolidays()
+    {
+        //Clear collection.
+        holidayDates.Clear();
+
+        //Uncomment to add new items to the collection.
+        holidayDates.Add((new DateTime(2019, 04, 07), new DateTime(2019, 04, 08)));
+        holidayDates.Add((new DateTime(2019, 04, 14), new DateTime(2019, 04, 16)));
+
+        //Calling RefreshAsync has no effect.
+        //return Gantt.RefreshAsync();
+
+        return Task.CompletedTask;
+    }
+
+     public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       message += " OnAction failure Event triggered";
+    }
+
+    public async Task TimelineTooltipFalse()
+    {   
+        this.Gantt.TimelineSettings.ShowTooltip = false;
+    }
+    
+    public async Task GanttTooltipFalse()
+    {
+        this.Gantt.TooltipSettings.ShowTooltip= false;
+    }
+
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        holidayDates.Add((new DateTime(2019, 04, 11), new DateTime(2019, 04, 12)));
+    }
+    public async Task Created()
+    {   
+     
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? Duration { get; set; }
+        public int? Progress { get; set; }
+        public List<TaskData> SubTasks { get; set; }
+        public DateTime? BaselineStartDate { get; set; }
+        public DateTime? BaselineEndDate { get; set; }
+        public string? Predecessor { get; set; }
+        public string? Notes { get; set; }
+        public List<GanttIndicator> Indicators { get; set; }
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+        new TaskData() {
+            TaskId = 1,
+            TaskName = "Project initiation",
+            StartDate = new DateTime(2019, 04, 02),
+            EndDate = new DateTime(2019, 04, 21),
+            SubTasks = (new List <TaskData> () {
+                new TaskData() {
+                    TaskId = 2,
+                    TaskName = "Identify site location",
+                    StartDate = new DateTime(2019, 04, 08),
+                    Duration = "0",
+                    BaselineStartDate = new DateTime(2019, 04, 09),
+                    BaselineEndDate = new DateTime(2019, 04, 09),
+                    Progress = 70,
+                    Notes= "Project is Staring"
+                },
+                new TaskData() {
+                    TaskId = 3,
+                    TaskName = "Perform soil test",
+                    StartDate = new DateTime(2019, 04, 02),
+                    Duration = "4",
+                    Predecessor = "2FS",
+                    Progress = 50,
+                    Indicators=(new List<GanttIndicator>()
+        {
+        new GanttIndicator()
+        {
+            Name="Design phase",
+            IconClass="e-btn-icon e-notes-info e-icons e-icon-left e-gantt e-notes-info::after",
+            Date=new DateTime(2019, 04, 04),
+            Tooltip="Design phase"
+        },
+        })
+                },
+                new TaskData() {
+                    TaskId = 4,
+                    TaskName = "Soil test approval",
+                    StartDate = new DateTime(2019, 04, 02),
+                    Duration = "4",
+                    Progress = 50
+                },
+            })
+        },
+        new TaskData() {
+            TaskId = 5,
+            TaskName = "Project estimation",
+            StartDate = new DateTime(2019, 04, 02),
+            EndDate = new DateTime(2019, 04, 21),
+            SubTasks = (new List <TaskData> () {
+                new TaskData() {
+                    TaskId = 6,
+                    TaskName = "Develop floor plan for estimation",
+                    StartDate = new DateTime(2019, 04, 04),
+                    Duration = "3",
+                    Progress = 70,
+                    BaselineStartDate = new DateTime(2019, 04, 02),
+                    BaselineEndDate = new DateTime(2019, 04, 06),
+                },
+                new TaskData() {
+                    TaskId = 7,
+                    TaskName = "List materials",
+                    StartDate = new DateTime(2019, 04, 04),
+                    Duration = "3",
+                    Predecessor = "6SS",
+                    Progress = 50
+                }
+            })
+        }
+    };
+
+        return Tasks;
+    }
+}
+<style>
+    .e-gantt .e-gantt-chart .e-custom-event-marker {
+        width: 1px;
+        border-left: 2px green dotted;
+    }
+    .e-gantt .e-gantt-chart .e-custom-holiday {
+        background-color: #e82869;
+    }
+</style>

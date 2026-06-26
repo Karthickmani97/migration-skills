@@ -1,0 +1,37 @@
+﻿@page "/BLAZ-843811"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Data
+
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt TValue="TaskData" Height="450px" Width="100%" LoadChildOnDemand="false" EnableRowVirtualization="true" EnableTimelineVirtualization="true"
+            Toolbar="@(new List<string>() { "Add", "Cancel", "Delete", "Edit", "Update","Indent","Outdent", "CollapseAll", "ExpandAll" })"
+                     ProjectStartDate="@ProjectStartDate" ProjectEndDate="@ProjectEndDate" ScrollToTaskbarOnClick="true">
+                <SfDataManager Url="https://blazor.syncfusion.com/services/production/api/GanttVirtualData" Adaptor="Adaptors.WebApiAdaptor"></SfDataManager>
+                <GanttTaskFields Id="ID" Name="TaskName" StartDate="StartDate" EndDate="EndDate"
+                                 Duration="Duration" Dependency="Predecessor" ParentID="ParentId" HasChildMapping="isParent">
+                </GanttTaskFields>
+                 <GanttEditSettings AllowEditing="true" AllowAdding="true" AllowDeleting="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true">
+    </GanttEditSettings>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+@code {
+    private DateTime ProjectStartDate = new DateTime(2000, 1, 1);
+    private DateTime ProjectEndDate = new DateTime(2500, 12, 31);
+    public class TaskData
+    {
+        public int ID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; }
+        public bool? isParent { get; set; }
+    }
+}

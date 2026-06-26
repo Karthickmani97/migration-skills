@@ -1,0 +1,249 @@
+@page "/ResourceviewRowheight"
+
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.TreeGrid
+@using Syncfusion.Blazor.Navigations
+@inject IJSRuntime JsInterop
+
+<button class="btn btn-primary" @onclick="ChangeType">Overallocation Show/Hide</button>
+<button class="btn btn-primary" @onclick="Change">MultiTaskbar Show/Hide</button>
+<br>
+<br>
+
+<div style="width:1400px">
+    <SfGantt @ref="Gantt" RowHeight="75" ID="Gantt" TaskbarHeight="50" HighlightWeekends="true" ShowOverallocation="overallocation" GridLines="Syncfusion.Blazor.Gantt.GridLine.Both" DataSource="@TaskCollection" Height="700px" Width="100%" Toolbar="@Toolbaritems" EnableContextMenu="true" AllowFiltering="true" AllowSelection="true" AllowRowDragAndDrop="true" AllowSorting="true" ViewType="ViewType.ResourceView">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                         ParentID="ParentId" Work="Work" Dependency="Predecessor">
+        </GanttTaskFields>
+        <GanttEventMarkers>
+            <GanttEventMarker Day="new DateTime(2021, 04, 09)" Label="Project approval and kick-off"></GanttEventMarker>
+        </GanttEventMarkers>
+        <GanttHolidays>
+            <GanttHoliday From="new DateTime(2021, 04, 06)" To="new DateTime(2021, 04, 07)" Label="Public Holiday"></GanttHoliday>
+            <GanttHoliday From="new DateTime(2021, 04, 19)" To="new DateTime(2021, 04, 22)" Label="Public Holiday"></GanttHoliday>
+        </GanttHolidays>
+        <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+        @*        <GanttTimelineSettings>
+            <GanttTopTierSettings Unit="TimelineViewMode.Hour"></GanttTopTierSettings>
+        </GanttTimelineSettings>*@
+
+
+        <GanttTemplates TValue="TaskData">
+            <TaskbarTemplate>
+                @if ((context as TaskData).TaskName == "Oscar moments")
+                {
+                    <div class="e-gantt-child-taskbar e-custom-moments" style="height:50px;border-radius:5px;">
+                    </div>
+                }
+                else if ((context as TaskData).ParentId != null)
+                {
+                    <div class="e-gantt-child-taskbar e-custom-performance" style="height:50px;border-radius:5px;">
+                    </div>
+                }
+                else
+                {
+                    <div class="e-gantt-parent-taskbar e-custom-parent" style="height:50px;border-radius:5px;text-overflow:ellipsis;">
+                    </div>
+                }
+            </TaskbarTemplate>
+            <MilestoneTemplate>
+                <div style="margin-top:-7px;">
+                    <div class="e-gantt-milestone" style="position:absolute;">
+                        <img class="moments" height="24" width="48" />
+                        <div class="e-milestone-top" style="border-right-width:26px; margin-top: -24px;border-left-width:26px;border-bottom-width:26px;"></div>
+                        <div class="e-milestone-bottom" style="top:26px;border-right-width:26px; border-left-width:26px; border-top-width:26px;"></div>
+                    </div>
+                </div>
+            </MilestoneTemplate>
+        </GanttTemplates>
+        <GanttSelectionSettings Type="Syncfusion.Blazor.Grids.SelectionType.Multiple"></GanttSelectionSettings>
+        <GanttResource Group="ResourceGroup" DataSource="@ResourceCollection" Id="ResourceId" Name="ResourceName" MaxUnits="Unit" TResources="ResourceAlloacteData" TValue="TaskData"></GanttResource>
+        <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="@nameof(AssignmentModel.PrimaryId)" TaskID="@nameof(AssignmentModel.TaskId)" ResourceID="@nameof(AssignmentModel.ResourceId)" Units="@nameof(AssignmentModel.Unit)" TValue="TaskData" TAssignment="AssignmentModel">
+        </GanttAssignmentFields>
+        <GanttLabelSettings RightLabel="Resources" LeftLabel="Resources" TValue="TaskData"></GanttLabelSettings>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+    </SfGantt>
+</div>
+
+<style>
+    .e-custom-parent {
+        background-color: #6d619b;
+        border: 1px solid #3f51b5;
+    }
+
+    .e-custom-performance {
+        background-color: #ad7a66;
+        border: 1px solid #3f51b5;
+    }
+
+    .e-custom-moments {
+        background-color: #7ab748;
+        border: 1px solid #3f51b5;
+    }
+
+    .moments, .face-mask, .oscar {
+        position: relative;
+        top: 9px;
+        bottom: 2px;
+        left: 5px;
+        padding-right: 4px;
+    }
+
+    .e-milestone-top {
+        border-bottom-color: #7ab748 !important;
+        border-bottom: 1px solid #3f51b5;
+    }
+
+    .e-milestone-bottom {
+        border-top-color: #7ab748 !important;
+        border-top: 1px solid #3f51b5;
+    }
+
+</style>
+@code {
+    public SfGantt<TaskData>? Gantt;
+    private DateTime ProjectStart = new DateTime(2021, 03, 25);
+    private DateTime ProjectEnd = new DateTime(2021, 05, 10);
+    private List<TaskData>? TaskCollection { get; set; }
+    private List<ResourceAlloacteData>? ResourceCollection { get; set; }
+    private static List<AssignmentModel> AssignmentCollection { get; set; } = new();
+    private bool overallocation { get; set; } = true;
+    private bool taskbarShow { get; set; }
+    private List<Object> Toolbaritems = new List<Object>() {
+          "Add", "Cancel", "Update" , "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit" ,"NextTimeSpan", "PrevTimeSpan", "Search" };
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        this.ResourceCollection = GetResources;
+        AssignmentCollection = GetAssignmentCollection();
+    }
+    public class AssignmentModel
+    {
+        public int PrimaryId { get; set; }
+        public int TaskId { get; set; }
+        public int ResourceId { get; set; }
+        public double? Unit { get; set; }
+    }
+    public class ResourceAlloacteData
+    {
+        public int ResourceId { get; set; }
+        public string? ResourceName { get; set; }
+        public double? Unit { get; set; }
+        public string? ResourceGroup { get; set; }
+    }
+    public static List<ResourceAlloacteData> GetResources = new List<ResourceAlloacteData>()
+    {
+        new ResourceAlloacteData() { ResourceId= 1, ResourceName= "Martin Tamer", ResourceGroup="Martin"},
+        new ResourceAlloacteData() { ResourceId= 2, ResourceName= "Rose Fuller" },
+        new ResourceAlloacteData() { ResourceId= 3, ResourceName= "Margaret Buchanan" },
+        new ResourceAlloacteData() { ResourceId= 4, ResourceName= "Fuller King" },
+        new ResourceAlloacteData() { ResourceId= 5, ResourceName= "Davolio Fuller" }
+    };
+
+    private void ChangeType()
+    {
+        overallocation = !overallocation;
+    }
+    private void Change()
+    {
+        taskbarShow = !taskbarShow;
+    }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string? TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string? Predecessor { get; set; }
+        public string? Notes { get; set; }
+        public double? Work { get; set; }
+        public string? TaskType { get; set; }
+        public string? Details { get; set; }
+    }
+
+    public static List<AssignmentModel> GetAssignmentCollection()
+    {
+        return new List<AssignmentModel>
+    {
+        new AssignmentModel() {PrimaryId = 1, TaskId = 2, ResourceId = 1, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 2, TaskId = 3, ResourceId = 2, Unit = 60 },
+        new AssignmentModel() {PrimaryId = 3, TaskId = 4, ResourceId = 1, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 4, TaskId = 6, ResourceId = 1, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 5, TaskId = 7, ResourceId = 1, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 6, TaskId = 8, ResourceId = 3, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 7, TaskId = 11, ResourceId = 4, Unit = 90 },
+        new AssignmentModel() {PrimaryId = 8, TaskId = 12, ResourceId = 5, Unit = 30 },
+        new AssignmentModel() {PrimaryId = 9, TaskId = 13, ResourceId = 3, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 10, TaskId = 14, ResourceId = 1, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 11, TaskId = 16, ResourceId = 3, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 12, TaskId = 18, ResourceId = 4, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 13, TaskId = 23, ResourceId = 4, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 14, TaskId = 24, ResourceId = 2, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 15, TaskId = 26, ResourceId = 4, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 16, TaskId = 28, ResourceId = 3, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 17, TaskId = 30, ResourceId = 3, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 18, TaskId = 31, ResourceId = 4, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 19, TaskId = 32, ResourceId = 1, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 20, TaskId = 34, ResourceId = 1, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 21, TaskId = 36, ResourceId = 2, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 22, TaskId = 37, ResourceId = 2, Unit = 50 },
+        new AssignmentModel() {PrimaryId = 23, TaskId = 39, ResourceId = 2, Unit = 50 }
+    };
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        return new List<TaskData>()
+    {
+        new TaskData() { TaskId = 1, TaskName = "Product concept", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 08), Duration = "5 days" },
+        new TaskData() { TaskId = 2, TaskName = "Defining the product usage", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 08), Duration = "3", Progress = 30, ParentId = 1, Work = 60, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 3, TaskName = "Defining the target audience", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 04), Duration = "3", Progress = 40, ParentId = 1, Work = 70, TaskType = "FixedUnit" },
+        new TaskData() { TaskId = 4, TaskName = "Prepare product sketch and notes", StartDate = new DateTime(2021, 04, 05), EndDate = new DateTime(2021, 04, 08), Duration = "2", Progress = 30, ParentId = 1, Predecessor = "2", Work = 60, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 5, TaskName = "Concept approval", StartDate = new DateTime(2021, 04, 08), EndDate = new DateTime(2021, 04, 08), Duration = "0", Predecessor = "3,4" },
+        new TaskData() { TaskId = 6, TaskName = "Market research", StartDate = new DateTime(2021, 04, 09), EndDate = new DateTime(2021, 04, 18), Duration = "4", Progress = 30, Work = 60, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 7, TaskName = "Demand analysis", StartDate = new DateTime(2021, 04, 09), EndDate = new DateTime(2021, 04, 12), Duration = "4", Progress = 40, ParentId = 6, Work = 60, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 8, TaskName = "Customer strength", StartDate = new DateTime(2021, 04, 09), EndDate = new DateTime(2021, 04, 12), Duration = "4", Progress = 30, ParentId = 7, Predecessor = "5", Work = 60, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 9, TaskName = "Market opportunity analysis", StartDate = new DateTime(2021, 04, 09), EndDate = new DateTime(2021, 04, 12), Duration = "4", ParentId = 7, Predecessor = "5" },
+        new TaskData() { TaskId = 10, TaskName = "Competitor analysis", StartDate = new DateTime(2021, 04, 15), EndDate = new DateTime(2021, 04, 18), Duration = "4", Progress = 30, ParentId = 6, Predecessor = "7,8" },
+        new TaskData() { TaskId = 11, TaskName = "Product strength analysis", StartDate = new DateTime(2021, 04, 15), EndDate = new DateTime(2021, 04, 18), Duration = "4", Progress = 40, ParentId = 6, Predecessor = "9", Work = 30, TaskType = "FixedUnit" },
+        new TaskData() { TaskId = 12, TaskName = "Research completed", StartDate = new DateTime(2021, 04, 22), EndDate = new DateTime(2021, 04, 22), Duration = "0", Progress = 30, ParentId = 6, Predecessor = "10", Work = 70, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 13, TaskName = "Product design and development", StartDate = new DateTime(2021, 04, 19), EndDate = new DateTime(2021, 05, 16), Duration = "20", Work = 60, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 14, TaskName = "Functionality design", StartDate = new DateTime(2021, 04, 19), EndDate = new DateTime(2021, 04, 23), Duration = "3", Progress = 30, ParentId = 13, Predecessor = "12", Work = 60, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 15, TaskName = "Quality design", StartDate = new DateTime(2021, 04, 19), EndDate = new DateTime(2021, 04, 23), Duration = "3", Progress = 40, ParentId = 13, Predecessor = "12" },
+        new TaskData() { TaskId = 16, TaskName = "Define reliability", StartDate = new DateTime(2021, 04, 24), EndDate = new DateTime(2021, 04, 25), Duration = "2", Progress = 30, ParentId = 13, Predecessor = "15", Work = 60, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 17, TaskName = "Identifying raw materials", StartDate = new DateTime(2021, 04, 24), EndDate = new DateTime(2021, 04, 25), Duration = "2", ParentId = 13, Predecessor = "15" },
+        new TaskData() { TaskId = 18, TaskName = "Define cost plan", StartDate = new DateTime(2021, 04, 26), EndDate = new DateTime(2021, 04, 29), Duration = "2", Progress = 30, ParentId = 13, Predecessor = "17", Work = 80, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 19, TaskName = "Define manufacturing cost", StartDate = new DateTime(2021, 04, 26), EndDate = new DateTime(2021, 04, 29), Duration = "2", Progress = 40, ParentId = 18, Predecessor = "17" },
+        new TaskData() { TaskId = 20, TaskName = "Define selling cost", StartDate = new DateTime(2021, 04, 26), EndDate = new DateTime(2021, 04, 29), Duration = "2", Progress = 30, ParentId = 18, Predecessor = "17" },
+        new TaskData() { TaskId = 21, TaskName = "Development of final design", StartDate = new DateTime(2021, 04, 30), EndDate = new DateTime(2021, 05, 08), Duration="7", ParentId=13 },
+        new TaskData() { TaskId = 22, TaskName = "Develop dimensions and design", StartDate = new DateTime(2021, 04, 30), EndDate = new DateTime(2021, 05, 01), Duration = "2", Progress = 30, ParentId = 21, Predecessor = "19,20" },
+        new TaskData() { TaskId = 23, TaskName = "Develop designs to meet industry standard", StartDate = new DateTime(2021, 05, 02), EndDate = new DateTime(2021, 05, 03), Duration = "2", Progress = 40, ParentId = 21, Predecessor = "22", Work = 80, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 24, TaskName = "Include all the details", StartDate = new DateTime(2021, 05, 06), EndDate = new DateTime(2021, 05, 08), Duration = "3", Progress = 30, ParentId = 21, Predecessor = "23", Work = 60, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 25, TaskName = "CAD - Computer Aided Design", StartDate = new DateTime(2021, 05, 09), EndDate = new DateTime(2021, 05, 13), Duration = "3", Predecessor = "24" },
+        new TaskData() { TaskId = 26, TaskName = "CAM - Computer Aided Manufacturing", StartDate = new DateTime(2021, 05, 14), EndDate = new DateTime(2021, 05, 16), Duration = "3", Progress = 30, Predecessor = "25", Work = 80, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 27, TaskName = "Finalize the design", StartDate = new DateTime(2021, 04, 16), EndDate = new DateTime(2021, 04, 16), Duration = "0", Progress = 40, Predecessor = "26" },
+        new TaskData() { TaskId = 28, TaskName = "Prototype testing", StartDate = new DateTime(2021, 05, 17), EndDate = new DateTime(2021, 05, 22), Duration = "4", Progress = 30, Predecessor = "27", Work = 60, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 29, TaskName = "Include feedback", StartDate = new DateTime(2021, 05, 17), EndDate = new DateTime(2021, 05, 22), Duration = "4", Predecessor = "28ss" },
+        new TaskData() { TaskId = 30, TaskName = "Manufacturing", StartDate = new DateTime(2021, 05, 23), EndDate = new DateTime(2021, 05, 29), Duration = "5", Progress = 30, Predecessor = "28,29", Work = 60, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 31, TaskName = "Assembling material into finished goods", StartDate = new DateTime(2021, 05, 30), EndDate = new DateTime(2021, 06, 05), Duration = "5", Progress = 40, Predecessor = "30", Work = 80, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 32, TaskName = "Final product development", StartDate = new DateTime(2021, 06, 06), EndDate = new DateTime(2021, 06, 13), Duration = "6", Progress = 30, Work = 40, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 33, TaskName = "Important improvement", StartDate = new DateTime(2021, 06, 06), EndDate = new DateTime(2021, 06, 10), Duration = "3", ParentId = 32, Predecessor = "31" },
+        new TaskData() { TaskId = 34, TaskName = "Customer testing and feedback", StartDate = new DateTime(2021, 06, 11), EndDate = new DateTime(2021, 06, 13), Duration = "3", Progress = 30, ParentId = 32, Predecessor = "33", Work = 80, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 35, TaskName = "Final product development", StartDate = new DateTime(2021, 06, 14), EndDate = new DateTime(2021, 06, 19), Duration = "4", Progress = 40 },
+        new TaskData() { TaskId = 36, TaskName = "Important improvement", StartDate = new DateTime(2021, 06, 14), EndDate = new DateTime(2021, 06, 19), Duration = "4", Progress = 30, ParentId = 35, Predecessor = "34", Work = 60, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 37, TaskName = "Address any unforeseen issues", StartDate = new DateTime(2021, 06, 14), EndDate = new DateTime(2021, 06, 19), Duration = "4", Progress = 30, Predecessor = "36ss", ParentId = 35, Work = 60, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 38, TaskName = "Finalize the product", StartDate = new DateTime(2021, 06, 20), EndDate = new DateTime(2021, 07, 01), Duration = "8", Progress = 40 },
+        new TaskData() { TaskId = 39, TaskName = "Branding the product", StartDate = new DateTime(2021, 06, 20), EndDate = new DateTime(2021, 06, 25), Duration = "4", Progress = 30, ParentId = 38, Predecessor = "37", Work = 60, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 40, TaskName = "Marketing and Presales", StartDate = new DateTime(2021, 06, 26), EndDate = new DateTime(2021, 07, 01), ParentId = 38, Duration = "4", Predecessor = "39" }
+    };
+    }
+}
+
+
+

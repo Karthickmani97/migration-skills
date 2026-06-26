@@ -1,0 +1,91 @@
+﻿@page "/predecessor-validation"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Buttons
+
+<SfGantt @ref="Gantt" DataSource="@TaskCollection" Height="550px" Width="100%" HighlightWeekends="true" AutoUpdatePredecessorOffset="false"
+		 Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll", "Indent", "Outdent" })"
+		 AllowSelection="true" GridLines="GridLine.Both" TreeColumnIndex="1"
+		 ProjectStartDate="@(new DateTime(2025, 3, 25))" ProjectEndDate="@(new DateTime(2025, 9, 01))" ScrollToTaskbarOnClick="true">
+	<GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+					 Dependency="Predecessor" ParentID="ParentId"></GanttTaskFields>
+	<GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+
+	<GanttColumns>
+		<GanttColumn Field="TaskId" Width="100"></GanttColumn>
+		<GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+		<GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+		<GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+		<GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+		<GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+	</GanttColumns>
+	<GanttLabelSettings LeftLabel="TaskName" TaskLabel="Progress" TValue="GanttData.TaskData"></GanttLabelSettings>	
+</SfGantt>
+
+@code {
+	public List<GanttData.TaskData> TaskCollection { get; set; } = new List<GanttData.TaskData>();
+	public SfGantt<GanttData.TaskData> Gantt;
+
+	protected override void OnInitialized()
+	{
+		TaskCollection = GanttData.EditingData().ToList();
+	}
+
+	public class GanttData
+	{
+		public class TaskData
+		{
+			public int TaskId { get; set; }
+			public string? TaskName { get; set; }
+			public DateTime? StartDate { get; set; }
+			public DateTime? EndDate { get; set; }
+			public string? Duration { get; set; }
+			public int Progress { get; set; }
+			public string? Predecessor { get; set; }
+			public string? Notes { get; set; }
+			public int? ParentId { get; set; }
+		}
+		public static List<TaskData> EditingData()
+		{
+			List<TaskData> Tasks = new List<TaskData>() {
+				new TaskData() { TaskId = 1, TaskName = "Parent 1 - FS", StartDate = new DateTime(2025, 04, 01), Duration = "8 days", Progress = 0 },
+				new TaskData() { TaskId = 2, TaskName = "Child FS 1", StartDate = new DateTime(2025, 04, 01), EndDate = new DateTime(2025, 04, 02), Duration = "2 days", Progress = 0, ParentId = 1 },
+				new TaskData() { TaskId = 3, TaskName = "Child FS 2", StartDate = new DateTime(2025, 04, 07), EndDate = new DateTime(2025, 04, 04), Duration = "2 days", Progress = 0, ParentId = 1 },
+				new TaskData() { TaskId = 4, TaskName = "Child FS 3", StartDate = new DateTime(2025, 04, 05), EndDate = new DateTime(2025, 04, 06), Duration = "2 days", Progress = 0, ParentId = 1, Predecessor = "2FS+1 day,3FS" },
+				new TaskData() { TaskId = 5, TaskName = "Child FS 4", StartDate = new DateTime(2025, 04, 15), EndDate = new DateTime(2025, 04, 16), Duration = "2 days", Progress = 0, ParentId = 1, Predecessor = "4FS" },
+				new TaskData() { TaskId = 6, TaskName = "Parent 2 - SF", StartDate = new DateTime(2025, 04, 10), Duration = "8 days", Progress = 0 },
+				new TaskData() { TaskId = 7, TaskName = "Child SF 1", StartDate = new DateTime(2025, 04, 10), EndDate = new DateTime(2025, 04, 11), Duration = "2 days", Progress = 0, ParentId = 6},
+				new TaskData() { TaskId = 8, TaskName = "Child SF 2", StartDate = new DateTime(2025, 04, 08), EndDate = new DateTime(2025, 04, 09), Duration = "2 days", Progress = 0, ParentId = 6},
+				new TaskData() { TaskId = 9, TaskName = "Child SF 3", StartDate = new DateTime(2025, 04, 04), EndDate = new DateTime(2025, 04, 07), Duration = "2 days", Progress = 0, ParentId = 6, Predecessor = "7SF+1day,8SF" },
+				new TaskData() { TaskId = 10, TaskName = "Child SF 4", StartDate = new DateTime(2025, 04, 02), EndDate = new DateTime(2025, 04, 03), Duration = "2 days", Progress = 0, ParentId = 6, Predecessor = "9SF" },
+				new TaskData() { TaskId = 11, TaskName = "Parent 3 - FF", StartDate = new DateTime(2025, 04, 20), Duration = "8 days", Progress = 0 },
+				new TaskData() { TaskId = 12, TaskName = "Child FF 1", StartDate = new DateTime(2025, 04, 20), EndDate = new DateTime(2025, 04, 21), Duration = "2 days", Progress = 0, ParentId = 11 },
+				new TaskData() { TaskId = 13, TaskName = "Child FF 2", StartDate = new DateTime(2025, 04, 20), EndDate = new DateTime(2025, 04, 22), Duration = "3 days", Progress = 0, ParentId = 11 },
+				new TaskData() { TaskId = 14, TaskName = "Child FF 3", StartDate = new DateTime(2025, 04, 20), EndDate = new DateTime(2025, 04, 23), Duration = "4 days", Progress = 0, ParentId = 11 ,  Predecessor = "12FF+1day,13FF"},
+				new TaskData() { TaskId = 15, TaskName = "Child FF 4", StartDate = new DateTime(2025, 04, 20), EndDate = new DateTime(2025, 04, 24), Duration = "5 days", Progress = 0, ParentId = 11, Predecessor = "14FF" },
+				new TaskData() { TaskId = 16, TaskName = "Parent 4 - SS", StartDate = new DateTime(2025, 04, 26), Duration = "8 days", Progress = 0 },
+				new TaskData() { TaskId = 17, TaskName = "Child SS 1", StartDate = new DateTime(2025, 04, 26), EndDate = new DateTime(2025, 04, 27), Duration = "2 days", Progress = 0, ParentId = 16 },
+				new TaskData() { TaskId = 18, TaskName = "Child SS 2", StartDate = new DateTime(2025, 04, 26), EndDate = new DateTime(2025, 04, 28), Duration = "3 days", Progress = 0, ParentId = 16},
+				new TaskData() { TaskId = 19, TaskName = "Child SS 3", StartDate = new DateTime(2025, 04, 26), EndDate = new DateTime(2025, 04, 29), Duration = "4 days", Progress = 0, ParentId = 16, Predecessor = "17SS+1,18SS" },
+				new TaskData() { TaskId = 20, TaskName = "Child SS 4", StartDate = new DateTime(2025, 04, 26), EndDate = new DateTime(2025, 04, 30), Duration = "5 days", Progress = 0, ParentId = 16, Predecessor = "19SS" },
+
+				// Parent–Parent relationship
+
+				new TaskData() { TaskId = 21, TaskName = "Parent 5 - Backend Development", StartDate = new DateTime(2025, 04, 30), EndDate = new DateTime(2025, 05, 05), Duration = "6 days", Progress = 0 },
+				new TaskData() { TaskId = 22, TaskName = "Child - Setup Database", StartDate = new DateTime(2025, 04, 30), EndDate = new DateTime(2025, 05, 01), Duration = "2 days", Progress = 0, ParentId = 21 },
+				new TaskData() { TaskId = 23, TaskName = "Child - API Development", StartDate = new DateTime(2025, 05, 01), EndDate = new DateTime(2025, 05, 03), Duration = "3 days", Progress = 0, ParentId = 21, Predecessor = "22FS" },
+
+				new TaskData() { TaskId = 24, TaskName = "Parent 6 - Requirements Gathering", StartDate = new DateTime(2025, 04, 20), EndDate = new DateTime(2025, 04, 24), Duration = "5 days", Progress = 0 , Predecessor = "21FS-4" },
+				new TaskData() { TaskId = 25, TaskName = "Child - Stakeholder Interviews", StartDate = new DateTime(2025, 04, 20), EndDate = new DateTime(2025, 04, 21), Duration = "2 days", Progress = 0, ParentId = 24 },
+				new TaskData() { TaskId = 26, TaskName = "Child - Document Analysis", StartDate = new DateTime(2025, 04, 21), EndDate = new DateTime(2025, 04, 23), Duration = "3 days", Progress = 0, ParentId = 24, Predecessor = "25FS" },
+
+				new TaskData() { TaskId = 27, TaskName = "Parent 7 - UI Development", StartDate = new DateTime(2025, 04, 20), EndDate = new DateTime(2025, 04, 29), Duration = "10 days", Progress = 0 },
+				new TaskData() { TaskId = 28, TaskName = "Child - Design Mockups", StartDate = new DateTime(2025, 04, 20), EndDate = new DateTime(2025, 04, 22), Duration = "3 days", Progress = 0, ParentId = 27  },
+				new TaskData() { TaskId = 29, TaskName = "Child - Frontend Integration", StartDate = new DateTime(2025, 04, 20), EndDate = new DateTime(2025, 04, 25), Duration = "3 days", Progress = 0, ParentId = 27 },
+				new TaskData() { TaskId = 30, TaskName = "Child - Frontend Validation", StartDate = new DateTime(2025, 04, 26), EndDate = new DateTime(2025, 04, 25), Duration = "4 days", Progress = 0, ParentId = 27, Predecessor = "28" },
+			};
+			return Tasks;
+		}
+	}
+}

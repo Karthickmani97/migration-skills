@@ -1,0 +1,1570 @@
+@page "/BLAZ-929536"
+@rendermode InteractiveServer
+@* @using Syncfusion.Blazor.Gantt
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt DataSource="@TaskCollection" Height="450px" Width="100%" TreeColumnIndex="1" ProjectStartDate="@ProjectStartDate" ProjectEndDate="@ProjectEndDate" TaskMode="ScheduleMode.Custom">
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Manual="IsManual">
+                </GanttTaskFields>
+                <GanttColumns>
+                    <GanttColumn Field="TaskId"></GanttColumn>
+                    <GanttColumn Field="TaskName"></GanttColumn>
+                    <GanttColumn Field="IsManual" HeaderText="Task Mode"></GanttColumn>
+                    <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+                    <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+                    <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+                    <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+                </GanttColumns>
+                <GanttLabelSettings LeftLabel="TaskName" TValue="ScheduleData.TaskData"></GanttLabelSettings>
+                <GanttSplitterSettings Position="40%"></GanttSplitterSettings>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+@code {
+    private DateTime ProjectStartDate { get; set; } = new DateTime(2021, 3, 27);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2021, 7, 6);
+    private List<ScheduleData.TaskData> TaskCollection { get; set; }
+    protected override void OnInitialized()
+    {
+        TaskCollection = ScheduleData.GetTaskCollection();
+    }
+    public class ScheduleData
+    {
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string TaskName { get; set; }
+            public DateTime StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public string Duration { get; set; }
+            public int Progress { get; set; }
+            public int? ParentId { get; set; }
+            public bool IsManual { get; set; }
+            public string TaskMode { get; set; }
+        }
+        public static List<TaskData> GetTaskCollection()
+        {
+            List<TaskData> Tasks = new List<TaskData>()
+            {
+                new TaskData() { TaskId = 1, TaskName = "Parent task 1", StartDate = new DateTime(2021, 04, 04), EndDate = new DateTime(2021, 04, 06), IsManual= true },
+                new TaskData() { TaskId = 2, TaskName = "Child task 1", StartDate = new DateTime(2021, 04, 02), Duration = "2", Progress = 30, ParentId = 1 },
+                new TaskData() { TaskId = 3, TaskName = "Child task 2", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 06), Progress = 40, ParentId = 1, IsManual= true },
+                new TaskData() { TaskId = 4, TaskName = "Child task 3", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 06), Progress = 30, ParentId = 1 },
+                new TaskData() { TaskId = 5, TaskName = "Parent task 2", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 08), IsManual= true },
+                new TaskData() { TaskId = 6, TaskName = "Child task 1", StartDate = new DateTime(2021, 04, 02), Duration = "2", Progress = 30, ParentId = 5 },
+                new TaskData() { TaskId = 7, TaskName = "Child task 2", StartDate = new DateTime(2021, 04, 02), Duration = "4", Progress = 40, ParentId = 5 },
+                new TaskData() { TaskId = 8, TaskName = "Child task 3", StartDate = new DateTime(2021, 04, 02), Duration = "5", Progress = 30, ParentId = 5, IsManual= true },
+                new TaskData() { TaskId = 9, TaskName = "Child task 4", StartDate = new DateTime(2021, 04, 02), Duration = "2", Progress = 30, ParentId = 5, IsManual= true },
+                new TaskData() { TaskId = 10, TaskName = "Parent task 3", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 06), Progress = 40 },
+                new TaskData() { TaskId = 11, TaskName = "Child task 1", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 06), Progress = 30, ParentId = 10 },
+                new TaskData() { TaskId = 12, TaskName = "Child task 2", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 08), ParentId=10 },
+                new TaskData() { TaskId = 13, TaskName = "Child task 3", StartDate = new DateTime(2021, 04, 02), Duration = "2", Progress = 30, ParentId = 10 },
+                new TaskData() { TaskId = 14, TaskName = "Child task 4", StartDate = new DateTime(2021, 04, 02), Duration = "4", Progress = 40, ParentId = 10, IsManual= true },
+                new TaskData() { TaskId = 15, TaskName = "Child task 5", StartDate = new DateTime(2021, 04, 02), Duration = "5", Progress = 30, ParentId = 10 },
+            };
+            return Tasks;
+        }
+    }
+} *@
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Popups
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor.Lists
+@inject NavigationManager Navigation
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <div>
+                <SfGantt @ref="GanttInstance" RowHeight=RowHeightValue ID="GanttOverview" AllowExcelExport="true" AllowPdfExport="true" TaskbarHeight=TaskbarHeightValue DataSource="TaskCollection" TreeColumnIndex="1" ViewType="@SelectedViewType" Height="450px" Width="100%"
+                         GridLines="@gridlines" WorkWeek="@WorkWeekDays" WorkUnit="WorkUnit.Hour" HighlightWeekends="true" Toolbar="Toolbaritems"
+                         AllowFiltering="true" AllowResizing="true" AllowSorting="true" ShowColumnMenu="true" ScrollToTaskbarOnClick="true" AllowUnscheduledTasks="true" DurationUnit="@DurationValue" EnableRowHover="true" EnableCriticalPath="@IsCriticalPathEnabled" EnableContextMenu="true">
+                    @if (!ShowDependency)
+                    {
+                        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Work="Work"
+                                         Duration="TimeLog" Progress="Progress" ParentID="ParentId">
+                        </GanttTaskFields>
+                    }
+                    else if (IsCustomSchedulingEnabled)
+                    {
+                        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Work="Work"
+                                         Duration="TimeLog" Dependency="Predecessor" Progress="Progress" ParentID="ParentId" Manual="IsManual">
+                        </GanttTaskFields>
+                    }
+                    else
+                    {
+                        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Work="Work"
+                                         Duration="TimeLog" Dependency="Predecessor" Progress="Progress" ParentID="ParentId">
+                        </GanttTaskFields>
+                    }
+                    <GanttEditSettings AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+                    <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" MaxUnits="MaxUnit" TValue="OverviewData.TaskData" TResources="OverviewData.ResourceInfoModel"></GanttResource>
+                    <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="Id" TaskID="TaskId" ResourceID="ResourceId" Units="Unit" TValue="OverviewData.TaskData" TAssignment="OverviewData.AssignmentModel"></GanttAssignmentFields>
+                    <GanttSegmentFields DataSource="SegmentCollection" PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="OverviewData.TaskData" TSegments="OverviewData.SegmentModel"></GanttSegmentFields>
+                    <GanttColumns>
+                        <GanttColumn Field="TaskId" Visible="false"></GanttColumn>
+                        <GanttColumn Field="TaskName" Width="250" HeaderText="Product Release" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip" IsFrozen="true" Freeze="FreezeDirection.Left"></GanttColumn>
+                        <GanttResourceColumn HeaderText="Assignee" Width="130" AllowEditing="false" AllowFiltering="false" AllowSorting="false" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip">
+                            <Template>
+                                @{
+                                    var task = (context as OverviewData.TaskData);
+                                    var resource = GanttInstance.GetResources<OverviewData.ResourceInfoModel>(task);
+                                    string name = string.Empty;
+                                    if (resource != null && resource.Any())
+                                    {
+                                        name = resource[0].Name;
+                                        <div class="image">
+                                            
+                                            <span>@name</span>
+                                        </div>
+                                    }
+                                }
+                            </Template>
+                        </GanttResourceColumn>
+                        <GanttColumn Field="Status" HeaderText="Status" MinWidth="100" Width="120" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Left">
+                            <Template>
+                                @{
+                                    string statusString = (context as OverviewData.TaskData).Status;
+                                    if (!string.IsNullOrEmpty(statusString))
+                                    {
+                                        string statusStyle = GetStatusContentStyles(statusString);
+                                        <div><span style="@statusStyle">@statusString</span></div>
+                                    }
+                                }
+                            </Template>
+                        </GanttColumn>
+                        <GanttColumn Field="Priority" HeaderText="Priority" MinWidth="80" Width="100" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Left">
+                            <Template>
+                                @{
+                                    string priorityString = (context as OverviewData.TaskData).Priority;
+                                    if (!string.IsNullOrEmpty(priorityString))
+                                    {
+                                        string statusStyle = this.GetPriorityContentStyle(priorityString);
+                                        <div><span style="@statusStyle">@priorityString</span></div>
+                                    }
+                                }
+                            </Template>
+                        </GanttColumn>
+                        <GanttColumn Field="Work" HeaderText="Planned Hours" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip" Width="150"></GanttColumn>
+                        <GanttColumn Field="TimeLog" HeaderText="Work Log" Width="120"></GanttColumn>
+                    </GanttColumns>
+                    @if (IsTaskLabelsVisible)
+                    {
+                        <GanttLabelSettings TValue="OverviewData.TaskData" TaskLabel="Progress">
+                            <RightLabelTemplate>
+                                <div class="e-right-label-inner-div" style="height: @LabelHeight;left: 516px;">
+                                    @{
+                                        var record = (context as OverviewData.TaskData);
+                                        var resources = GanttInstance.GetResources<OverviewData.ResourceInfoModel>(record);
+                                        if (resources != null && resources.Any())
+                                        {
+                                            <span class="e-label">@resources[0].Name</span>
+                                        }
+                                    }
+                                </div>
+                            </RightLabelTemplate>
+                        </GanttLabelSettings>
+                    }
+                    else
+                    {
+                        <GanttLabelSettings TValue="OverviewData.TaskData" TaskLabel="Progress"></GanttLabelSettings>
+                    }
+                    <GanttEventMarkers>
+                        @if (IsEventMarkerVisible)
+                        {
+                            <GanttEventMarker Day="@VolumeOneReleaseDate" Label="Q-1 Release"
+                                              CssClass="e-custom-event-marker"></GanttEventMarker>
+                            <GanttEventMarker Day="@VolumeTwoReleaseDate" Label="Q-2 Release"
+                                              CssClass="e-custom-event-marker"></GanttEventMarker>
+                            <GanttEventMarker Day="@VolumeThreeReleaseDate" Label="Q-3 Release"
+                                              CssClass="e-custom-event-marker"></GanttEventMarker>
+                        }
+                    </GanttEventMarkers>
+                    <GanttHolidays>
+                        <GanttHoliday From="@ChristmasStartDate" To="@ChristmasEndDate" Label="Christmas holidays"></GanttHoliday>
+                        <GanttHoliday From="@NewYearHoliday1" To="@NewYearHoliday2" Label="New year's' holiday"></GanttHoliday>
+                    </GanttHolidays>
+                    <GanttTimelineSettings TimelineUnitSize="@DefaultUnitWidth">
+                        <GanttTopTierSettings Unit="TimelineViewMode.Month"></GanttTopTierSettings>
+                        <GanttBottomTierSettings Unit="TimelineViewMode.Week" Format="dd"></GanttBottomTierSettings>
+                    </GanttTimelineSettings>
+                    <GanttSplitterSettings Position="500px"> </GanttSplitterSettings>
+                    <GanttEvents OnToolbarClick="ToolbarClickHandler" TValue="OverviewData.TaskData"></GanttEvents>
+                </SfGantt>
+            </div>
+            <div style="padding-left: 10px; padding-right: 20px;">
+                @if (IsSideBar)
+                {
+                    <SfSidebar class="default-sidebar" Width="260px" Target="#GanttOverview" EnableGestures="false" Position="SidebarPosition.Right" Type="SidebarType.Over" @bind-IsOpen="IsSidebarToggled">
+                        <ChildContent>
+                            <SfListView DataSource="@ListViewData" CssClass="groupedList" ShowHeader="true" HeaderTitle="@CurrentHeaderTitle" ShowIcon="true" Width="260px" TValue="DataModel">
+                                <ListViewFieldSettings TValue="DataModel" Id="Id" Text="Text" GroupBy="Category" Tooltip="Text"></ListViewFieldSettings>
+                                <ListViewEvents TValue="DataModel"></ListViewEvents>
+                                <ListViewTemplates TValue="DataModel">
+                                    <HeaderTemplate>
+                                        <div class="header-title">
+                                            <div>
+                                                @CurrentHeaderTitle
+                                            </div>
+                                            <span class="e-close" @onclick="@Close" style="cursor:pointer"></span>
+                                        </div>
+                                    </HeaderTemplate>
+                                    <GroupTemplate>
+                                        @{
+                                            var composedItemModel = context as Syncfusion.Blazor.Lists.ComposedItemModel<DataModel>;
+                                            var data = composedItemModel.Text;
+                                            <div>
+                                                @if (data != "")
+                                                {
+                                                    if (data == "Scheduling Settings")
+                                                    {
+                                                        <div class="list-header">Scheduling settings</div>
+                                                    }
+                                                    else if (data == "View settings")
+                                                    {
+                                                        <div class="list-header">View settings</div>
+                                                    }
+                                                    else if (data == "API properties")
+                                                    {
+                                                        <div class="list-header">API properties</div>
+                                                    }
+                                                }
+                                            </div>
+                                        }
+                                    </GroupTemplate>
+                                    <Template>
+                                        @{
+                                            if (context.Text == "RowHeight")
+                                            {
+                                                <div>
+                                                    <label class="labels">Row height:</label>
+                                                    <div style="padding-left: 12px;margin-top: 7px;">
+                                                        <SfSlider Min="40" Max="60" Step="10" Type=SliderType.MinRange TValue="int" @bind-Value="@RowHeightValue">
+                                                            <SliderTicks Placement="Placement.Before"></SliderTicks>
+                                                            <SliderEvents TValue="int" ValueChange="@(e => { rowheightchange(e.Value); })"></SliderEvents>
+                                                        </SfSlider>
+                                                    </div>
+                                                </div>
+                                            }
+                                            if (context.Text == "Work Week")
+                                            {
+                                                <label class="labels">Work week:</label>
+                                                <div>
+                                                    <SfMultiSelect TValue="string[]" TItem="WorkWeek" Placeholder="Select week" Mode="@VisualMode.CheckBox" DataSource="@Weeks" PopupHeight="350px">
+                                                        <MultiSelectEvents TItem="WorkWeek" TValue="string[]" ValueChange="@ValueChangeHandler"></MultiSelectEvents>
+                                                        <MultiSelectFieldSettings Text="Week" Value="Week"></MultiSelectFieldSettings>
+                                                    </SfMultiSelect>
+                                                </div>
+                                            }
+                                            else if (context.Text == "Work Time Range")
+                                            {
+                                                <label class="labels">Duration unit:</label>
+                                                <div>
+                                                    <SfDropDownList TValue="string" TItem="Duration" Placeholder="@DurationUnitValue" DataSource="@Duration1" PopupHeight="350px">
+                                                        <DropDownListEvents TItem="Duration" TValue="string" ValueChange="@ValueChangeHandler2"></DropDownListEvents>
+                                                        <DropDownListFieldSettings Text="Unit" Value="Unit"></DropDownListFieldSettings>
+                                                    </SfDropDownList>
+                                                </div>
+                                            }
+                                            else if (context.Text == "TimeLine Cell Unit")
+                                            {
+                                                <label class="labels">Timeline width:</label>
+                                                <div>
+                                                    <SfNumericTextBox TValue="int?" Format="n0" Value="@DefaultUnitWidth" Min="10">
+                                                        <NumericTextBoxEvents TValue="int?" ValueChange="OnChange"></NumericTextBoxEvents>
+                                                    </SfNumericTextBox>
+                                                </div>
+                                            }
+                                            if (context.Text == "View Type")
+                                            {
+                                                <label class="labels">View type:</label>
+                                                <div>
+                                                    <SfDropDownList TValue="string" TItem="ViewTypes" Placeholder="@SelectedViewTypes" DataSource="@Types" PopupHeight="350px">
+                                                        <DropDownListEvents TItem="ViewTypes" TValue="string" ValueChange="@GanttViewTypes"></DropDownListEvents>
+                                                        <DropDownListFieldSettings Text="Type" Value="Type"></DropDownListFieldSettings>
+                                                    </SfDropDownList>
+                                                </div>
+                                            }
+                                            else if (context.Text == "View Mode")
+                                            {
+                                                <label class="labels">View mode:</label>
+                                                <div>
+                                                    <SfDropDownList TValue="string" TItem="SplitterView" DataSource="@SplitterViews" Placeholder="View" CssClass="e-custom">
+                                                        <DropDownListFieldSettings Value="ID" Text="Text"></DropDownListFieldSettings>
+                                                        <DropDownListEvents TValue="string" TItem="SplitterView" ValueChange="OnChange"></DropDownListEvents>
+                                                    </SfDropDownList>
+                                                </div>
+                                            }
+                                            if (context.Text == "Show grid Lines")
+                                            {
+                                                <div class="list-fields">
+                                                    <label class="labels"> Show grid lines:</label>
+                                                    <div>
+                                                        <SfSwitch ValueChange="GridLines" TValue="bool?" TChecked="bool?"></SfSwitch>
+                                                    </div>
+                                                </div>
+                                            }
+                                            if (context.Text == "Event markers")
+                                            {
+                                                <div class="list-fields">
+                                                    <label class="labels"> Show event marker:</label>
+                                                    <div>
+                                                        <SfSwitch ValueChange="EventMarkerEvent" TValue="bool?" TChecked="bool?"></SfSwitch>
+                                                    </div>
+                                                </div>
+                                            }
+                                            if (context.Text == "Show dependencies")
+                                            {
+                                                <div class="list-fields">
+                                                    <label class="labels">Show dependencies:</label>
+                                                    <div>
+                                                        <SfSwitch ValueChange="ShowDependencies" TValue="bool?" @bind-Checked="ShowDependency" TChecked="bool"></SfSwitch>
+                                                    </div>
+                                                </div>
+                                            }
+                                            if (context.Text == "Show task labels")
+                                            {
+                                                <div class="list-fields">
+                                                    <label class="labels">Show task labels:</label>
+                                                    <div>
+                                                        <SfSwitch ValueChange="ShowTaskLabels" TValue="bool?" TChecked="bool?"></SfSwitch>
+                                                    </div>
+                                                </div>
+                                            }
+                                            if (context.Text == "Enable critical path")
+                                            {
+                                                <div class="list-fields">
+                                                    <label class="labels">Critical path:</label>
+                                                    <div>
+                                                        <SfSwitch ValueChange="CriticalPathEnable" TValue="bool?" TChecked="bool?"></SfSwitch>
+                                                    </div>
+                                                </div>
+                                            }
+                                            if (context.Text == "Custom scheduling")
+                                            {
+                                                <div class="list-fields">
+                                                    <label class="labels">Custom scheduling:</label>
+                                                    <div>
+                                                        <SfSwitch ValueChange="EnableCustomScheduling" TValue="bool?" TChecked="bool?"></SfSwitch>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    </Template>
+                                </ListViewTemplates>
+                            </SfListView>
+                        </ChildContent>
+                    </SfSidebar>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    protected override void OnInitialized()
+    {
+        // Updating the ListView datasource.
+        UpdateDataModel();
+        ProjectStartDate = new DateTime(2021, 12, 19);
+        ProjectEndDate = new DateTime(2022, 07, 8);
+        this.TaskCollection = OverviewData.DataCollection();
+        this.ResourceCollection = OverviewData.GetResources;
+        AssignmentCollection = OverviewData.GetAssignmentCollection();
+        SegmentCollection = OverviewData.GetSegmentCollection();
+        CurrentUri = Navigation.Uri;
+        UpdateTheme(CurrentUri);
+    }
+    public bool IsSidebarToggled { get; set; }
+    public SfSwitch<bool?> SidebarSwitch { get; set; }
+    public bool IsSideBar { get; set; } = false;
+    public bool Settings { get; set; } = true;
+    private int RowHeightValue { get; set; } = 40;
+    private int TaskbarHeightValue { get; set; } = 24;
+    private string TaskBarHeight { get; set; } = "24px";
+    private string MarginValue { get; set; } = "0px";
+    private string TopPosition { get; set; } = "4px";
+    private string LabelHeight { get; set; } = "38px";
+    private int DefaultUnitWidth { get; set; } = 75;
+    private SfGantt<OverviewData.TaskData> GanttInstance { get; set; }
+    public List<OverviewData.TaskData> TaskCollection { get; set; }
+    private DateTime VolumeOneReleaseDate { get; set; } = new DateTime(2022, 04, 04);
+    private DateTime VolumeTwoReleaseDate { get; set; } = new DateTime(2022, 06, 30);
+    private DateTime VolumeThreeReleaseDate { get; set; } = new DateTime(2022, 09, 29);
+    private DateTime ChristmasStartDate { get; set; } = new DateTime(2021, 12, 25);
+    private DateTime ChristmasEndDate { get; set; } = new DateTime(2021, 12, 26);
+    private DateTime NewYearHoliday1 { get; set; } = new DateTime(2022, 01, 01);
+    private DateTime NewYearHoliday2 { get; set; } = new DateTime(2022, 01, 01);
+    public Theme CurrentTheme { get; set; }
+    public string CurrentUri { get; set; }
+    public bool ShowDependency { get; set; } = true;
+    private List<OverviewData.ResourceInfoModel> ResourceCollection { get; set; }
+    private List<string> Status { get; set; } = new List<string>() { "Open", "Inprogress", "On Hold", "Complete" };
+    private List<string> Priority { get; set; } = new List<string>() { "Low", "Normal", "High", "Critical" };
+    public string BorderRadius { get; set; } = "4px";
+    public string StatusStyleColor { get; set; }
+    public string StatusContentStyleColor { get; set; }
+    public string PriorityContentStyleColor { get; set; }
+    public string PriorityStyleColor { get; set; }
+    private List<Theme> AvailableThemes { get; set; } = new List<Theme>() { Theme.Fluent, Theme.Fabric, Theme.Bootstrap5, Theme.Bootstrap, Theme.Bootstrap4, Theme.Tailwind, Theme.Material };
+    private string DropdownWidth { get; set; } = "80px";
+    //***API properties
+    public Syncfusion.Blazor.Gantt.GridLine gridlines = Syncfusion.Blazor.Gantt.GridLine.Vertical;
+    private ViewType SelectedViewType { get; set; } = ViewType.ProjectView;
+    public string SelectedViewTypes { get; set; } = "Project view";
+    public string DurationUnitValue { get; set; } = "Day";
+    public Syncfusion.Blazor.Gantt.DurationUnit DurationValue { get; set; } = DurationUnit.Day;
+    private bool IsEventMarkerVisible { get; set; } = false;
+    private bool IsTaskLabelsVisible { get; set; } = false;
+    public int CurrentValue { get; set; }
+    public int PreviousValue { get; set; } = 11;
+    public int BindValue { get; set; } = 11;
+    public string CurrentHeaderTitle { get; set; } = "Project Settings";
+    public string[] WorkWeekDays { get; set; } = new string[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+    private string FilterHeaderFontSize { get; set; }
+    private string FilterHeaderFontSizeTouch { get; set; }
+    private string FilterHeaderHeight { get; set; }
+    private string FilterHeaderHeightTouch { get; set; }
+    private string FilterHeaderFontWeight { get; set; }
+    private string FilterBackgroundColor { get; set; }
+    private string LabelTextColor { get; set; }
+    private static List<OverviewData.AssignmentModel> AssignmentCollection { get; set; }
+    private List<OverviewData.SegmentModel> SegmentCollection { get; set; }
+    private bool IsCustomSchedulingEnabled { get; set; }
+    private bool IsCriticalPathEnabled { get; set; }
+    private DateTime? ProjectStartDate { get; set; }
+    private DateTime? ProjectEndDate { get; set; }
+    public List<Object> Toolbaritems { get; set; } = new List<Object>() { "ExpandAll", "CollapseAll", "ZoomIn", "ZoomOut", "ZoomToFit", "Indent", "Outdent", "ExcelExport", new ToolbarItem() { TooltipText = "PdfExport", Id = "PdfExport", PrefixIcon = "e-pdfexport" }, new ToolbarItem() { Text = "Settings", TooltipText = "Settings", Id = "Settings", PrefixIcon = "e-settings-icon", Align = ItemAlign.Right } };
+    // Specifies the ListView datasource.
+    public List<DataModel> ListViewData { get; set; } = new List<DataModel>();
+    // Specifies the model class for ListView datasource.
+    public class DataModel
+    {
+        public string Id { get; set; }
+        public string Text { get; set; }
+        public string Category { get; set; }
+        public int Order { get; set; }
+        public List<DataModel> Child { get; set; }
+    }
+    private void GanttViewTypes(ChangeEventArgs<string, ViewTypes> args)
+    {
+        if (args.Value.Contains("Resource view"))
+        {
+            SelectedViewType = ViewType.ResourceView;
+            SelectedViewTypes = SelectedViewType.ToString();
+        }
+        else
+        {
+            SelectedViewType = ViewType.ProjectView;
+            SelectedViewTypes = SelectedViewType.ToString();
+        }
+        StateHasChanged();
+        Settings = true;
+    }
+    private void GridLines(Syncfusion.Blazor.Buttons.ChangeEventArgs<bool?> args)
+    {
+        if (args.Checked == true)
+        {
+            gridlines = Syncfusion.Blazor.Gantt.GridLine.Both;
+        }
+        else
+        {
+            gridlines = Syncfusion.Blazor.Gantt.GridLine.Vertical;
+        }
+        Settings = true;
+        GanttInstance.RefreshAsync();
+    }
+    private void EventMarkerEvent(Syncfusion.Blazor.Buttons.ChangeEventArgs<bool?> args)
+    {
+        if (args.Checked == true)
+        {
+            IsEventMarkerVisible = true;
+        }
+        else
+        {
+            IsEventMarkerVisible = false;
+        }
+        Settings = true;
+        GanttInstance.RefreshAsync();
+    }
+    private void ShowDependencies(Syncfusion.Blazor.Buttons.ChangeEventArgs<bool> args)
+    {
+        if (args.Checked == true)
+        {
+            ShowDependency = true;
+        }
+        else
+        {
+            ShowDependency = false;
+        }
+        Settings = true;
+        GanttInstance.RefreshAsync();
+    }
+    private void ShowTaskLabels(Syncfusion.Blazor.Buttons.ChangeEventArgs<bool?> args)
+    {
+        if (args.Checked == true)
+        {
+            IsTaskLabelsVisible = true;
+        }
+        else
+        {
+            IsTaskLabelsVisible = false;
+        }
+        Settings = true;
+        GanttInstance.RefreshAsync();
+    }
+    private async Task CriticalPathEnable(Syncfusion.Blazor.Buttons.ChangeEventArgs<bool?> args)
+    {
+        if (args.Checked == true)
+        {
+            ProjectStartDate = null;
+            ProjectEndDate = null;
+            IsCriticalPathEnabled = true;
+        }
+        else
+        {
+            ProjectStartDate = new DateTime(2021, 12, 19);
+            ProjectEndDate = new DateTime(2022, 07, 8);
+            IsCriticalPathEnabled = false;
+        }
+        Settings = true;
+        await GanttInstance.RefreshAsync();
+        await Task.CompletedTask;
+    }
+    private async Task EnableCustomScheduling(Syncfusion.Blazor.Buttons.ChangeEventArgs<bool?> args)
+    {
+        if (args.Checked == true)
+        {
+            IsCustomSchedulingEnabled = true;
+        }
+        else
+        {
+            IsCustomSchedulingEnabled = false;
+        }
+        Settings = true;
+        await GanttInstance.RefreshAsync();
+        await Task.CompletedTask;
+    }
+    public void OnChange(Syncfusion.Blazor.Inputs.ChangeEventArgs<int?> args)
+    {
+        DefaultUnitWidth = args.Value != null ? (int)args.Value : 33;
+    }
+    private void rowheightchange(int value)
+    {
+        RowHeightValue = value;
+        if (value == 40)
+        {
+            TaskbarHeightValue = 24;
+            TaskBarHeight = "24px";
+            MarginValue = "0px";
+            TopPosition = "4px";
+            LabelHeight = "38px";
+        }
+        else if (value == 50)
+        {
+            TaskbarHeightValue = 32;
+            TaskBarHeight = "32px";
+            MarginValue = "0px";
+            TopPosition = "7px";
+            LabelHeight = "48px";
+        }
+        else if (value == 60)
+        {
+            TaskbarHeightValue = 40;
+            TaskBarHeight = "40px";
+            MarginValue = "4px";
+            TopPosition = "10px";
+            LabelHeight = "58px";
+        }
+    }
+    public void Close()
+    {
+        IsSidebarToggled = false;
+        Settings = true;
+    }
+    public class WorkWeek
+    {
+        public string Week { get; set; }
+    }
+    public List<WorkWeek> Weeks = new List<WorkWeek>
+        {
+            new WorkWeek() { Week = "Monday"},
+            new WorkWeek() { Week = "Tuesday"},
+            new WorkWeek() { Week = "Wednesday"},
+            new WorkWeek() { Week = "Thursday"},
+            new WorkWeek() { Week = "Friday"},
+            new WorkWeek() { Week = "Saturday"}
+        };
+    public class Duration
+    {
+        public string Unit { get; set; }
+    }
+    public List<Duration> Duration1 = new List<Duration>
+        {
+            new Duration() { Unit = "Hour"},
+            new Duration() { Unit = "Minute"},
+            new Duration() { Unit = "Day"}
+        };
+    public class ViewTypes
+    {
+        public string Type { get; set; }
+    }
+    public List<ViewTypes> Types = new List<ViewTypes>
+        {
+            new ViewTypes() { Type = "Resource view"},
+            new ViewTypes() { Type = "Project view"}
+        };
+    private void ValueChangeHandler(MultiSelectChangeEventArgs<string[]> args)
+    {
+        if (args.Value == null)
+        {
+            WorkWeekDays = new string[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+        }
+        else
+        {
+            WorkWeekDays = args.Value;
+        }
+    }
+    private async void ValueChangeHandler2(ChangeEventArgs<string, Duration> args)
+    {
+        if (args.Value.Contains("Hour"))
+        {
+            DurationValue = DurationUnit.Hour;
+            DurationUnitValue = DurationValue.ToString();
+        }
+        else if (args.Value.Contains("Day"))
+        {
+            DurationValue = DurationUnit.Day;
+            DurationUnitValue = DurationValue.ToString();
+        }
+        else if (args.Value.Contains("Minute"))
+        {
+            DurationValue = DurationUnit.Minute;
+            DurationUnitValue = DurationValue.ToString();
+        }
+        await GanttInstance.RefreshAsync();
+    }
+    public class SplitterView
+    {
+        public string ID { get; set; }
+        public string Text { get; set; }
+    }
+    public List<SplitterView> SplitterViews = new List<SplitterView>
+        {
+            new SplitterView() { ID= "Default", Text= "Default" },
+            new SplitterView() { ID= "Grid", Text= "Grid" },
+            new SplitterView() { ID= "Chart", Text= "Chart" },
+        };
+    public async void OnChange(ChangeEventArgs<string, SplitterView> args)
+    {
+        if (args.Value == "Grid")
+        {
+            await this.GanttInstance.SetSplitterPositionAsync(Syncfusion.Blazor.Gantt.SplitterView.Grid);
+        }
+        else if (args.Value == "Chart")
+        {
+            await this.GanttInstance.SetSplitterPositionAsync(Syncfusion.Blazor.Gantt.SplitterView.Chart);
+        }
+        else
+        {
+            await this.GanttInstance.SetSplitterPositionAsync(Syncfusion.Blazor.Gantt.SplitterView.Default);
+            DropdownWidth = "90px";
+        }
+        await GanttInstance.RefreshAsync();
+    }
+    public async Task ToolbarClickHandler(ClickEventArgs args)
+    {
+        Syncfusion.Blazor.Grids.ExcelExportProperties ExportProperties = new Syncfusion.Blazor.Grids.ExcelExportProperties();
+        Syncfusion.Blazor.Gantt.GanttPdfExportProperties PdfExportProperties = new Syncfusion.Blazor.Gantt.GanttPdfExportProperties();
+        List<GridColumn> gridColumns = new List<GridColumn>() {
+            new GridColumn(){ Field = "TaskId", HeaderText = "Id" },
+            new GridColumn(){Field = "TaskName", HeaderText="Product Release"},
+            new GridColumn(){ Field = "Work", HeaderText = "Planned Hours" },
+            new GridColumn(){Field = "TimeLog", HeaderText="Work Log"}
+            };
+        ExportProperties.Columns = gridColumns;
+        PdfExportProperties.PageSize = Syncfusion.Blazor.Grids.PdfPageSize.Legal;
+        PdfExportProperties.Columns = GanttInstance.Columns;
+        if (args.Item.Id == "Settings")
+        {
+            IsSidebarToggled = !IsSidebarToggled;
+            IsSideBar = true;
+            Settings = false;
+        }
+        if (args.Item.Id == "GanttOverview_excelexport")
+        {
+            await GanttInstance.ExportToExcelAsync(ExportProperties);
+        }
+        if (args.Item.Id == "GanttOverview_csvexport")
+        {
+            await GanttInstance.ExportToCsvAsync(ExportProperties);
+        }
+        if (args.Item.Id == "PdfExport")
+        {
+            await GanttInstance.ExportToPdfAsync(PdfExportProperties);
+        }
+        await Task.CompletedTask;
+    }
+    private string GetStatusContentStyles(string status)
+    {
+        switch (status)
+        {
+            case "In Progress":
+                StatusStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#DFECFF" : "#2D3E57";
+                StatusContentStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#006AA6" : "#34B6FF";
+                break;
+            case "Open":
+                StatusStyleColor = "red";
+                StatusContentStyleColor = "white";
+                break;
+            case "On Hold":
+                StatusStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#E4E4E7" : "#3C3B43";
+                StatusContentStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#766B7C" : "#CDCBD7";
+                break;
+            case "Completed":
+                StatusStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#DFFFE2" : "#16501C";
+                StatusContentStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#00A653" : "#92FFC8";
+                break;
+            case "High":
+                StatusStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#FFEBE9" : "#48211D";
+                StatusContentStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#FF3740" : "#FFB5B8";
+                break;
+        }
+        return $"background:{StatusStyleColor};color:{StatusContentStyleColor};padding: 5px 12px; border-radius: 24px";
+    }
+    private string GetPriorityContentStyle(string status)
+    {
+        switch (status)
+        {
+            case "Low":
+                PriorityStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#FFF6D1" : "#473F1E";
+                PriorityContentStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#70722B" : "#FDFF88";
+                break;
+            case "Normal":
+                PriorityStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#F5DFFF" : "#4D2F5A";
+                PriorityContentStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#7100A6" : "#E3A9FF";
+                break;
+            case "Critical":
+                PriorityStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#FFEBE9" : "#48211D";
+                PriorityContentStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#FF3740" : "#FFB5B8";
+                break;
+            case "High":
+                PriorityStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#FFEBE9" : "#48211D";
+                PriorityContentStyleColor = AvailableThemes.Contains(this.CurrentTheme) ? "#FF3740" : "#FFB5B8";
+                break;
+        }
+        return $"background:{PriorityStyleColor};color:{PriorityContentStyleColor};padding: 5px 12px; border-radius: 24px";
+    }
+    private IGanttTaskModel<OverviewData.TaskData> GetTaskData(OverviewData.TaskData data)
+    {
+        return GanttInstance.GetRowTaskModel(data);
+    }
+    private void UpdateDataModel()
+    {
+        ListViewData.Add(new DataModel
+            {
+                Id = "01",
+                Text = "RowHeight",
+                Order = 1,
+            });
+        ListViewData.Add(new DataModel
+            {
+                Id = "02",
+                Text = "Show grid Lines",
+                Order = 1,
+            });
+        ListViewData.Add(new DataModel
+            {
+                Id = "02",
+                Text = "Event markers",
+                Order = 1,
+            });
+        ListViewData.Add(new DataModel
+            {
+                Id = "02",
+                Text = "Show dependencies",
+                Order = 1,
+            });
+        ListViewData.Add(new DataModel
+            {
+                Id = "02",
+                Text = "Show task labels",
+                Order = 1,
+            });
+        ListViewData.Add(new DataModel
+            {
+                Id = "03",
+                Text = "Work Week",
+                Category = "Scheduling Settings",
+                Order = 1,
+            });
+        ListViewData.Add(new DataModel
+            {
+                Id = "03",
+                Text = "Work Time Range",
+                Category = "Scheduling Settings",
+                Order = 1,
+            });
+        ListViewData.Add(new DataModel
+            {
+                Id = "02",
+                Text = "TimeLine Cell Unit",
+                Category = "Scheduling Settings",
+                Order = 1,
+            });
+        ListViewData.Add(new DataModel
+            {
+                Id = "04",
+                Text = "View Type",
+                Category = "View settings",
+                Order = 2,
+            });
+        ListViewData.Add(new DataModel
+            {
+                Id = "04",
+                Text = "View Mode",
+                Category = "View settings",
+                Order = 2,
+            });
+        ListViewData.Add(new DataModel
+            {
+                Id = "02",
+                Text = "Enable critical path",
+                Order = 1,
+            });
+        ListViewData.Add(new DataModel
+            {
+                Id = "02",
+                Text = "Custom scheduling",
+                Order = 1,
+            });
+    }
+    private void UpdateTheme(string currentUri)
+    {
+        if (currentUri.Contains("fluent-dark"))
+        {
+            CurrentTheme = Theme.FluentDark;
+            FilterBackgroundColor = "#201f1e";
+            FilterHeaderFontSize = "14px";
+            FilterHeaderFontSizeTouch = "16px";
+            FilterHeaderHeight = "50px";
+            FilterHeaderHeightTouch = "56px";
+            FilterHeaderFontWeight = "600";
+        }
+        else if (currentUri.Contains("fluent"))
+        {
+            CurrentTheme = Theme.Fluent;
+            FilterBackgroundColor = "#faf9f8";
+            LabelTextColor = "#201f1e";
+            FilterHeaderFontSize = "14px";
+            FilterHeaderFontSizeTouch = "16px";
+            FilterHeaderHeight = "50px";
+            FilterHeaderHeightTouch = "56px";
+            FilterHeaderFontWeight = "600";
+        }
+        else if (currentUri.Contains("fabric-dark"))
+        {
+            CurrentTheme = Theme.FabricDark;
+            FilterBackgroundColor = "#333232";
+            LabelTextColor = "#f3f2f1";
+        }
+        else if (currentUri.Contains("fabric"))
+        {
+            CurrentTheme = Theme.Fabric;
+            FilterBackgroundColor = "#f4f4f4";
+        }
+        else if (currentUri.Contains("bootstrap5-dark"))
+        {
+            CurrentTheme = Theme.Bootstrap5Dark;
+            FilterBackgroundColor = "#282d31";
+            LabelTextColor = "#fff";
+            FilterHeaderFontSize = "14px";
+            FilterHeaderFontSizeTouch = "14px";
+            FilterHeaderHeight = "40px";
+            FilterHeaderHeightTouch = "48px";
+            FilterHeaderFontWeight = "400";
+        }
+        else if (currentUri.Contains("bootstrap-dark"))
+        {
+            CurrentTheme = Theme.BootstrapDark;
+            FilterBackgroundColor = "#393939";
+        }
+        else if (currentUri.Contains("bootstrap5"))
+        {
+            CurrentTheme = Theme.Bootstrap5;
+            FilterBackgroundColor = "#f8f9fa";
+            LabelTextColor = "#212529";
+            FilterHeaderFontSize = "14px";
+            FilterHeaderFontSizeTouch = "14px";
+            FilterHeaderHeight = "40px";
+            FilterHeaderHeightTouch = "48px";
+            FilterHeaderFontWeight = "400";
+        }
+        else if (currentUri.Contains("bootstrap4"))
+        {
+            CurrentTheme = Theme.Bootstrap4;
+            FilterBackgroundColor = "#e9ecef";
+        }
+        else if (currentUri.Contains("bootstrap"))
+        {
+            CurrentTheme = Theme.Bootstrap;
+            FilterBackgroundColor = "#eee";
+        }
+        else if (currentUri.Contains("highcontrast"))
+        {
+            CurrentTheme = Theme.HighContrast;
+            FilterBackgroundColor = "#000";
+            LabelTextColor = "#fff";
+        }
+        else if (currentUri.Contains("tailwind-dark"))
+        {
+            CurrentTheme = Theme.TailwindDark;
+            FilterBackgroundColor = "#232e3e";
+            LabelTextColor = "#fff";
+            FilterHeaderFontSize = "14px";
+            FilterHeaderFontSizeTouch = "16px";
+            FilterHeaderHeight = "44px";
+            FilterHeaderHeightTouch = "52px";
+            FilterHeaderFontWeight = "400";
+        }
+        else if (currentUri.Contains("tailwind"))
+        {
+            CurrentTheme = Theme.Tailwind;
+            FilterBackgroundColor = "#f9fafb";
+            LabelTextColor = "rgb(17, 24, 39)";
+            FilterHeaderFontSize = "14px";
+            FilterHeaderFontSizeTouch = "16px";
+            FilterHeaderHeight = "44px";
+            FilterHeaderHeightTouch = "52px";
+            FilterHeaderFontWeight = "400";
+        }
+        else if (currentUri.Contains("material-dark"))
+        {
+            CurrentTheme = Theme.MaterialDark;
+            FilterHeaderFontSize = "16px";
+            FilterHeaderFontSizeTouch = "18px";
+            FilterHeaderHeight = "52px";
+            FilterHeaderHeightTouch = "58px";
+            FilterBackgroundColor = "linear-gradient(0deg, rgba(103, 80, 164, 0.05), rgba(103, 80, 164, 0.05)),rgba(28, 27, 31)";
+            LabelTextColor = "rgba(230, 225, 229)";
+            FilterHeaderFontWeight = "400";
+        }
+        else if (currentUri.Contains("material"))
+        {
+            CurrentTheme = Theme.Material;
+            FilterHeaderFontSize = "16px";
+            FilterHeaderFontSizeTouch = "18px";
+            FilterHeaderHeight = "52px";
+            FilterHeaderHeightTouch = "58px";
+            FilterBackgroundColor = "linear-gradient(0deg, rgba(208, 188, 255, 0.05), rgba(208, 188, 255, 0.05)),rgba(255, 255, 255)";
+            LabelTextColor = "#404042";
+            FilterHeaderFontWeight = "400";
+        }
+    }
+    public class OverviewData
+    {
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string TaskName { get; set; }
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public DateTime? DueDate { get; set; }
+            public double? TimeLog { get; set; }
+            public double Work { get; set; }
+            public string Manager { get; set; }
+            public int Progress { get; set; }
+            public string Predecessor { get; set; }
+            public string EmptyPredecessor { get; set; }
+            public double StoryPoints { get; set; }
+            public string Status { get; set; }
+            public int? ParentId { get; set; }
+            public string Priority { get; set; }
+            public string Component { get; set; }
+            public bool? IsManual { get; set; }
+        }
+        public class ResourceInfoModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public double MaxUnit { get; set; }
+        }
+        public class AssignmentModel
+        {
+            public int Id { get; set; }
+            public int TaskId { get; set; }
+            public int ResourceId { get; set; }
+            public double? Unit { get; set; }
+        }
+        public static List<ResourceInfoModel> GetResources = new List<ResourceInfoModel>()
+        {
+            new ResourceInfoModel() { Id= 1, Name= "Martin Tamer" ,},
+            new ResourceInfoModel() { Id= 2, Name= "Rose Fuller" },
+            new ResourceInfoModel() { Id= 3, Name= "Margaret Buchanan" },
+            new ResourceInfoModel() { Id= 4, Name= "Fuller King" },
+            new ResourceInfoModel() { Id= 5, Name= "Van Jack" },
+            new ResourceInfoModel() { Id= 6, Name= "Jack Davolio" },
+        };
+        public static List<TaskData> DataCollection()
+        {
+            List<TaskData> Tasks = new List<TaskData>()
+            {
+                new TaskData(){ TaskId = 1, TaskName="Q-1 Release", StartDate=new DateTime(2021,12,20), EndDate=new DateTime(2022,02,17), Manager="", DueDate= new DateTime(2022,04,4), Work=45, Progress=80, Status="In Progress", IsManual=false },
+                new TaskData(){ TaskId = 2, TaskName="Roadmap", StartDate=new DateTime(2021,12,20), EndDate=new DateTime(2022,02,17), ParentId=1, IsManual=false },
+                new TaskData(){ TaskId = 3, TaskName="Implementation", StartDate=new DateTime(2021,12,20), EndDate=new DateTime(2022,02,17), ParentId=2, IsManual=false },
+                new TaskData(){ TaskId = 4, TaskName="Grid", StartDate=new DateTime(2021,12,20), EndDate=new DateTime(2022,2,20), DueDate=new DateTime(2022,04,4), TimeLog=34, Work=34, Progress=70, ParentId=3, IsManual=true },
+                new TaskData(){ TaskId = 5, TaskName="Batch Editing", StartDate=new DateTime(2021,12,24), EndDate=new DateTime(2022,1,19), Manager="", DueDate=new DateTime(2022,2,17), TimeLog=20, Work=160, Progress=100, Status="Completed", ParentId=4, Priority="High", Component="Grid", IsManual=false },
+                new TaskData(){ TaskId = 6, TaskName="PDF Export", StartDate=new DateTime(2021,12,28), EndDate=new DateTime(2022,2,04), Manager="", DueDate=new DateTime(2022,2,17), TimeLog=30, Work=210, Progress=10, Status="On Hold", ParentId=4, Priority="Normal", Component="Grid", IsManual=true },
+                new TaskData(){ TaskId = 7, TaskName="Tree Grid", StartDate=new DateTime(2021,12,24), EndDate=new DateTime(2022,1,6), DueDate=new DateTime(2022,2,20), TimeLog=10, Work=80, Progress=80, ParentId=3, IsManual=false },
+                new TaskData(){ TaskId = 8, TaskName="Drag Multi-selection", StartDate=new DateTime(2021,12,24), EndDate=new DateTime(2022,1,6), Manager="", DueDate=new DateTime(2022,2,20), TimeLog=10, Work=80, Progress=100, Status="Completed", ParentId=7, Priority="Critical", Component="Tree Grid", IsManual=false },
+                new TaskData(){ TaskId = 9, TaskName="Gantt Chart", StartDate=new DateTime(2021,12,24), EndDate=new DateTime(2022,3,25), DueDate=DateTime.Now, Work=10, Progress=100, ParentId=3, IsManual=false },
+                new TaskData(){ TaskId = 10, TaskName="Initial loading performance", StartDate=new DateTime(2021,12,24), EndDate=new DateTime(2022,1,3), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=7, Work=56, Progress=35, Status="In Progress", ParentId=9, Priority="Low", Component="Gantt Chart", IsManual=false },
+                new TaskData(){ TaskId = 11, TaskName="Drag Multi-selection", StartDate=new DateTime(2022,1,7), EndDate=new DateTime(2022,1,24), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=7, Work=56, Progress=100, Predecessor="8FS", Status="Completed", ParentId=9, Priority="Normal", Component="Gantt Chart", IsManual=true },
+                new TaskData(){ TaskId = 12, TaskName="ScrollToViewAsync Method", StartDate=new DateTime(2022,1,17), EndDate=new DateTime(2022,1,21), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=5, Work=40, Progress=100, Status="Completed", ParentId=9, Priority="High", Component="Gantt Chart", IsManual=false },
+                new TaskData(){ TaskId = 13, TaskName="ScrollToTimelineAsync Method", StartDate=new DateTime(2022,1,20), EndDate=new DateTime(2022,1,26), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=5, Work=40, Progress=100, Status="On Hold", ParentId=9, Priority="Normal", Component="Gantt Chart", IsManual=true },
+                new TaskData(){ TaskId = 14, TaskName="ScrollToTaskbarAsync Method", StartDate=new DateTime(2022,1,24), EndDate=new DateTime(2022,1,28), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=5, Work=40, Progress=40, Status="Completed", ParentId=9, Priority="Critical", Component="Gantt Chart", IsManual=false },
+                new TaskData(){ TaskId = 15, TaskName="Web Accessibility", StartDate=new DateTime(2022,1,26), EndDate=new DateTime(2022,2,1), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=5, Work=40, Progress=35, Status="On Hold", ParentId=9, Priority="Normal", Component="Gantt Chart", IsManual=true },
+                new TaskData(){ TaskId = 16, TaskName="Feature Completion", StartDate=new DateTime(2022,2,9), TimeLog=0, ParentId=3, IsManual=false, Predecessor = "6, 8, 15" },
+                new TaskData(){ TaskId = 17, TaskName="Testing", Work=8, ParentId=3, IsManual=true,StartDate=new DateTime(2022,2,10), EndDate=new DateTime(2022,3,7), },
+                new TaskData(){ TaskId = 18, TaskName="Phase-1", StartDate=new DateTime(2022,2,10), EndDate=new DateTime(2022,2,22), Work=80, Progress=0, ParentId=17, IsManual=false, Predecessor = "16" },
+                new TaskData(){ TaskId = 19, TaskName="Phase-2", StartDate=new DateTime(2022,2,23), EndDate=new DateTime(2022,3,7), Work=80, Progress=0, Predecessor="18", ParentId=17, IsManual=true },
+                new TaskData(){ TaskId = 20, TaskName="Build Confirmation", StartDate=new DateTime(2022,2,28), TimeLog=2, Work =16 ,ParentId=3, IsManual=false, Predecessor = "19" },
+                new TaskData(){ TaskId = 21, TaskName="Release Roll-out", StartDate=new DateTime(2022,03,2), TimeLog=0, ParentId=2, IsManual=true, Predecessor = "20" },
+                new TaskData(){ TaskId = 22, TaskName="Q-2 Release", StartDate=new DateTime(2022,03,3), EndDate=new DateTime(2022,06,30), Manager="", DueDate=new DateTime(2022,06,30), TimeLog=2, Work=2, Progress=90, Status="Completed", IsManual=false },
+                new TaskData(){ TaskId = 23, TaskName = "Roadmap", StartDate = new DateTime(2022,03,3), EndDate = new DateTime(2022, 04, 4), ParentId = 22, IsManual = false},
+                new TaskData(){ TaskId = 24, TaskName = "Implementation", StartDate = new DateTime(2022,03,3), EndDate = new DateTime(2022, 04, 4), ParentId = 23, IsManual = false},
+                new TaskData(){ TaskId = 25, TaskName="Grid", StartDate=new DateTime(2022,03,3), EndDate=new DateTime(2022,05,3), DueDate=DateTime.Now, TimeLog=25, Work=2, Progress=100, ParentId=24, IsManual=false },
+                new TaskData(){ TaskId = 26, TaskName="Adapative UI Mode", StartDate=new DateTime(2022,03,9), EndDate=new DateTime(2022,03,31), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=20, Work=160, Progress=100, Status="Completed", ParentId=25, Priority="Normal", Component="Grid", IsManual=true },
+                new TaskData(){ TaskId = 27, TaskName="Sticky Header", StartDate=new DateTime(2022,03,11), EndDate=new DateTime(2022,03,15), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=7, Work=56, Progress=100, Status="Completed", ParentId=25, Priority="Normal", Component="Grid", IsManual=false },
+                new TaskData(){ TaskId = 28, TaskName="Web Accessibility", StartDate=new DateTime(2022,03,15), EndDate=new DateTime(2022,03,22), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=6, Work=48, Progress=100, Status="Completed", ParentId=25, Priority="High", Component="Grid", IsManual=false },
+                new TaskData(){ TaskId = 29, TaskName="Tree Grid", StartDate=new DateTime(2022,04,11), EndDate=new DateTime(2022,05,9), DueDate=new DateTime(2022,05,20), TimeLog=25, Work=200, Progress=100, ParentId=24, IsManual=true },
+                new TaskData(){ TaskId = 30, TaskName="CRUD Operation for virtualization", StartDate=new DateTime(2022,03,9), EndDate=new DateTime(2022,04,8), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=26, Work=208, Progress=72, Status="In Progress", ParentId=29, Priority="Normal", Component="Tree Grid", IsManual=true },
+                new TaskData(){ TaskId = 31, TaskName="Frozen Column", StartDate=new DateTime(2022,03,25), EndDate=new DateTime(2022,04,7), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=10, Work=80, Progress=80, Status="Completed", ParentId=29, Priority="High", Component="Tree Grid", IsManual=false },
+                new TaskData(){ TaskId = 32, TaskName="Gantt Chart", StartDate=new DateTime(2022,05,05), EndDate=new DateTime(2022,6,20), DueDate=DateTime.Now, Work=2, Progress=50, ParentId=24, IsManual=true },
+                new TaskData(){ TaskId = 33, TaskName="Touch Interaction ", StartDate=new DateTime(2022,03,9), EndDate=new DateTime(2022,4,6), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=25, Work=200, Progress=100, Status="Completed", ParentId=32, Priority="Normal", Component="Gantt Chart", IsManual=true },
+                new TaskData(){ TaskId = 34, TaskName="Editing Tooltip Template", StartDate=new DateTime(2022,03,11), EndDate=new DateTime(2022,3,9), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=5, Work=40, Progress=100, Status="Completed", ParentId=32, Priority="Low", Component="Gantt Chart", IsManual=false },
+                new TaskData(){ TaskId = 35, TaskName="Predecessor Drag Vertical Auto Scroll", StartDate=new DateTime(2022,03,14), EndDate=new DateTime(2022,3,14), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=5, Work=40, Progress=100, Status="Completed", ParentId=32, Priority="Normal", Component="Gantt Chart", IsManual=false },
+                new TaskData(){ TaskId = 36, TaskName="Taskbar Drag Horizontal Auto Scroll", StartDate=new DateTime(2022,03,14), EndDate=new DateTime(2022,3,18), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=5, Work=40, Progress=100, Status="Completed", ParentId=32, Priority="Normal", Component="Gantt Chart", IsManual=false },
+                new TaskData(){ TaskId = 37, TaskName="Observable Collection", StartDate=new DateTime(2022,03,17), EndDate=new DateTime(2022,03,23), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=5, Work=40, Progress=70, Status="On Hold", ParentId=32, Priority="Critical", Component="Gantt Chart", IsManual=false  },
+                new TaskData(){ TaskId = 38, TaskName="INotifyPropertyChanged", StartDate=new DateTime(2022,03,21), EndDate=new DateTime(2022,03,29), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=7, Work=56, Progress=20, Status="On Hold", ParentId=32, Priority="Normal", Component="Gantt Chart", IsManual=false },
+                new TaskData(){ TaskId = 39, TaskName="Customized Taskbar Editing", StartDate=new DateTime(2022,03,28), EndDate=new DateTime(2022,04,8), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=10, Work=80, Progress=10, Status="On Hold", ParentId=32, Priority="High", Component="Gantt Chart", IsManual=true },
+                new TaskData(){ TaskId = 40, TaskName="Column Virtualization ", StartDate=new DateTime(2022,04,8), EndDate=new DateTime(2022,04,14), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=5, Work=40, Progress=80, Status="Completed", ParentId=32, Priority="Critical", Component="Gantt Chart", IsManual=false, Predecessor = "31" },
+                new TaskData(){ TaskId = 41, TaskName="Predecessor Types Configure", StartDate=new DateTime(2022,04,12), EndDate=new DateTime(2022,4,19), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=6, Work=48, Progress=70, Status="On Hold", ParentId=32, Priority="Low", Component="Gantt Chart", IsManual=true },
+                new TaskData(){ TaskId = 42, TaskName="Based on content height holiday, event markers, and weekend container rendering", StartDate=new DateTime(2022,04,18), EndDate=new DateTime(2022,4,25), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=6, Work=48, Progress=60, Status="In Progress", ParentId=32, Priority="Normal", Component="Gantt Chart", IsManual=false },
+                new TaskData(){ TaskId = 43, TaskName="Feature Completion", StartDate=new DateTime(2022,4,25), TimeLog=0, ParentId=24, IsManual=false, Predecessor = "28, 31, 42" },
+                new TaskData(){ TaskId = 44, TaskName="Testing", Work=8, ParentId=24, IsManual=true, StartDate=new DateTime(2022,04,26), EndDate=new DateTime(2022,05,23) },
+                new TaskData(){ TaskId = 45, TaskName="Phase-1", StartDate=new DateTime(2022,4,26), EndDate=new DateTime(2022,5,6), Work=80, Progress=0, ParentId=44, IsManual=false, Predecessor = "43" },
+                new TaskData(){ TaskId = 46, TaskName="Phase-2", StartDate=new DateTime(2022,5,9), EndDate=new DateTime(2022,5,19), Work=80, Predecessor="45", Progress=0, ParentId=44, IsManual=true },
+                new TaskData(){ TaskId = 47, TaskName="Build Confirmation", StartDate=new DateTime(2022,5,19), TimeLog=2, Work= 16, ParentId=44, IsManual=true, Predecessor = "46" },
+                new TaskData(){ TaskId = 48, TaskName="Release Roll-out", StartDate=new DateTime(2022,05,23), TimeLog=0, ParentId=23, IsManual=true, Predecessor = "47" },
+                new TaskData(){ TaskId = 49, TaskName="Q-3 Release", StartDate=new DateTime(2022,05,25), EndDate=new DateTime(2022,09,29), Manager="", DueDate=DateTime.Now, TimeLog=2, Work=2, Progress=100, StoryPoints=100, Status="In Progress", IsManual=false },
+                new TaskData(){ TaskId = 50, TaskName="Roadmap", ParentId=49, IsManual=true, StartDate=new DateTime(2022,5,25), EndDate=new DateTime(2022,04,4) },
+                new TaskData(){ TaskId = 51, TaskName="Implementation", ParentId=50, IsManual=true, StartDate=new DateTime(2022,5,25), EndDate=new DateTime(2022,04,4) },
+                new TaskData(){ TaskId = 52, TaskName="Grid", StartDate=new DateTime(2022,05,25), EndDate=new DateTime(2022,7,20), DueDate=new DateTime(2022,04,4), TimeLog=15, Work=120, Progress=100, ParentId=51, IsManual=false },
+                new TaskData(){ TaskId = 53, TaskName="Lazy-Loading Grouping with Virtualization", StartDate=new DateTime(2022,05,25), EndDate=new DateTime(2022,06,7), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=10, Work=80, Progress=50, Status="In Progress", ParentId=52, Priority="Normal", Component="Grid", IsManual=false },
+                new TaskData(){ TaskId = 54, TaskName="Filter Bar Keyboard Navigation", StartDate=new DateTime(2022,5,30), EndDate=new DateTime(2022,06,7), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=10, Work=80, Progress=20, Status="On Hold", ParentId=52, Priority="Low", Component="Grid", IsManual=false },
+                new TaskData(){ TaskId = 55, TaskName="Keyboard Navigation Enhanced", StartDate=new DateTime(2022,06,3), EndDate=new DateTime(2022,06,2), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=5, Work=40, Progress=33, Status="In Progress", ParentId=52, Priority="High", Component="Grid", IsManual=true },
+                new TaskData(){ TaskId = 56, TaskName="Tree Grid", StartDate=new DateTime(2022,07,01), EndDate=new DateTime(2022,7,20), DueDate=new DateTime(2022,04,4), TimeLog=15, Work=120, Progress=100, ParentId=51, IsManual=false },
+                new TaskData(){ TaskId = 57, TaskName="Persistence State", StartDate=new DateTime(2022,05,25), EndDate=new DateTime(2022,06,28), Manager="", DueDate=new DateTime(2022,2,01), TimeLog=25, Work=200, Progress=20, Status="In Progress", ParentId=56, Priority="Normal", Component="Tree Grid", IsManual=true },
+                new TaskData(){ TaskId = 58, TaskName="Add or Remove Frozen Columns", StartDate=new DateTime(2022,08,13), EndDate=new DateTime(2022,09,10), Manager="", DueDate=new DateTime(2022,08,01), TimeLog=4, Work=32, Progress=40, Status="In Progress", ParentId=56, Priority="Critical", Component="Tree Grid", IsManual=false, Predecessor = "40+28Days"  },
+                new TaskData(){ TaskId = 59, TaskName="Gantt Chart", StartDate=new DateTime(2022,08,01), EndDate=new DateTime(2022,08,20), DueDate=new DateTime(2022,09,4), TimeLog=15, Work=120, Progress=100, ParentId=51, IsManual=false },
+                new TaskData(){ TaskId = 60, TaskName="String and GUID Task Id type", StartDate=new DateTime(2022,08,05), EndDate=new DateTime(2022,09,01), Manager="", DueDate=new DateTime(2022,08,15), TimeLog=24, Work=192, Progress=10, Status="In Progress", ParentId=59, Priority="Normal", Component="Gantt Chart", IsManual=false },
+                new TaskData(){ TaskId = 62, TaskName="Dependency and CRUD operation in row virtualization", StartDate=new DateTime(2022,08,10), EndDate=new DateTime(2022,08,30), Manager="", DueDate=new DateTime(2022,08,05), TimeLog=15, Work=120, Progress=78, Status="In Progress", ParentId=59, Predecessor="30+30Days", Priority="Normal", Component="Gantt Chart", IsManual=true },
+                new TaskData(){ TaskId = 63, TaskName="Timeline Virtualization", StartDate=new DateTime(2022,08,16), EndDate=new DateTime(2022,08,18), Manager="", DueDate=new DateTime(2022,08,01), TimeLog=10, Work=80, Progress=80, Status="In Progress", ParentId=59, Priority="Normal", Component="Gantt Chart", IsManual=false },
+                new TaskData(){ TaskId = 64, TaskName="External Key Events", StartDate=new DateTime(2022,08,13), EndDate=new DateTime(2022,08,23), Manager="", DueDate=new DateTime(2022,08,01), TimeLog=5, Work=40, Progress=100, Status="Completed", ParentId=59, Priority="High", Component="Gantt Chart", IsManual=false },
+                new TaskData(){ TaskId = 65, TaskName="Rendering spinner for every Gantt action", StartDate=new DateTime(2022,08,15), EndDate=new DateTime(2022,08,31), Manager="", DueDate=new DateTime(2022,08,01), TimeLog=3, Work=24, Progress=35, Status="In Progress", ParentId=59, Priority="Normal", Component="Gantt Chart", IsManual=false },
+                new TaskData(){ TaskId = 61, TaskName="AutoCalculateDateScheduling API", StartDate=new DateTime(2022,08,05), EndDate=new DateTime(2022,08,25), Manager="", DueDate=new DateTime(2022,08,01), TimeLog=15, Work=120, Progress=25, Status="On Hold", ParentId=59, Priority="Low", Component="Gantt Chart", IsManual=true },
+                new TaskData(){ TaskId = 66, TaskName="Persistence State", StartDate=new DateTime(2022,08,01), EndDate=new DateTime(2022,08,20), Manager="", DueDate=new DateTime(2022,08,01), TimeLog=14, Work=112, Progress=70, Status="In Progress", ParentId=59, Predecessor="58FS", Priority="Critical", Component="Gantt Chart", IsManual=true },
+                new TaskData(){ TaskId = 67, TaskName="Feature Completion", StartDate=new DateTime(2022,08,20), TimeLog=0, ParentId=51, IsManual=true, Predecessor = "55, 58, 66" },
+                new TaskData(){ TaskId = 68, TaskName="Testing", Work=8, ParentId=51, IsManual=true, StartDate=new DateTime(2022,08,21), EndDate=new DateTime(2022,08,24) },
+                new TaskData(){ TaskId = 69, TaskName="Phase-1", StartDate=new DateTime(2022,08,21), EndDate=new DateTime(2022,09,04), Work=80, Progress=0, ParentId=68, IsManual=false, Predecessor = "67" },
+                new TaskData(){ TaskId = 70, TaskName="Phase-2", StartDate=new DateTime(2022,08,24), EndDate=new DateTime(2022,09,07), Work=80, Predecessor="69", Progress=0, ParentId=68, IsManual=true },
+                new TaskData(){ TaskId = 71, TaskName="Testing Completion", StartDate=new DateTime(2022,09,07), TimeLog=2, Work=16, ParentId=51, IsManual=true, Predecessor = "70" },
+                new TaskData(){ TaskId = 72, TaskName="Release Roll-out", StartDate=new DateTime(2022,09,08), TimeLog=0, ParentId=50, IsManual=true, Predecessor ="71" },
+            };
+            return Tasks;
+        }
+        public static List<AssignmentModel> GetAssignmentCollection()
+        {
+            List<AssignmentModel> assignments = new List<AssignmentModel>()
+            {
+                new AssignmentModel(){ Id=1, TaskId = 5, ResourceId = 1},
+                new AssignmentModel(){ Id=2, TaskId = 6, ResourceId = 2},
+                new AssignmentModel(){ Id=3, TaskId = 8, ResourceId = 4},
+                new AssignmentModel(){ Id=4, TaskId = 10, ResourceId = 1},
+                new AssignmentModel(){ Id=5, TaskId = 11, ResourceId = 6},
+                new AssignmentModel(){ Id=6, TaskId = 12, ResourceId = 1},
+                new AssignmentModel(){ Id=7, TaskId = 13, ResourceId = 4},
+                new AssignmentModel(){ Id=8, TaskId = 14, ResourceId = 1},
+                new AssignmentModel(){ Id=9, TaskId = 15, ResourceId = 4},
+                new AssignmentModel(){ Id=10, TaskId = 25, ResourceId = 1},
+                new AssignmentModel(){ Id=11, TaskId = 26, ResourceId = 6},
+                new AssignmentModel(){ Id=12, TaskId = 27, ResourceId = 2},
+                new AssignmentModel(){ Id=13, TaskId = 29, ResourceId = 4},
+                new AssignmentModel(){ Id=14, TaskId = 30, ResourceId = 1},
+                new AssignmentModel(){ Id=15, TaskId = 32, ResourceId = 2},
+                new AssignmentModel(){ Id=16, TaskId = 33, ResourceId = 4},
+                new AssignmentModel(){ Id=17, TaskId = 34, ResourceId = 6},
+                new AssignmentModel(){ Id=18, TaskId = 35, ResourceId = 1},
+                new AssignmentModel(){ Id=19, TaskId = 36, ResourceId = 2},
+                new AssignmentModel(){ Id=20, TaskId = 37, ResourceId = 6},
+                new AssignmentModel(){ Id=21, TaskId = 38, ResourceId = 4},
+                new AssignmentModel(){ Id=22, TaskId = 39, ResourceId = 2},
+                new AssignmentModel(){ Id=23, TaskId = 40, ResourceId = 1},
+                new AssignmentModel(){ Id=24, TaskId = 42, ResourceId = 4},
+                new AssignmentModel(){ Id=25, TaskId = 53, ResourceId = 1},
+                new AssignmentModel(){ Id=26, TaskId = 54, ResourceId = 6},
+                new AssignmentModel(){ Id=27, TaskId = 55, ResourceId = 2},
+                new AssignmentModel(){ Id=28, TaskId = 57, ResourceId = 2},
+                new AssignmentModel(){ Id=29, TaskId = 58, ResourceId = 1},
+                new AssignmentModel(){ Id=30, TaskId = 60, ResourceId = 6},
+                new AssignmentModel(){ Id=31, TaskId = 61, ResourceId = 4},
+                new AssignmentModel(){ Id=32, TaskId = 62, ResourceId = 2},
+                new AssignmentModel(){ Id=33, TaskId = 63, ResourceId = 6},
+                new AssignmentModel(){ Id=34, TaskId = 64, ResourceId = 1},
+                new AssignmentModel(){ Id=35, TaskId = 65, ResourceId = 2},
+                new AssignmentModel(){ Id=36, TaskId = 66, ResourceId = 2},
+                new AssignmentModel(){ Id=37, TaskId = 43, ResourceId = 6},
+            };
+            return assignments;
+        }
+        public class SegmentModel
+        {
+            public int id { get; set; }
+            public int TaskId { get; set; }
+            public DateTime StartDate { get; set; }
+            public DateTime EndDate { get; set; }
+            public string Duration { get; set; }
+        }
+        public static List<SegmentModel> GetSegmentCollection()
+        {
+            List<SegmentModel> segments = new List<SegmentModel>();
+            segments.Add(new SegmentModel() { id = 1, TaskId = 5, StartDate = new DateTime(2021, 12, 24), Duration = "10" });
+            segments.Add(new SegmentModel() { id = 2, TaskId = 5, StartDate = new DateTime(2022, 01, 03), Duration = "10" });
+            segments.Add(new SegmentModel() { id = 3, TaskId = 6, StartDate = new DateTime(2021, 12, 28), Duration = "16" });
+            segments.Add(new SegmentModel() { id = 4, TaskId = 6, StartDate = new DateTime(2022, 01, 18), Duration = "5" });
+            segments.Add(new SegmentModel() { id = 5, TaskId = 6, StartDate = new DateTime(2022, 01, 25), Duration = "21" });
+            segments.Add(new SegmentModel() { id = 6, TaskId = 11, StartDate = new DateTime(2022, 01, 03), Duration = "21" });
+            segments.Add(new SegmentModel() { id = 7, TaskId = 11, StartDate = new DateTime(2022, 01, 28), Duration = "12" });
+            segments.Add(new SegmentModel() { id = 8, TaskId = 29, StartDate = new DateTime(2022, 04, 25), Duration = "13" });
+            segments.Add(new SegmentModel() { id = 9, TaskId = 29, StartDate = new DateTime(2022, 05, 11), Duration = "13" });
+            segments.Add(new SegmentModel() { id = 10, TaskId = 58, StartDate = new DateTime(2022, 07, 20), Duration = "15" });
+            segments.Add(new SegmentModel() { id = 11, TaskId = 58, StartDate = new DateTime(2022, 08, 08), Duration = "9" });
+            segments.Add(new SegmentModel() { id = 12, TaskId = 28, StartDate = new DateTime(2022, 04, 11), Duration = "9" });
+            segments.Add(new SegmentModel() { id = 13, TaskId = 28, StartDate = new DateTime(2022, 04, 25), Duration = "11" });
+            segments.Add(new SegmentModel() { id = 14, TaskId = 30, StartDate = new DateTime(2022, 04, 11), Duration = "20" });
+            segments.Add(new SegmentModel() { id = 15, TaskId = 30, StartDate = new DateTime(2022, 05, 10), Duration = "6" });
+            segments.Add(new SegmentModel() { id = 16, TaskId = 57, StartDate = new DateTime(2022, 05, 25), Duration = "8" });
+            segments.Add(new SegmentModel() { id = 17, TaskId = 57, StartDate = new DateTime(2022, 06, 07), Duration = "17" });
+            return segments;
+        }
+    }
+}
+
+<style>
+    body:not(.material3):not(.material3-dark) .e-ddl.e-input-group.e-control-wrapper .e-ddl-icon::before {
+        content: '\e729';
+        padding-top: 5px;
+        padding-right: 10px;
+    }
+
+    .e-tbar-btn-text {
+        display: none;
+    }
+
+    .highcontrast .e-toolbar .e-toolbar-item .e-tbar-btn.e-tbtn-txt .e-icons.e-btn-icon {
+        padding: 4px !important;
+    }
+
+    .e-task-label {
+        display: inline-block;
+        width: 100%;
+        padding: 0 6px;
+    }
+
+    .e-toolbar {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-style: solid;
+        border-width: 1px 1px 0;
+    }
+
+    @@font-face {
+        font-family: 'e-icons';
+        src: url(data:application/x-font-ttf;charset=utf-8;base64,AAEAAAAKAIAAAwAgT1MvMjciQ6oAAAEoAAAAVmNtYXBH1Ec8AAABsAAAAHJnbHlmKcXfOQAAAkAAAAg4aGVhZBLt+DYAAADQAAAANmhoZWEHogNsAAAArAAAACRobXR4LvgAAAAAAYAAAAAwbG9jYQukCgIAAAIkAAAAGm1heHABGQEOAAABCAAAACBuYW1lR4040wAACngAAAJtcG9zdEFgIbwAAAzoAAAArAABAAADUv9qAFoEAAAA//UD8wABAAAAAAAAAAAAAAAAAAAADAABAAAAAQAAlbrm7l8PPPUACwPoAAAAANfuWa8AAAAA1+5ZrwAAAAAD8wPzAAAACAACAAAAAAAAAAEAAAAMAQIAAwAAAAAAAgAAAAoACgAAAP8AAAAAAAAAAQPqAZAABQAAAnoCvAAAAIwCegK8AAAB4AAxAQIAAAIABQMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUGZFZABA4QLhkANS/2oAWgPzAJYAAAABAAAAAAAABAAAAAPoAAAD6AAAA+gAAAPoAAAD6AAAA+gAAAPoAAAD6AAAA+gAAAPoAAAD6AAAAAAAAgAAAAMAAAAUAAMAAQAAABQABABeAAAADgAIAAIABuEC4QnhD+ES4RvhkP//AADhAuEJ4QvhEuEa4ZD//wAAAAAAAAAAAAAAAAABAA4ADgAOABYAFgAYAAAAAQACAAYABAADAAgABwAKAAkABQALAAAAAAAAAB4AQABaAQYB5gJkAnoCjgKwA8oEHAAAAAIAAAAAA+oDlQAEAAoAAAEFESERCQEVCQE1AgcBZv0mAXQB5P4c/g4Cw/D+lwFpAcP+s24BTf6qbgAAAAEAAAAAA+oD6gALAAATCQEXCQEHCQEnCQF4AYgBiGP+eAGIY/54/nhjAYj+eAPr/ngBiGP+eP54YwGI/nhjAYgBiAAAAwAAAAAD6gOkAAMABwALAAA3IRUhESEVIREhFSEVA9b8KgPW/CoD1vwq6I0B64wB640AAAEAAAAAA+oD4QCaAAABMx8aHQEPDjEPAh8bIT8bNS8SPxsCAA0aGhgMDAsLCwoKCgkJCQgHBwYGBgUEBAMCAgECAwUFBggICQoLCwwMDg0GAgEBAgIDBAMIBiIdHh0cHBoZFhUSEAcFBgQDAwEB/CoBAQMDBAUGBw8SFRYYGhsbHB0cHwsJBQQEAwIBAQMEDg0NDAsLCQkJBwYGBAMCAQEBAgIDBAQFBQYGBwgICAkJCgoKCwsLDAwMGRoD4gMEBwQFBQYGBwgICAkKCgsLDAwNDQ4ODxAQEBEWFxYWFhYVFRQUExIRERAOFxMLCggIBgYFBgQMDAwNDg4QDxERERIJCQkKCQkJFRQJCQoJCQgJEhERERAPDw4NDQsMBwgFBgYICQkKDAwODw8RERMTExUUFhUWFxYWFxEQEBAPDg4NDQwMCwsKCgkICAgHBgYFBQQEBQQAAAAAAwAAAAAD8wPzAEEAZQDFAAABMx8FFREzHwYdAg8GIS8GPQI/BjM1KwEvBT0CPwUzNzMfBR0CDwUrAi8FPQI/BTMnDw8fFz8XLxcPBgI+BQQDAwMCAT8EBAMDAwIBAQIDAwMEBP7cBAQDAwMCAQECAwMDBAQ/PwQEAwMDAgEBAgMDAwQE0AUEAwMDAgEBAgMDAwQFfAUEAwMDAgEBAgMDAwQFvRsbGRcWFRMREA4LCQgFAwEBAwUHCgsOEBETFRYXGRocHR4eHyAgISIiISAgHx4eHRsbGRcWFRMREA4LCQgFAwEBAwUHCgsOEBETFRYXGRsbHR4eHyAgISIiISAgHx4eAqYBAgIDBAQE/rMBAQEDAwQEBGgEBAQDAgIBAQEBAgIDBAQEaAQEBAMDAQEB0AECAwMDBAVoBAQDAwMCAeUBAgIEAwQEaAUEAwMDAgEBAgMDAwQFaAQEAwQCAgElERMVFhcZGhwdHh4fICAhIiIhICAfHh4dGxsZFxYVExEQDgsJCAUDAQEDBQcKCw4QERMVFhcZGxsdHh4fICAhIiIhICAfHh4dHBoZFxYVExEQDgsKBwUDAQEDBQcKCw4AAAIAAAAAA9MD6QALAE8AAAEOAQcuASc+ATceAQEHBgcnJgYPAQYWHwEGFBcHDgEfAR4BPwEWHwEeATsBMjY/ATY3FxY2PwE2Ji8BNjQnNz4BLwEuAQ8BJi8BLgErASIGApsBY0tKYwICY0pLY/7WEy4nfAkRBWQEAwdqAwNqBwMEZAURCXwnLhMBDgnICg4BEy4mfQkRBGQFAwhpAwNpCAMFZAQSCH0mLhMBDgrICQ4B9UpjAgJjSkpjAgJjAZWEFB4yBAYIrggSBlIYMhhSBhIIrggFAzIfE4QJDAwJhBQeMgQGCK4IEgZSGDIYUgYSCK4IBQMyHxOECQwMAAEAAAAAAwED6gAFAAAJAicJAQEbAef+FhoBzf4zA+v+Ff4VHwHMAc0AAAAAAQAAAAADAQPqAAUAAAEXCQEHAQLlHf4zAc0a/hYD6x7+M/40HwHrAAEAAAAAA/MD8wALAAATCQEXCQE3CQEnCQENAY7+cmQBjwGPZP5yAY5k/nH+cQOP/nH+cWQBjv5yZAGPAY9k/nEBjwAAAwAAAAAD8wPzAEAAgQEBAAAlDw4rAS8dPQE/DgUVDw4BPw47AR8dBRUfHTsBPx09AS8dKwEPHQL1DQ0ODg4PDw8QEBAQERERERUUFBQTExITEREREBAPDw0ODAwLCwkJCAcGBgQEAgIBAgIEAwUFBgYHBwkICQoCygECAgQDBQUGBgcHCQgJCv3QDQ0ODg4PDw8QEBAQERERERUUFBQTExITEREREBAPDw0ODAwLCwkJCAcGBgQEAgL8fgIDBQUHCAkKCwwNDg8PERESExQUFRYWFhgXGBkZGRoaGRkZGBcYFhYWFRQUExIREQ8PDg0MCwoJCAcFBQMCAgMFBQcICQoLDA0ODw8RERITFBQVFhYWGBcYGRkZGhoZGRkYFxgWFhYVFBQTEhERDw8ODQwLCgkIBwUFAwLFCgkICQcHBgYFBQMEAgIBAgIEBAYGBwgJCQsLDAwODQ8PEBARERETEhMTFBQUFREREREQEBAQDw8PDg4ODQ31ERERERAQEBAPDw8ODg4NDQIwCgkICQcHBgYFBQMEAgIBAgIEBAYGBwgJCQsLDAwODQ8PEBARERETEhMTFBQUFRoZGRkYFxgWFhYVFBQTEhERDw8ODQwLCgkIBwUFAwICAwUFBwgJCgsMDQ4PDxEREhMUFBUWFhYYFxgZGRkaGhkZGRgXGBYWFhUUFBMSEREPDw4NDAsKCQgHBQUDAgIDBQUHCAkKCwwNDg8PERESExQUFRYWFhgXGBkZGQAAAQAAAAAD6gPqAEMAABMhHw8RDw8hLw8RPw6aAswNDgwMDAsKCggIBwUFAwIBAQIDBQUHCAgKCgsMDAwODf00DQ4MDAwLCgoICAcFBQMCAQECAwUFBwgICgoLDAwMDgPrAQIDBQUHCAgKCgsLDA0NDv00Dg0NDAsLCgoICAcFBQMCAQECAwUFBwgICgoLCwwNDQ4CzA4NDQwLCwoKCAgHBQUDAgAAABIA3gABAAAAAAAAAAEAAAABAAAAAAABAA0AAQABAAAAAAACAAcADgABAAAAAAADAA0AFQABAAAAAAAEAA0AIgABAAAAAAAFAAsALwABAAAAAAAGAA0AOgABAAAAAAAKACwARwABAAAAAAALABIAcwADAAEECQAAAAIAhQADAAEECQABABoAhwADAAEECQACAA4AoQADAAEECQADABoArwADAAEECQAEABoAyQADAAEECQAFABYA4wADAAEECQAGABoA+QADAAEECQAKAFgBEwADAAEECQALACQBayBlLWljb25zLW1ldHJvUmVndWxhcmUtaWNvbnMtbWV0cm9lLWljb25zLW1ldHJvVmVyc2lvbiAxLjBlLWljb25zLW1ldHJvRm9udCBnZW5lcmF0ZWQgdXNpbmcgU3luY2Z1c2lvbiBNZXRybyBTdHVkaW93d3cuc3luY2Z1c2lvbi5jb20AIABlAC0AaQBjAG8AbgBzAC0AbQBlAHQAcgBvAFIAZQBnAHUAbABhAHIAZQAtAGkAYwBvAG4AcwAtAG0AZQB0AHIAbwBlAC0AaQBjAG8AbgBzAC0AbQBlAHQAcgBvAFYAZQByAHMAaQBvAG4AIAAxAC4AMABlAC0AaQBjAG8AbgBzAC0AbQBlAHQAcgBvAEYAbwBuAHQAIABnAGUAbgBlAHIAYQB0AGUAZAAgAHUAcwBpAG4AZwAgAFMAeQBuAGMAZgB1AHMAaQBvAG4AIABNAGUAdAByAG8AIABTAHQAdQBkAGkAbwB3AHcAdwAuAHMAeQBuAGMAZgB1AHMAaQBvAG4ALgBjAG8AbQAAAAACAAAAAAAAAAoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwBAgEDAQQBBQEGAQcBCAEJAQoBCwEMAQ0AB2hvbWUtMDELQ2xvc2UtaWNvbnMHbWVudS0wMQR1c2VyB0JUX2luZm8PU2V0dGluZ19BbmRyb2lkDWNoZXZyb24tcmlnaHQMY2hldnJvbi1sZWZ0CE1UX0NsZWFyDE1UX0p1bmttYWlscwRzdG9wAAA=) format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    .e-close::before {
+        font-family: 'e-icons' !important;
+        content: '\e7e7';
+        font-size: 15px;
+    }
+
+    .e-settings-icon::before {
+        font-family: 'e-icons' !important;
+        content: '\e880';
+        font-size: 15px;
+    }
+
+    .listviewarrow::before {
+        font-family: 'e-icons' !important;
+        content: '\e70c';
+        font-size: 15px;
+    }
+
+    .material3 .e-close::before,
+    .materia3l-dark .e-close::before,
+    .material3 .e-close::before {
+        content: '\e7e7';
+        font-family: 'e-icons';
+        font-size: 15px;
+    }
+
+    .material .e-close::before,
+    .material-dark .e-close::before,
+    .material .e-close::before {
+        content: '\e7fc';
+        font-family: 'e-icons';
+        font-size: 15px;
+    }
+
+    .fabric .e-close::before,
+    .fabric-dark .e-close::before,
+    .highcontrast .e-close::before {
+        content: '\e7fc';
+        font-family: 'e-icons';
+        font-size: 15px;
+    }
+
+    .bootstrap .e-close::before,
+    .bootstrap-dark .e-close::before {
+        content: '\e7fc';
+        font-family: 'e-icons';
+        font-size: 15px;
+    }
+
+    .bootstrap4 .e-close::before {
+        content: '\e745';
+        font-family: 'e-icons';
+        font-size: 15px;
+    }
+
+    .tailwind .e-close::before,
+    .tailwind-dark .e-close::before {
+        content: '\e7e7';
+        font-family: 'e-icons';
+        font-size: 15px;
+    }
+
+    .bootstrap5 .e-close::before,
+    .bootstrap5-dark .e-close::before,
+    .fluent .e-close::before, .fluent-dark .e-close::before,
+    .tailwind .e-close::before, .tailwind-dark .e-close::before {
+        content: '\e7e7';
+        font-family: 'e-icons';
+        font-size: 15px;
+    }
+
+    .material3 .e-settings-icon::before,
+    .materia3l-dark .e-settings-icon::before,
+    .material3 .e-settings-icon::before {
+        content: '\e880';
+        font-family: 'e-icons';
+    }
+
+    .material .e-settings-icon::before,
+    .material-dark .e-settings-icon::before,
+    .material .e-settings-icon::before {
+        content: '\e679';
+        font-family: 'e-icons';
+    }
+
+    .fabric .e-settings-icon::before,
+    .fabric-dark .e-settings-icon::before,
+    .highcontrast .e-settings-icon::before {
+        content: '\e679';
+        font-family: 'e-icons';
+    }
+
+    .bootstrap .e-settings-icon::before,
+    .bootstrap-dark .e-settings-icon::before {
+        content: '\e679';
+        font-family: 'e-icons';
+    }
+
+    .bootstrap4 .e-settings-icon::before {
+        content: '\e679';
+        font-family: 'e-icons';
+    }
+
+    .tailwind .e-settings-icon::before,
+    .tailwind-dark .e-settings-icon::before {
+        content: '\e880';
+        font-family: 'e-icons';
+    }
+
+    .fluent .e-settings-icon::before, .fluent-dark .e-settings-icon::before {
+        content: '\e880';
+        font-family: 'e-icons';
+    }
+
+    .title {
+        line-height: 24px;
+        font-size: @FilterHeaderFontSize;
+        font-weight: @FilterHeaderFontWeight;
+        margin-top: 0;
+    }
+
+    .e-filterbutton {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .e-listview .e-list-header {
+        background: @FilterBackgroundColor;
+        padding-left: 15px;
+        position: sticky;
+        top: -1px;
+        height: @FilterHeaderHeight;
+        color: @LabelTextColor;
+    }
+
+    .e-listview .e-list-group-item {
+        font-size: 16px !important;
+        color: @LabelTextColor;
+        padding: 12px;
+    }
+
+    .e-listview:not(.e-list-template) .e-list-item {
+        height: 100% !important;
+        padding: 12px;
+    }
+
+    .e-listview .e-list-group-item {
+        height: 100% !important;
+    }
+
+    .e-btn .e-btn-icon.e-icon-left {
+        margin-bottom: -3px;
+    }
+
+    .e-bigger .e-btn .e-btn-icon.e-icon-left {
+        margin-top: -6px;
+    }
+
+    .e-listview .e-list-group-item:first-child {
+        display: none;
+    }
+
+    .material3 .settings-btn,
+    .material3-dark .settings-btn {
+        font-family: Roboto;
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.10000000149011612px;
+        text-align: center;
+        border-radius: 20px;
+    }
+
+    .material3 .list-header,
+    .material3-dark .list-header {
+        font-weight: 600;
+        font-size: 14px;
+        padding-top: 2px;
+    }
+
+    .material3 .list-fields,
+    .material3 .list-fields {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .material3 .e-switch-wrapper,
+    .material3-dark .e-switch-wrapper {
+        width: 40px;
+        height: 24px;
+    }
+
+    .labels {
+        font-weight: 400;
+        font-size: 14px;
+    }
+
+    .e-sidebar {
+        overflow: hidden;
+    }
+
+    .e-list-container {
+        overflow-y: auto !important;
+        max-height: calc(450px - 57px);
+    }
+
+    .e-sidebar.e-right.e-open {
+        transition-duration: 200ms;
+    }
+
+    .e-sidebar.e-right.e-close {
+        transition-duration: 200ms;
+    }
+
+    .e-listview .e-list-item.e-focused {
+        background: none;
+    }
+
+    .bootstrap5 .e-listview .e-list-item.e-focused {
+        color: #212529;
+    }
+
+    .highcontrast .e-listview .e-list-item.e-focused {
+        color: #fff;
+    }
+
+    .bootstrap5 .e-listview .e-list-item,
+    .bootstrap5-dark .e-listview .e-list-item {
+        border: 0px;
+    }
+
+    .e-bigger.bootstrap5 .e-listview .e-list-item,
+    .e-bigger .bootstrap5-dark .e-listview .e-list-item {
+        border: 0px;
+    }
+
+    .e-bigger .material3 .e-switch-wrapper,
+    .e-bigger .material3-dark .e-switch-wrapper {
+        width: 52px;
+        height: 32px;
+    }
+
+    .e-switch-wrapper {
+        margin: 0 !important;
+    }
+
+    .list-fields {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .e-bigger
+    .title {
+        line-height: 24px;
+        font-size: @FilterHeaderFontSizeTouch;
+        font-weight: @FilterHeaderFontWeight;
+        margin-top: 0;
+    }
+
+    .e-bigger .e-listview .e-list-header {
+        background: @FilterBackgroundColor;
+        padding-left: 15px;
+        position: sticky;
+        top: -1px;
+        height: @FilterHeaderHeightTouch;
+    }
+
+    .groupedList.e-listview {
+        display: block;
+        max-width: 350px;
+        margin: auto;
+        border: 1px solid;
+        line-height: initial;
+        border-color: rgba(0, 0, 0, 0.12);
+    }
+    /* ListView border color customization */
+    .highcontrast .groupedList.e-listview {
+        border-color: #969696;
+    }
+
+    .tailwind-dark .groupedList.e-listview,
+    .bootstrap5-dark .groupedList.e-listview,
+    .material-dark .groupedList.e-listview,
+    .bootstrap-dark .groupedList.e-listview,
+    .fabric-dark .groupedList.e-listview {
+        border-color: #fff;
+    }
+    /* ListView template customization */
+    .groupedList.e-listview .e-list-header {
+        color: #fff;
+        height: 57px;
+        background-color: #56697f;
+        padding-left: 15px;
+        position: sticky;
+        top: -1px;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+    }
+
+    .groupedList.e-listview .e-list-item {
+        cursor: pointer;
+    }
+
+    .groupedList.e-listview .e-list-group-item {
+        color: #837c7c;
+        height: inherit;
+    }
+
+    .bootstrap5\.3 .e-listview .e-list-item.e-focused {
+        color: #212529;
+    }
+
+    body.fluent2-highcontrast .e-listview .e-list-item.e-focused,
+    body.fluent2-highcontrast .e-listview .e-list-item.e-hover {
+        color: #fff;
+    }
+    /* Dark theme related customization*/
+    .bootstrap5-dark .groupedList.e-listview .icon,
+    .bootstrap-dark .groupedList.e-listview .icon,
+    .highcontrast .groupedList.e-listview .icon,
+    .fabric-dark .groupedList.e-listview .icon,
+    .bootstrap5-dark .groupedList.e-listview .e-focused .icon,
+    .tailwind-dark .groupedList.e-listview .e-focused .icon,
+    .tailwind-dark .groupedList.e-listview .icon,
+    .highcontrast .groupedList.e-listview .e-focused .icon,
+    .bootstrap5 .groupedList.e-listview .e-focused .icon {
+        color: #fff;
+    }
+
+    .bootstrap4 .groupedList.e-listview .e-focused .icon {
+        color: #212529;
+    }
+    /* Template icons related customization */
+    .groupedList.e-listview .icon {
+        background: transparent;
+        color: #6c757d;
+    }
+
+    .highcontrast .groupedList.e-listview .e-list-header {
+        color: #ffd939;
+        background-color: #333333;
+    }
+
+    .material-dark .e-list-item .e-list-avatar.e-list-multi-line .e-list-item-header {
+        color: #ffffff;
+    }
+
+    .material-dark .e-list-item .e-list-avatar.e-list-multi-line .e-list-content,
+    .bootstrap-dark .e-list-item .e-list-avatar.e-list-multi-line .e-list-content {
+        color: rgba(255,255,255,0.7);
+    }
+
+    .groupedList .e-list-item:has(:hover) {
+        background-color: transparent !important;
+    }
+
+    .header-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px;
+        width: 230px;
+    }
+</style>

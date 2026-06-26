@@ -1,0 +1,95 @@
+﻿@page "/hierarchicalData"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.TreeGrid
+@using Syncfusion.Blazor.Grids
+
+<SfGantt @ref="Gantt" DataSource="@TaskCollection" ShowWbsColumn="true" AutoGenerateWbs="true" TreeColumnIndex="1" AllowRowDragAndDrop="true" Height="450px" Toolbar="ToolbarActions">
+	<GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" Dependency="Predecessor"
+					 Child="Subtasks" Duration="Duration" WbsCode="WbsCode" WbsPredecessor="WbsPredecessor"></GanttTaskFields>
+	<GanttColumns>
+		<GanttColumn Field="TaskId" Width="120" HeaderText="Task ID" Visible="false"></GanttColumn>
+		<GanttColumn Field="WbsCode" Width="120" HeaderText="WBS"></GanttColumn>
+		<GanttColumn Field="TaskName" Width="250" HeaderText="Task Name"></GanttColumn>
+		<GanttColumn Field="Predecessor" Width="120" HeaderText="Predecessor" Visible="false"></GanttColumn>
+		<GanttColumn Field="WbsPredecessor" Width="120" HeaderText="WBS Predecessor"></GanttColumn>
+		<GanttColumn Field="StartDate" Width="120" HeaderText="Start Date"></GanttColumn>
+	</GanttColumns>	
+	<GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true" />
+</SfGantt>
+
+@code {
+	private SfGantt<TaskData> Gantt;
+	private List<TaskData> TaskCollection { get; set; }
+	protected override void OnInitialized()
+	{
+		this.TaskCollection = GetTaskCollection();
+	}
+
+	public class TaskData
+	{
+		public int TaskId { get; set; }
+		public string TaskName { get; set; }
+		public DateTime StartDate { get; set; }
+		public string Predecessor { get; set; }
+		public string Duration { get; set; }
+		public string WbsCode { get; set; }
+		public string WbsPredecessor { get; set; }
+		public List<TaskData> Subtasks { get; set; } = new List<TaskData>();
+	}
+	private List<object> ToolbarActions = new List<object>
+	{
+		"Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll", "Indent", "Outdent",
+		 "Search", "ZoomIn", "ZoomOut", "ZoomToFit"
+	};
+	public static List<TaskData> GetTaskCollection()
+	{
+		List<TaskData> Tasks = new List<TaskData> {
+				new TaskData
+				{
+				TaskId = 1,
+				TaskName = "Project Initiation",
+				StartDate = new DateTime(2022, 4, 1),
+				Duration = "5",
+				Subtasks =
+				{
+				new TaskData { TaskId = 2, TaskName = "Requirement Gathering", StartDate = new DateTime(2022, 4, 1), Duration = "2" },
+				new TaskData { TaskId = 3, TaskName = "Feasibility Study", StartDate = new DateTime(2022, 4, 3), Duration = "3", Predecessor = "2FS" },
+				new TaskData { TaskId = 4, TaskName = "Approval", StartDate = new DateTime(2022, 4, 6), Duration = "1", Predecessor = "3FF+1" }
+				}
+				},
+				new TaskData
+				{
+				TaskId = 5,
+				TaskName = "Planning",
+				StartDate = new DateTime(2022, 4, 7),
+				Duration = "4",
+				Subtasks =
+				{
+				new TaskData { TaskId = 6, TaskName = "Resource Planning", StartDate = new DateTime(2022, 4, 7), Duration = "2" },
+				new TaskData { TaskId = 7, TaskName = "Budget Planning", StartDate = new DateTime(2022, 4, 8), Duration = "2", Predecessor = "6SS" },
+				new TaskData { TaskId = 8, TaskName = "Schedule Planning", StartDate = new DateTime(2022, 4, 9), Duration = "2", Predecessor = "6FS,7FS" }
+				}
+				},
+				new TaskData
+				{
+				TaskId = 9,
+				TaskName = "Execution",
+				StartDate = new DateTime(2022, 4, 11),
+				Duration = "6",
+				Subtasks =
+				{
+				new TaskData { TaskId = 10, TaskName = "Development", StartDate = new DateTime(2022, 4, 11), Duration = "4", Predecessor = "8FS" },
+				new TaskData { TaskId = 11, TaskName = "Testing", StartDate = new DateTime(2022, 4, 15), Duration = "2", Predecessor = "10FF" },
+				new TaskData { TaskId = 12, TaskName = "Deployment", StartDate = new DateTime(2022, 4, 17), Duration = "1", Predecessor = "11FS+1" }
+				}
+				}
+		};
+
+		return Tasks;
+	}
+
+}

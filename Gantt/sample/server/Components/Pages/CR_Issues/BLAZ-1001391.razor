@@ -1,0 +1,78 @@
+﻿@page "/BLAZ-1001391"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor
+@using SyncfusionBlazorApp.Models
+@using SyncfusionBlazorApp.Controllers
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.TreeGrid
+@using Syncfusion.Blazor.DropDowns
+<div>@messsage</div>
+<button @onclick="click">Query</button>
+
+<div class="row">
+    <div class="col-md-3">
+        <SfDropDownList TValue="int" TItem="ProjectDto"
+        DataSource="@Projects"
+        @bind-Value="SelectedProject"
+        Placeholder="Select a project">
+            <DropDownListFieldSettings Text="ProjectName" Value="ProjectId"></DropDownListFieldSettings>
+            <DropDownListEvents TItem="ProjectDto" TValue="int" ValueChange="OnProjectChange"></DropDownListEvents>
+        </SfDropDownList>
+    </div>
+</div>
+
+<SfGantt @ref="Gantt" TValue="OrdersDetails" Query="@dmQuery" AllowFiltering="true" Height="450px" Width="900px" EnableTimelineVirtualization EnableRowVirtualization>
+    <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" >
+    </GanttTaskFields>
+    <GanttColumns>
+        <GanttColumn Field="TaskID"></GanttColumn>
+        <GanttColumn Field="projectRef" Visible="false" Width="0"></GanttColumn>
+        <GanttColumn Field="TaskName"></GanttColumn>
+    </GanttColumns>
+    <SfDataManager Url="api/grid" InsertUrl="/api/grid/Insert" UpdateUrl="/api/grid/Update" RemoveUrl="/api/grid/Remove"
+    BatchUrl="/api/grid/BatchUpdate" Adaptor="Adaptors.UrlAdaptor"></SfDataManager>
+    <GanttEditSettings AllowEditing="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Dialog"></GanttEditSettings>
+    <GanttEvents TValue="OrdersDetails" OnActionFailure="ActionFailureHandler"></GanttEvents>
+</SfGantt>
+
+@code {
+    private Query dmQuery = new Query();
+    private SfGantt<OrdersDetails> Gantt;
+    public int SelectedProject { get; set; } 
+    public string messsage{ get; set; }
+
+    
+    public List<ProjectDto> Projects { get; } = new()
+    {
+        new(1, "Project A"),
+        new(2, "Project B"),
+        new(3, "Project C"),
+    };
+     public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+
+    public record ProjectDto(int ProjectId, string ProjectName);
+    //.AddParams("TaskID", "1");
+    public async Task click()
+    {
+        dmQuery = new Query().Where("TaskID", "equal", 1);
+        await Gantt.RefreshAsync();
+    }
+    // Solution 
+    private async Task OnProjectChange(ChangeEventArgs<int, ProjectDto> args)
+    {
+        SelectedProject = args.Value;
+        ApplyProjectFilter(SelectedProject);
+        // Re-query server with new params
+        await Gantt.RefreshAsync();
+    }
+    private void ApplyProjectFilter(int projectId)
+    {
+        // Recreate Query so change detection picks it up
+        dmQuery = new Query().Where("projectRef", "equal", projectId);
+    }
+}

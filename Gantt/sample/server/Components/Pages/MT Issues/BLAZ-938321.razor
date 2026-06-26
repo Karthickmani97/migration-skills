@@ -1,0 +1,87 @@
+@page "/BLAZ-938321"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using System.Collections.ObjectModel
+@using System
+@using Syncfusion.Blazor.Navigations
+
+<SfGantt DataSource="@Tasks" @ref="Gantt" Height="450px" RenderBaseline="false" TreeColumnIndex="1" AllowSelection="true" HighlightWeekends="true" EnableRowVirtualization="true" EnableCriticalPath="false"
+         AllowRowDragAndDrop="true" Toolbar="@(new List<string>() { "Add", "Edit", "Update","ZoomToFit", "Delete", "Cancel", "ExpandAll", "CollapseAll", "Indent", "Outdent","Search" })" AllowExcelExport="true"
+         AllowPdfExport="true" AllowFiltering="true" EnableContextMenu="true"
+         AllowSorting="true" AllowResizing="true">
+    <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" Dependency="Predecessor" ParentID="ParentID" BaselineStartDate="BaselineStartDate" BaselineEndDate="BaselineEndDate"></GanttTaskFields>
+    <GanttColumns>
+        <GanttColumn Field="TaskID" Width="100px"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Task Name" Width="200px"></GanttColumn>
+        <GanttColumn Field="StartDate" Width="150px"></GanttColumn>
+        <GanttColumn Field="Duration" Width="100px"></GanttColumn>
+        <GanttColumn Field="Progress" Width="100px"></GanttColumn>
+    </GanttColumns>
+    <GanttEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true" NewRowPosition="RowPosition.Bottom"></GanttEditSettings>
+    @* <GanttEditDialogFields> *@
+    @*     <GanttEditDialogField Type="GanttDialogFieldType.General" HeaderText="General"></GanttEditDialogField> *@
+    @*     <GanttEditDialogField Type="GanttDialogFieldType.Dependency"></GanttEditDialogField> *@
+    @*     <GanttEditDialogField Type="GanttDialogFieldType.Custom"></GanttEditDialogField> *@
+    @* </GanttEditDialogFields> *@
+    <GanttAddDialogFields>
+        <GanttAddDialogField Type="GanttDialogFieldType.General" HeaderText="General"></GanttAddDialogField>
+        <GanttAddDialogField Type="GanttDialogFieldType.Dependency"></GanttAddDialogField>
+        <GanttAddDialogField Type="GanttDialogFieldType.Custom"></GanttAddDialogField>
+    </GanttAddDialogFields>
+    <GanttLabelSettings LeftLabel="TaskName" TaskLabel="Progress" TValue="TaskData">
+    </GanttLabelSettings>
+    @* <GanttSplitterSettings ColumnIndex="2"></GanttSplitterSettings> *@
+    <GanttEvents OnToolbarClick="ToolbarClickHandler" TValue=TaskData></GanttEvents>
+</SfGantt>
+
+@code {
+    private SfGantt<TaskData> Gantt;
+    private List<TaskData> EditingData { get; set; }
+    public class TaskData
+    {
+        public int TaskID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public int Duration { get; set; }
+        public int Progress { get; set; }
+        public string Predecessor { get; set; }
+        public int? ParentID { get; set; }
+        public DateTime BaselineStartDate { get; set; }
+        public DateTime BaselineEndDate { get; set; }
+    }
+    protected override void OnInitialized()
+    {
+        EditingData = Tasks;
+    }
+
+    private async Task ToolbarClickHandler(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        if (args.Item.Id.Contains("pdfexport"))
+        {
+            await Gantt.ExportToPdfAsync();
+        }
+        else if (args.Item.Id.Contains("baseline"))
+        {
+            Gantt.RenderBaseline = !Gantt.RenderBaseline;
+        }
+    }
+    public List<TaskData> Tasks = new List<TaskData>
+    {
+        new TaskData { TaskID = 1, TaskName = "New Task 1", StartDate = new DateTime(2023, 5, 22), EndDate = new DateTime(2023, 5, 22), BaselineStartDate = new DateTime(2023, 5, 22), BaselineEndDate = new DateTime(2023, 5, 22), Progress = 59, Duration = 1 },
+        new TaskData { TaskID = 2, TaskName = "433", StartDate = new DateTime(2023, 5, 22), EndDate = new DateTime(2023, 5, 22), BaselineStartDate = new DateTime(2023, 5, 22), BaselineEndDate = new DateTime(2023, 5, 22), Progress = 45, Duration = 1, Predecessor = "1FS" },
+        new TaskData { TaskID = 3, TaskName = "New Task 3", StartDate = new DateTime(2023, 5, 23), EndDate = new DateTime(2023, 5, 23), Duration = 0 },
+        new TaskData { TaskID = 4, TaskName = "New Task 4", StartDate = new DateTime(2023, 5, 22), EndDate = new DateTime(2023, 5, 22), Progress = 38, Duration = 1 },
+        new TaskData { TaskID = 5, TaskName = "New Task 5", StartDate = new DateTime(2023, 5, 22), EndDate = new DateTime(2023, 5, 22), Progress = 68, Duration = 1, Predecessor = "4" },
+        new TaskData { TaskID = 6, TaskName = "New Task 6", StartDate = new DateTime(2023, 5, 22), EndDate = new DateTime(2023, 5, 22), Progress = 57, Duration = 1, Predecessor = "5" },
+        new TaskData { TaskID = 7, TaskName = "New Task 7", StartDate = new DateTime(2023, 5, 30), EndDate = new DateTime(2023, 5, 30), Progress = 0, Duration = 1 }
+    };
+
+    // private List<Object> ToolbarItems { get; set; } = new List<Object>(){
+    //     "Add", "Edit", "Delete", "Cancel", "Update",
+    //     "ExpandAll", "CollapseAll", "Indent", "Outdent",
+    //     "ZoomIn", "ZoomOut", "ZoomToFit",
+    //     "PdfExport", "CriticalPath"
+    // };
+
+}

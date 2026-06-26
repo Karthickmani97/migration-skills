@@ -1,0 +1,577 @@
+﻿@page "/feature-matrix-gantt"
+@rendermode InteractiveServer
+
+@using Syncfusion.Blazor;
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.SplitButtons
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Calendars
+@using SyncfusionBlazorApp.Data
+@using Grids = Syncfusion.Blazor.Grids;
+@implements IHandleEvent
+
+<GanttBase @ref="ganttBaseInstance" DataSource="@FeatureParams.DataSource"
+AllowExcelExport="@FeatureParams.AllowExcelExport"
+AllowFiltering="@FeatureParams.AllowFiltering"
+AllowReordering="@FeatureParams.AllowReordering"
+AllowResizing="@FeatureParams.AllowResizing"
+AllowRowDragAndDrop="@FeatureParams.AllowRowDragAndDrop"
+AllowSorting="@FeatureParams.AllowSorting"
+AllowSelection="@FeatureParams.AllowSelection"
+AllowUnscheduledTasks="@FeatureParams.AllowUnscheduledTasks"
+RenderBaseline="@FeatureParams.RenderBaseline"
+HighlightWeekends="@FeatureParams.HighlightWeekends"
+IncludeWeekend="@FeatureParams.IncludeWeekend"
+ShowInlineNotes="@FeatureParams.ShowInlineNotes"
+ShowOverallocation="@FeatureParams.ShowOverallocation"
+ShowColumnMenu="@FeatureParams.ShowColumnMenu"
+ShowColumnChooser="@FeatureParams.ShowColumnChooser"
+EnableRtl="@FeatureParams.EnableRtl"
+EnableContextMenu="@FeatureParams.EnableContextMenu"
+EnablePersistence="@FeatureParams.EnablePersistence"
+EnablePredecessorValidation="@FeatureParams.EnablePredecessorValidation"
+EnableCriticalPath="@FeatureParams.EnableCriticalPath"
+EnableRowVirtualization="@FeatureParams.EnableRowVirtualization"
+EnableTimelineVirtualization="@FeatureParams.EnableTimelineVirtualization"
+EnableColumnVirtualization="@FeatureParams.EnableColumnVirtualization"
+Height="@FeatureParams.Height"
+Width="@FeatureParams.Width"
+WorkWeek="@FeatureParams.WorkWeek"
+RowHeight="@FeatureParams.RowHeight"
+BaselineColor="@FeatureParams.BaselineColor"
+DurationUnit="@FeatureParams.DurationUnit"
+TaskbarHeight="@FeatureParams.TaskbarHeight"
+LoadChildOnDemand="@FeatureParams.LoadChildOnDemand"
+DependencyTypes="@FeatureParams.DependencyTypes"
+FrozenColumns="@FeatureParams.FrozenColumns"
+CollapseAllParentTasks="@FeatureParams.CollapseAllParentTasks"
+ProjectStartDate="@FeatureParams.ProjectStartDate"
+ProjectEndDate="@FeatureParams.ProjectEndDate"
+GridLines="@FeatureParams.GridLines"
+ViewType="@FeatureParams.ViewType"
+Toolbar="@FeatureParams.Toolbar"
+TreeColumnIndex="@FeatureParams.TreeColumnIndex"
+EditAllowAdding="@FeatureParams.EditAllowAdding"
+EditAllowEditing="@FeatureParams.EditAllowEditing"
+EditAllowDeleting="@FeatureParams.EditAllowDeleting"
+EditAllowTaskbarEditing="@FeatureParams.EditAllowTaskbarEditing"
+EditRowPosition="@FeatureParams.EditRowPosition"
+EditAllowSchedulingOnDrag="@FeatureParams.EditAllowSchedulingOnDrag"
+EditingMode="@FeatureParams.EditingMode"
+EditShowConfirmDialog="@FeatureParams.EditShowConfirmDialog"
+ShowTimelineTooltip="@FeatureParams.TimelineSettingsShowTooltip"
+TimelineUnitSize="@FeatureParams.TimelineSettingsUnitSize"
+TimelineViewMode="@FeatureParams.TimelineSettingsViewMode"
+TimelineTopTierCount="@FeatureParams.TimelineTopTierCount"
+TimelineTopTierUnit="@FeatureParams.TimelineTopTierUnit"
+TimelineTopTierFormat="@FeatureParams.TimelineTopTierFormat"
+TimelineBottomTierCount="@FeatureParams.TimelineBottomTierCount"
+TimelineBottomTierFormat="@FeatureParams.TimelineBottomTierFormat"
+TimelineBottomTierUnit="@FeatureParams.TimelineBottomTierUnit"
+TimelineUpdateTimescaleView="@FeatureParams.TimelineUpdateTimescaleView"
+TimelineWeekStartDay="@FeatureParams.TimelineWeekStartDay"
+IsAddDialogFieldsEnable="@FeatureParams.IsAddDialogFieldsEnable"
+IsEditDialogFieldsEnable="@FeatureParams.IsEditDialogFieldsEnable"
+IsHierarchy="@FeatureParams.IsHierarchy"
+IsEventmarkersEnable="@FeatureParams.IsEventmarkersEnable"
+IsHolidayEnable="@FeatureParams.IsHolidayEnable"
+IsFilterSettingsEnable="@FeatureParams.IsFilterSettingsEnable"
+IsTaskLabelEnable="@FeatureParams.IsTaskLabelEnable"
+IsSearchSettingsEnable="@FeatureParams.IsSearchSettingsEnable"
+EnableSortDescriptors="@FeatureParams.EnableSortDescriptors"
+IsTaskbarSettingsEnable="@FeatureParams.IsTaskbarSettingsEnable"
+IsSelectionSettingsEnable="@FeatureParams.IsSelectionSettingsEnable"
+SplitterSettingsColumn="@FeatureParams.SplitterSettingsColumn"
+IsTimelineSettingsEnable="@FeatureParams.IsTimelineSettingsEnable"
+SplitterPosition="@FeatureParams.SplitterPosition"
+SelectionMode="@FeatureParams.SelectionMode"
+SelectionType="@FeatureParams.SelectionType"
+FilterHierarchyMode="@FeatureParams.FilterHierarchyMode"
+AllowDragSelection="@FeatureParams.AllowDragSelection"
+FilterIgnoreAccent="@FeatureParams.FilterIgnoreAccent"
+SearchIgnoreAccent="@FeatureParams.SearchIgnoreAccent"
+SearchIgnoreCase="@FeatureParams.SearchIgnoreCase"
+RightLabel="@FeatureParams.RightLabel"
+LeftLabel="@FeatureParams.LeftLabel"
+TaskLabel="@FeatureParams.TaskLabel"
+SearchFields="@FeatureParams.SearchFields"
+SearchHierarchyMode="@FeatureParams.SearchHierarchyMode"
+SearchOperator="@FeatureParams.SearchOperator"
+AllowUnsort="@FeatureParams.AllowUnsort"
+SortField="@FeatureParams.SortField"
+SortDirection="@FeatureParams.SortDirection"
+AllowTaskbarDragAndDrop="@FeatureParams.AllowTaskbarDragAndDrop"
+EnableMultiTaskbar="@FeatureParams.EnableMultiTaskbar"
+SlackValue="@FeatureParams.SlackValue"
+DayWorkTimeFrom="@FeatureParams.DayWorkTimeFrom"
+DayWorkTimeTo="@FeatureParams.DayWorkTimeTo"
+ShowTooltipOnEditing="@FeatureParams.ShowTooltipOnEditing"
+SplitterColumnIndex="@FeatureParams.SplitterColumnIndex"
+SplitterSeperatorSize="@FeatureParams.SplitterSeperatorSize"
+SplitterView="@FeatureParams.SplitterView"
+IsSplitterCollapsible="@FeatureParams.IsSplitterCollapsible"
+SplitterMinimumWidth="@FeatureParams.SplitterMinimumWidth"
+EnableSplitTask="@FeatureParams.EnableSplitTask">
+</GanttBase>
+
+<div class="p-3 container-fluid">
+    <div class="row">
+        <div class="col-lg-6 col-xl-6">
+            <div class="row">
+        <label>API</label>
+        <div class="col-lg-4 col-xl-4">
+            <SfAutoComplete @ref="autoCompleteInstance" TValue="string" TItem="GanttFields" Placeholder="e.g AllowFiltering" DataSource="@ganttFields" ValueChanged="AutoCompleteValueChangedHandler">
+                <AutoCompleteFieldSettings Value="Text" />
+            </SfAutoComplete>
+        </div>
+        @if (isRender)
+        {
+            <div class="col-lg-4 col-xl-4">
+                @if (autoCompleteInstance?.Value == "DataSource")
+                {
+                    <SfDropDownList @ref="dropdownInstance" TValue="string" TItem="string" DataSource="@ganttDataCollections"></SfDropDownList>
+                }
+                else if (autoCompleteInstance?.Value == "ProjectStartDate" || autoCompleteInstance?.Value == "ProjectEndDate")
+                {
+                    <SfDateTimePicker @ref="dateTimeInstance" TValue="DateTime"></SfDateTimePicker>
+                }
+                else if (autoCompleteInstance?.Value == "Methods")
+                {
+                    <SfAutoComplete @ref="methodAutoCompleteInstance" TValue="string" TItem="string" Placeholder="Select a method" DataSource="@ganttMethodNames" ValueChanged="MethodValueChangedHandler">
+                        <AutoCompleteFieldSettings Value="Value" />
+                    </SfAutoComplete>
+                }
+                else if (autoCompleteInstance != null && !ganttProperties.Contains(autoCompleteInstance.Value))
+                {
+                    <SfAutoComplete @ref="valueAutoCompleteInstance" TValue="object" TItem="object" Placeholder="e.g true" DataSource="@formattedGanttValues">
+                        <AutoCompleteFieldSettings Value="Value" />
+                    </SfAutoComplete>
+                }
+                else
+                {
+                    <SfTextBox @ref="inputInstance" Placeholder="e.g Add, Delete"></SfTextBox>
+                }
+                @{isRender = false;}
+            </div>
+        }
+        <div class="col-lg-4 col-xl-4">
+            <SfButton @onclick="SetInputValue" CssClass="e-primary">Set Value</SfButton>
+
+        </div>
+    </div>
+    <div class="row py-3">
+        <label> Methods</label>
+        <div class="col-lg-4 col-xl-4">
+            <SfAutoComplete @ref="methodAutoCompleteInstance" TValue="string" TItem="string" Placeholder="Select a method" DataSource="@ganttMethodNames" ValueChanged="MethodValueChangedHandler">
+                <AutoCompleteFieldSettings Value="Value" />
+            </SfAutoComplete>
+        </div>
+        <div class="col-lg-4 col-xl-4">
+            <SfButton @onclick="ApplyChanges" CssClass="e-info">Refresh</SfButton>
+        </div>
+    </div>
+    <div class="row">
+        <p class="py-2"><span class="fw-bold">Method Name :</span> @methodAutoCompleteInstance?.Value</p>
+        <p><span class="fw-bold">Value :</span> @valueFromMethods</p>
+    </div>
+        </div>
+        <div class="col-lg-6 col-xl-6">
+            <div class="text-end">
+                <p>
+                    <span class="px-2"><a href="https://blazor.syncfusion.com/documentation/gantt-chart/getting-started-with-web-app" class="d-inline-block">Documentation</a></span>
+                    <span class="px-2"><a href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Gantt.SfGantt-1.html?_gl=1*t5zc5g*_ga*OTE0NjU1OTYyLjE3Mzc2MjYyNjk.*_ga_41J4HFMX1J*MTczOTk0NjQ0Ny43Mi4xLjE3Mzk5NDY0NjUuMC4wLjA." class="d-inline-block">API Reference</a></span>
+                </p>
+            </div>
+            <div class="text-end">
+                <SfButton @onclick="ClearMessageHandler" CssClass="e-success">Clear</SfButton>
+            </div>
+            <div class="row">
+                @if (ganttBaseInstance != null)
+                {
+                    <p>Triggeed Event : </p>
+                    <p>@ganttBaseInstance.EventMessage</p>
+                }
+            </div>
+            <div class="row">
+                @if (ganttBaseInstance != null)
+                {
+                    <p>Error Message : </p>
+                    <p>@ganttBaseInstance.ErrorMessage</p>
+                }
+            </div>
+        </div>
+    </div>    
+</div>
+
+@code {
+    private SfAutoComplete<string, GanttFields> autoCompleteInstance;
+    private SfAutoComplete<object, object> valueAutoCompleteInstance;
+    private SfTextBox inputInstance;
+    private SfDateTimePicker<DateTime> dateTimeInstance;
+    private SfDropDownList<string, string> dropdownInstance;
+    private bool isRender;
+    public List<GanttFieldValue> formattedGanttValues = new();
+    public GanttBase ganttBaseInstance{ get; set; }
+    public List<string> ganttDataCollections = new()
+    {
+        "Empty DataSource", "Basic DataSource", "Custom DataSource", "Virtual DataSource"
+    };
+    private SfAutoComplete<string, string> methodAutoCompleteInstance;
+
+    protected override void OnInitialized()
+    {
+        FeatureParams.ProjectStartDate = FeatureParams.DataSource.Min(rec => rec.StartDate.AddDays(-3));
+        FeatureParams.ProjectEndDate = FeatureParams.DataSource.Where(record => record.EndDate.HasValue).Max(record => record.EndDate.GetValueOrDefault().AddDays(3));
+        formattedGanttValues = ganttValues.Select(value => new GanttFieldValue
+            {
+                Value = value.ToString(),
+                ActualValue = value
+            }).ToList();
+    }
+    public class GanttFields
+    {
+        public int Id { get; set; }
+        public string Text { get; set; }
+    }
+    public class GanttFieldValue
+    {
+        public string Value { get; set; }  // Display in AutoComplete
+        public object ActualValue { get; set; }  // Store actual value
+    }
+
+    public List<object> ganttValues = new List<object>()
+    {
+        true, false,
+        EditMode.Dialog, EditMode.Auto,
+        RowPosition.Above, RowPosition.Below, RowPosition.Child,
+        ScheduleMode.Auto, ScheduleMode.Manual, ScheduleMode.Custom,
+        WorkUnit.Hour, WorkUnit.Minute, WorkUnit.Day,
+        DurationUnit.Hour, DurationUnit.Day, DurationUnit.Minute,
+        ViewType.ResourceView, ViewType.ProjectView, SplitterView.Grid, SplitterView.Default,
+        GridLine.Vertical, GridLine.Horizontal, GridLine.None, GridLine.Both, new List<DependencyType>(){DependencyType.FS}, new List<DependencyType>(){DependencyType.SS}, new List<DependencyType>(){DependencyType.FF} , new List<DependencyType>(){DependencyType.SF},
+        TimelineViewMode.None, TimelineViewMode.Minutes, TimelineViewMode.Hour, TimelineViewMode.Day, TimelineViewMode.Week, TimelineViewMode.Month, TimelineViewMode.Year, Grids.SelectionMode.Row, Grids.SelectionMode.Cell, Grids.SelectionMode.Both,
+        Grids.SelectionType.Single, Grids.SelectionType.Multiple, FilterHierarchyMode.Child, FilterHierarchyMode.Parent, FilterHierarchyMode.Both, FilterHierarchyMode.None, SplitterView.Grid, SplitterView.Chart, SplitterView.Default, Operator.None,
+        Operator.None, Operator.IsNull, Operator.IsNotNull, Operator.IsEmpty, Operator.IsNotEmpty,
+        Operator.Contains, Operator.DoesNotContain, Operator.StartsWith, Operator.DoesNotStartWith,
+        Operator.EndsWith, Operator.DoesNotEndWith, Operator.Equal, Operator.NotEqual,
+        Operator.GreaterThan, Operator.GreaterThanOrEqual, Operator.LessThan, Operator.LessThanOrEqual,
+        Operator.Like, Operator.WildCard, Grids.SortDirection.None, Grids.SortDirection.Ascending, Grids.SortDirection.Descending,
+
+    };
+
+    private readonly List<string> ganttProperties = new()
+    {
+        "RowHeight", "TaskbarHeight", "BaselineColor", "ColumnMenuItems", "Locale",
+        "Toolbar", "FrozenColumns", "WorkWeek", "ColumnMenuItems", "ID", "TimelineSettingsUnitSize", "TimelineTopTierCount", "TimelineBottomTierCount", "TimelineWeekStartDay", "SplitterPosition", "RightLabel",
+        "LeftLabel", "TaskLabel", "SearchFields", "SortField", "SplitterMinimumWidth"
+    };
+
+    private readonly List<GanttFields> ganttFields = new()
+    {
+        new() { Id = 1, Text = "AllowExcelExport" },
+        new() { Id = 2, Text = "AllowFiltering" },
+        new() { Id = 3, Text = "AllowReordering" },
+        new() { Id = 4, Text = "AllowResizing" },
+        new() { Id = 5, Text = "AllowRowDragAndDrop" },
+        new() { Id = 6, Text = "AllowSorting" },
+        new() { Id = 7, Text = "AllowSelection" },
+        new() { Id = 8, Text = "AllowUnscheduledTasks" },
+        new() { Id = 9, Text = "BaselineColor" },
+        new() { Id = 10, Text = "CollapseAllParentTasks" },
+        new() { Id = 11, Text = "ColumnMenuItems" },
+        new() { Id = 12, Text = "ContextMenuItems" },
+        new() { Id = 13, Text = "CopyHierarchyMode" },
+        new() { Id = 14, Text = "Height" },
+        new() { Id = 15, Text = "HighlightWeekends" },
+        new() { Id = 16, Text = "ID" },
+        new() { Id = 17, Text = "IncludeWeekend" },
+        new() { Id = 18, Text = "Locale" },
+        new() { Id = 19, Text = "ProjectEndDate" },
+        new() { Id = 20, Text = "ProjectStartDate" },
+        new() { Id = 21, Text = "RenderBaseline" },
+        new() { Id = 22, Text = "RowHeight" },
+        new() { Id = 23, Text = "ScrollToTaskbarOnClick" },
+        new() { Id = 24, Text = "ShowInlineNotes" },
+        new() { Id = 25, Text = "ShowOverallocation" },
+        new() { Id = 26, Text = "TaskbarHeight" },
+        new() { Id = 27, Text = "Toolbar" },
+        new() { Id = 28, Text = "Width" },
+        new() { Id = 29, Text = "WorkWeek" },
+        new() { Id = 30, Text = "ShowColumnMenu" },
+        new() { Id = 31, Text = "ShowColumnChooser" },
+        new() { Id = 32, Text = "TaskMode" },
+        new() { Id = 33, Text = "WorkUnit" },
+        new() { Id = 34, Text = "EnableRtl" },
+        new() { Id = 35, Text = "EnableContextMenu" },
+        new() { Id = 36, Text = "EnablePersistence" },
+        new() { Id = 37, Text = "EnablePredecessorValidation" },
+        new() { Id = 38, Text = "EnableCriticalPath" },
+        new() { Id = 39, Text = "EnableRowVirtualization" },
+        new() { Id = 40, Text = "EnableTimelineVirtualization" },
+        new() { Id = 41, Text = "EnableColumnVirtualization" },
+        new() { Id = 42, Text = "DurationUnit" },
+        new() { Id = 44, Text = "LoadChildOnDemand" },
+        new() { Id = 45, Text = "DependencyTypes" },
+        new() { Id = 46, Text = "FrozenColumns" },
+        new() { Id = 47, Text = "GridLines" },
+        new() { Id = 48, Text = "ViewType" },
+        new() { Id = 49, Text = "DataSource"},
+        new() { Id = 50, Text = "EditAllowEditing" },
+        new() { Id = 51, Text = "EditAllowAdding" },
+        new() { Id = 52, Text = "EditAllowDeleting" },
+        new() { Id = 53, Text = "EditAllowTaskbarEditing" },
+        new() { Id = 54, Text = "EditRowPosition" },
+        new() { Id = 55, Text = "EditAllowSchedulingOnDrag" },
+        new() { Id = 56, Text = "EditingMode" },
+        new() { Id = 57, Text = "EditShowConfirmDialog" },
+        new() { Id = 58, Text = "TimelineSettingsViewMode" },
+        new() { Id = 59, Text = "TimelineSettingsUnitSize" },
+        new() { Id = 60, Text = "TimelineSettingsShowTooltip" },
+        new() { Id = 61, Text = "TimelineTopTierCount" },
+        new() { Id = 62, Text = "TimelineTopTierFormat" },
+        new() { Id = 63, Text = "TimelineTopTierUnit" },
+        new() { Id = 64, Text = "TimelineBottomTierCount" },
+        new() { Id = 65, Text = "TimelineBottomTierFormat" },
+        new() { Id = 66, Text = "TimelineBottomTierUnit" },
+        new() { Id = 67, Text = "TimelineWeekStartDay" },
+        new() { Id = 68, Text = "TimelineUpdateTimescaleView" },
+        new() { Id = 69, Text = "IsHierarchy" },
+        new() { Id = 70, Text = "IsAddDialogFieldsEnable" },
+        new() { Id = 71, Text = "IsEditDialogFieldsEnable" },
+        new() { Id = 72, Text = "IsEventmarkersEnable" },
+        new() { Id = 73, Text = "IsHolidayEnable" },
+        new() { Id = 74, Text = "IsFilterSettingsEnable" },
+        new() { Id = 75, Text = "IsTaskLabelEnable" },
+        new() { Id = 76, Text = "IsSearchSettingsEnable" },
+        new() { Id = 77, Text = "EnableSortDescriptors" },
+        new() { Id = 78, Text = "IsTaskbarSettingsEnable" },
+        new() { Id = 79, Text = "IsSelectionSettingsEnable" },
+        new() { Id = 80, Text = "IsSplitterSettingsEnable" },
+        new() { Id = 81, Text = "IsTimelineSettingsEnable" },
+        new() { Id = 82, Text = "SplitterPosition" },
+        new() { Id = 83, Text = "SelectionMode" },
+        new() { Id = 84, Text = "SelectionType" },
+        new() { Id = 85, Text = "FilterHierarchyMode" },
+        new() { Id = 86, Text = "AllowDragSelection" },
+        new() { Id = 87, Text = "FilterIgnoreAccent" },
+        new() { Id = 88, Text = "SearchIgnoreAccent" },
+        new() { Id = 89, Text = "SearchIgnoreCase" },
+        new() { Id = 90, Text = "RightLabel" },
+        new() { Id = 91, Text = "LeftLabel" },
+        new() { Id = 92, Text = "TaskLabel" },
+        new() { Id = 93, Text = "SearchFields" },
+        new() { Id = 94, Text = "SearchHierarchyMode" },
+        new() { Id = 95, Text = "SearchOperator" },
+        new() { Id = 96, Text = "AllowUnsort" },
+        new() { Id = 97, Text = "SortField" },
+        new() { Id = 98, Text = "SortDirection" },
+        new() { Id = 99, Text = "AllowTaskbarDragAndDrop" },
+        new() { Id = 100, Text = "EnableMultiTaskbar" },
+        new() { Id = 101, Text = "SlackValue" },
+        new() { Id = 102, Text = "DayWorkTimeFrom" },
+        new() { Id = 103, Text = "DayWorkTimeTo" },
+        new() { Id = 104, Text = "ShowTooltipOnEditing" },
+        new() { Id = 105, Text = "SplitterColumnIndex" },
+        new() { Id = 106, Text = "SplitterSeperatorSize" },
+        new() { Id = 107, Text = "SplitterView" },
+        new() { Id = 108, Text = "IsSplitterCollapsible" },
+        new() { Id = 109, Text = "SplitterMinimumWidth" },
+        new() { Id = 110, Text = "EnableSplitTask" }
+    };
+    private readonly List<string> ganttMethodNames = new List<string>
+    {
+        "AddPredecessor",
+        "AddRecordAsync",
+        "AddResourceAssignmentAsync",
+        "AutoFitColumnsAsync",
+        "CancelEdit",
+        "ClearFilteringAsync",
+        "ClearSelectionAsync",
+        "ClearSortingAsync",
+        "CollapseAllAsync",
+        "CollapseAtLevelAsync",
+        "CollapseByKeyAsync",
+        "CopyAsync",
+        "DeleteRecordAsync",
+        "DeleteResourceAssignmentAsync",
+        "EnableItems",
+        "ExpandAllAsync",
+        "ExpandAtLevelAsync",
+        "ExpandByKeyAsync",
+        "ExportToCsvAsync",
+        "ExportToExcelAsync",
+        "ExportToPdfAsync",
+        "FilterByColumnAsync",
+        "GetColumnIndexByFieldAsync",
+        "GetColumnsAsync",
+        "GetCriticalTasksAsync",
+        "GetCurrentViewRecords",
+        "GetFilteredRecordsAsync",
+        "GetPersistDataAsync",
+        "GetResourceAssignments",
+        "GetResources",
+        "GetRowTaskModel",
+        "GetSelectedRecordsAsync",
+        "GetSelectedRowCellIndexesAsync",
+        "GetSelectedRowIndexesAsync",
+        "HideColumnAsync",
+        "HideColumnsAsync",
+        "HideSpinnerAsync",
+        "IndentAsync",
+        "MergeTaskAsync",
+        "NextTimeSpan",
+        "OpenAddDialogAsync",
+        "OpenColumnChooser",
+        "OpenEditDialogAsync",
+        "OutdentAsync",
+        "PreviousTimeSpan",
+        "RefreshAsync",
+        "RefreshColumnsAsync",
+        "ReorderColumnsAsync",
+        "ReorderRowAsync",
+        "ResetPersistDataAsync",
+        "ScrollIntoViewAsync",
+        "ScrollToTaskbarAsync",
+        "ScrollToTimelineAsync",
+        "SearchAsync",
+        "SelectCellAsync",
+        "SelectRowAsync",
+        "SelectRowsAsync",
+        "SelectRowsByRangeAsync",
+        "SetPersistDataAsync",
+        "SetSplitterPositionAsync",
+        "ShowColumnAsync",
+        "ShowColumnsAsync",
+        "ShowSpinnerAsync",
+        "SortByColumnAsync",
+        "SplitTaskAsync",
+        "UpdatePredecessor",
+        "UpdateProjectDates",
+        "UpdateRecordByIDAsync",
+        "UpdateResourceAssignmentAsync",
+        "ZoomInAsync",
+        "ZoomOutAsync",
+        "ZoomToFitAsync"
+    };
+    private void AutoCompleteValueChangedHandler(string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            isRender = true;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+    private async Task MethodValueChangedHandler(string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            await InvokeSelectedMethod(value);
+        }
+    }
+
+    private void SetInputValue()
+    {
+        if (autoCompleteInstance?.Value == null)
+            return;
+
+        string selectedField = autoCompleteInstance.Value;
+        if(selectedField == "DataSource")
+        {
+            if(dropdownInstance != null){
+                if (dropdownInstance.Value == "Empty DataSource"){
+                    FeatureParams.DataSource = new List<GanttDataModel.CustomTaskDataModel>();
+                }
+                else if (dropdownInstance.Value == "Virtual DataSource")
+                {
+                    FeatureParams.DataSource = GanttDataModel.GetVirtualTaskCollection();
+                }
+                else if (dropdownInstance.Value == "Custom DataSource")
+                {
+                    FeatureParams.DataSource = GanttDataModel.GetCustomTaskCollection();
+                }
+                else{
+                    FeatureParams.DataSource = GanttDataModel.GetBasicTaskCollection();
+                }
+            }
+            autoCompleteInstance.Value = null;
+            return;
+        }
+        
+        if (selectedField == "WorkWeek" || selectedField == "ColumnMenuItems")
+        {
+            string input = inputInstance.Value;
+
+            string[] splittedValue = input.Replace("\"", "").Split(", ");
+            if (selectedField == "WorkWeek")
+            {
+                FeatureParams.WorkWeek = splittedValue;
+            }
+            else if (selectedField == "ColumnMenuItems")
+            {
+                FeatureParams.ColumnMenuItems = splittedValue;
+            }
+            autoCompleteInstance.Value = null;
+            inputInstance.Value = null;
+            return;
+        }
+        var property = FeatureParams.GetType().GetProperty(selectedField);
+
+        if (property == null)
+            return;
+        object selectedValue = null;
+        if (valueAutoCompleteInstance?.Value != null){
+            selectedValue = valueAutoCompleteInstance.Value is GanttFieldValue fieldValue
+        ? fieldValue.ActualValue
+        : valueAutoCompleteInstance.Value;
+        }
+        if (selectedField == "IsHierarchy")
+        {
+            if (selectedValue.ToString() == "True")
+            {
+                FeatureParams.DataSource = GanttDataModel.GetHierarchicalCollection();
+            }
+            else
+            {
+                FeatureParams.DataSource = GanttDataModel.GetBasicTaskCollection();
+            }
+        }
+        object value = property.PropertyType switch
+        {
+            Type t when t == typeof(DateTime) && (selectedField == "ProjectStartDate" || selectedField == "ProjectEndDate")
+                => dateTimeInstance?.Value ?? default,
+
+            Type t when t == typeof(bool) && valueAutoCompleteInstance.Value is GanttFieldValue fieldValue && fieldValue.ActualValue is bool boolValue
+    => boolValue,
+
+            Type t when t == typeof(int) && int.TryParse(inputInstance?.Value, out int intValue)
+                => intValue,
+
+            Type t when t == typeof(string)
+                => inputInstance?.Value,
+
+            Type t when t.IsEnum => selectedValue is Enum
+    ? selectedValue
+    : Enum.ToObject(t, Convert.ToInt32(selectedValue)),
+
+            _ => ganttValues.Find(v => v.ToString() == inputInstance?.Value)
+        };
+
+
+        if (value != null && property.PropertyType.IsAssignableFrom(value.GetType()))
+        {
+            property.SetValue(FeatureParams, value);
+        }
+        autoCompleteInstance.Value = null;
+        if(inputInstance != null){
+            inputInstance.Value = null;
+        }
+        if (valueAutoCompleteInstance?.Value != null){
+            valueAutoCompleteInstance.Value = null;
+        }
+    }
+        
+    public Task HandleEventAsync(EventCallbackWorkItem callback, object? arg) => callback.InvokeAsync(arg);
+}

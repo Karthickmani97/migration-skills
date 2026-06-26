@@ -1,0 +1,605 @@
+@page "/UndoRedo"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.TreeGrid
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.DropDowns;
+@using Syncfusion.Blazor.Buttons
+<SfButton cssClass="e-primary" OnClick="ClearMessage">Clear</SfButton>
+<SfButton cssClass="e-primary" OnClick="DisableMessage">Disable</SfButton>
+<SfButton cssClass="e-primary" OnClick="EnableMessage">Enable</SfButton>
+@if (!disable)
+{
+    for (int i = 0; i < eventMessage.Count - 1; i++)
+    {
+        <span style="color: blue">@eventMessage[i+1]</span>
+        <br />
+    }
+}
+<SfButton cssClass="e-primary" OnClick="@UndoMethod">Undo</SfButton>
+<SfButton cssClass="e-primary" OnClick="@RedoMethod">Redo</SfButton>
+<button @onclick="DisableUndoRedo">Disable Undo Redo</button>
+<button @onclick="UpdateUndoActions">Update UndoRedoActions</button>
+<button @onclick="UpdateStepsCount">Update UndoRedo steps count</button>
+<button @onclick="EnableBaseline">Enable Baseline</button>
+<button @onclick="UpdatePosition">Dynamic Splitter Update</button>
+<label class="showhide" style="padding: 10px 15px 10px 10px"> Methods: </label>
+<SfDropDownList Width="25%" @ref="@DropdownMode" TValue="string" TItem="DropDownData" DataSource="@Methods" @bind-Value="@Mode" AllowFiltering="true" Placeholder=" ">
+    <DropDownListEvents TValue="string" ValueChange="MethodChange" TItem="DropDownData"></DropDownListEvents>
+    <DropDownListFieldSettings Text="Mode" Value="ID"></DropDownListFieldSettings>
+</SfDropDownList>
+<SfGantt ID="Gantt" DataSource="@TaskCollection" @ref="gantt" RenderBaseline="@isBaseline" Height="600px" Width="1800px" GridLines="Syncfusion.Blazor.Gantt.GridLine.Both" HighlightWeekends="true" EnableUndoRedo="@undoRedo" UndoRedoActions="@undoRedoAction"
+         Toolbar="@(new List<string>() { "Add", "Edit","Update", "Delete", "ExpandAll", "CollapseAll", "NextTimeSpan", "Search", "ZoomIn", "ZoomOut", "ZoomToFit", "PrevTimeSpan","Indent","Outdent", "Undo", "Redo" })"
+         AllowSelection="true" TreeColumnIndex="1" EnableContextMenu="true" AllowSorting="true" ShowColumnMenu="true" AllowReordering="true" AllowFiltering="true" AllowRowDragAndDrop="true"
+         ScrollToTaskbarOnClick="true" AllowResizing="true" ShowInlineNotes="true" MaxUndoRedoSteps="@count">
+    <GanttSelectionSettings Type="Syncfusion.Blazor.Grids.SelectionType.Multiple"></GanttSelectionSettings>
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                     Dependency="Predecessor" ParentID="ParentId" Manual="IsManual" Notes="Notes" Work="Work" TaskType="TaskType" BaselineStartDate="BaselineStartDate" BaselineEndDate="BaselineEndDate"></GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+        <GanttResourceColumn HeaderText="Event Resources"></GanttResourceColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+        <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+        <GanttColumn Field="Work" HeaderText="Work"></GanttColumn>
+        <GanttColumn Field="TaskType" HeaderText="TaskType"></GanttColumn>
+        <GanttColumn Field="BaselineStartDate" HeaderText="BaselineStartDate"></GanttColumn>
+        <GanttColumn Field="BaselineEndDate" HeaderText="BaselineEndDate"></GanttColumn>
+        <GanttColumn Field="IsManual" HeaderText="Task Mode"></GanttColumn>
+        <GanttColumn Field="Notes" HeaderText="Notes"></GanttColumn>
+    </GanttColumns>
+    <GanttResource Group="ResourceGroup" DataSource="@ResourceCollection" Id="ResourceId" Name="ResourceName" MaxUnits="Unit" TResources="ResourceAlloacteData" TValue="TaskData"></GanttResource>
+    <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="@nameof(AssignmentModel.PrimaryId)" TaskID="@nameof(AssignmentModel.TaskId)" ResourceID="@nameof(AssignmentModel.ResourceId)" Units="@nameof(AssignmentModel.Unit)" TValue="TaskData" TAssignment="AssignmentModel">
+    </GanttAssignmentFields>
+    <GanttLabelSettings LeftLabel="TaskName" TaskLabel="Progress" TValue="TaskData"></GanttLabelSettings>
+    <GanttSplitterSettings Position="@position"></GanttSplitterSettings>
+    <GanttEvents TValue="TaskData"
+                 Created="CreatedHandler"
+                 OnLoad="LoadHandler"
+                 TaskbarEdited="TaskbarEdited"
+                 TaskbarEditing="TaskbarEditing"
+                 QueryChartRowInfo="QueryChartRowInfo"
+                 EndEdit="EndEdit"
+                 SplitterResizeStart="Resizestart"
+                 SplitterResized="Resized"
+                 ColumnResizeStart="ColumnResizeStartHandler"
+                 Collapsed="Collapsed"
+                 Collapsing="Collapsing"
+                 Expanding="Expanding"
+                 OnUndoRedo="GanttUndoRedoHandler"
+                 ColumnReordering="ColumnReorderingHandler"
+                 ColumnResized="ColumnResizedHandler"
+                 Filtering="FilteringHandler" Filtered="FilteredHandler"
+                 Searching="SearchingHandler" Searched="SearchedHandler"
+                 Expanded="ExpandedHandler" RowUpdated="RowUpdatedHandler"
+                 TaskConnectorChanged="ConnectorLineDrawCompletedHandler"
+                 Sorting="SortingHandler" Sorted="SortedHandler"
+                 OnCellSave="SaveHandler" CellSaved="CellSavedHandler"
+                 RowDeleting="RowDeletingHandler" RowDeleted="RowDeletedHandler"
+                 TaskConnectorChanging="ConnectorLineDrawHandler" RowUpdating="RowUpdatingHandler"
+                 Zooming="ZoomBeginHandler" Zoomed="ZoomCompleteHandler" ColumnReordered="ColumnReorderedHandler">
+    </GanttEvents>
+</SfGantt>
+
+@code {
+    private DateTime ProjectStartDate { get; set; } = new DateTime(2025, 3, 25);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2025, 9, 01);
+    private List<TaskData> TaskCollection { get; set; }
+    private SfDropDownList<string, DropDownData> DropdownMode { get; set; }
+    private string Mode { get; set; }
+    private bool undoRedo { get; set; } = true;
+    private int count { get; set; } = 10;
+    public string position{ get; set; } = "50%";
+    private List<DropDownData> Methods { get; set; } = new List<DropDownData>();
+    private List<ResourceAlloacteData> ResourceCollection { get; set; }
+    private static List<AssignmentModel> AssignmentCollection { get; set; } = new();
+    SfGantt<TaskData> gantt;
+    private bool isBaseline{ get; set; }
+    private bool disable;
+    private List<string> eventMessage = new List<string>();
+    public class DropDownData
+    {
+        public string ID { get; set; }
+        public string Mode { get; set; }
+    }
+    public bool IsCollapsible { get; set; } = true;
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        this.ResourceCollection = GetResources;
+        AssignmentCollection = GetAssignmentCollection();
+        this.Methods.Add(new DropDownData() { ID = "ZoomIn", Mode = "ZoomIn" });
+        this.Methods.Add(new DropDownData() { ID = "ZoomOut", Mode = "ZoomOut" });
+        this.Methods.Add(new DropDownData() { ID = "ZoomToFit", Mode = "ZoomToFit" });
+        this.Methods.Add(new DropDownData() { ID = "PreviousTimeSpan", Mode = "PreviousTimeSpan" });
+        this.Methods.Add(new DropDownData() { ID = "NextTimeSpan", Mode = "NextTimeSpan" });
+        this.Methods.Add(new DropDownData() { ID = "AddPredecessor", Mode = "AddPredecessor" });
+        this.Methods.Add(new DropDownData() { ID = "UpdatePredecessor", Mode = "UpdatePredecessor" });
+        this.Methods.Add(new DropDownData() { ID = "RemovePredecessor", Mode = "RemovePredecessor" });
+        this.Methods.Add(new DropDownData() { ID = "AddRecord", Mode = "AddRecord" });
+        this.Methods.Add(new DropDownData() { ID = "DeleteRecord", Mode = "DeleteRecord" });
+        this.Methods.Add(new DropDownData() { ID = "Sorting", Mode = "Sorting" });
+        this.Methods.Add(new DropDownData() { ID = "Filtering", Mode = "Filtering" });
+        this.Methods.Add(new DropDownData() { ID = "GetFilterRecords", Mode = "GetFilterRecords" });
+        this.Methods.Add(new DropDownData() { ID = "CollapseByKey", Mode = "CollapseByKey" });
+        this.Methods.Add(new DropDownData() { ID = "GetFilterRecords", Mode = "GetFilterRecords" });
+        this.Methods.Add(new DropDownData() { ID = "ExpandAllAsync", Mode = "ExpandAllAsync" });
+        this.Methods.Add(new DropDownData() { ID = "CollapseAllAsync", Mode = "CollapseAllAsync" });
+        this.Methods.Add(new DropDownData() { ID = "ClearSortingAsync", Mode = "ClearSortingAsync" });
+        this.Methods.Add(new DropDownData() { ID = "ClearFilteringAsync", Mode = "ClearFilteringAsync" });
+        this.Methods.Add(new DropDownData() { ID = "SearchAsync", Mode = "SearchAsync" });
+        this.Methods.Add(new DropDownData() { ID = "CollapseAtLevel", Mode = "CollapseAtLevel" });
+        this.Methods.Add(new DropDownData() { ID = "ExpandAtLevel", Mode = "ExpandAtLevel" });
+        this.Methods.Add(new DropDownData() { ID = "CollapseByKey", Mode = "CollapseByKey" });
+        this.Methods.Add(new DropDownData() { ID = "ExpandByKey", Mode = "ExpandByKey" });
+        this.Methods.Add(new DropDownData() { ID = "ReorderColumn", Mode = "ReorderColumn" });
+        this.Methods.Add(new DropDownData() { ID = "ShowColumnAsync", Mode = "ShowColumnAsync" });
+        this.Methods.Add(new DropDownData() { ID = "HideColumnAsync", Mode = "HideColumnAsync" });
+        this.Methods.Add(new DropDownData() { ID = "Indent", Mode = "Indent" });
+        this.Methods.Add(new DropDownData() { ID = "Outdent", Mode = "Outdent" });
+        this.Methods.Add(new DropDownData() { ID = "RowReorder", Mode = "RowReorder" });
+        this.Methods.Add(new DropDownData() { ID = "SplitterPosition", Mode = "SplitterPosition" });
+    }
+    List<GanttUndoRedoAction> undoRedoAction = new List<GanttUndoRedoAction> {
+           GanttUndoRedoAction.Sort, GanttUndoRedoAction.Add, GanttUndoRedoAction.ColumnReorder, GanttUndoRedoAction.ColumnResize,
+GanttUndoRedoAction.ColumnState, GanttUndoRedoAction.Delete, GanttUndoRedoAction.Edit, GanttUndoRedoAction.Filter,
+GanttUndoRedoAction.Indent, GanttUndoRedoAction.Outdent, GanttUndoRedoAction.NextTimeSpan, GanttUndoRedoAction.PreviousTimeSpan,
+GanttUndoRedoAction.RowDragAndDrop, GanttUndoRedoAction.Search,GanttUndoRedoAction.Delete, GanttUndoRedoAction.TaskbarEdit,
+           GanttUndoRedoAction.ZoomIn, GanttUndoRedoAction.ZoomOut, GanttUndoRedoAction.ZoomToFit,GanttUndoRedoAction.Collapse,GanttUndoRedoAction.Expand,GanttUndoRedoAction.SplitterResize
+};
+    public void ClearMessage()
+    {
+        eventMessage.Clear();
+    }
+    public void DisableMessage()
+    {
+        disable = true;
+    }
+    public void EnableMessage()
+    {
+        disable = false;
+    }
+    public void EnableBaseline()
+    {
+        isBaseline = true;
+    }
+    public void UpdatePosition()
+    {
+        position = "90%";
+    }
+    public void RowUpdatingHandler(GanttRowUpdatingEventArgs<TaskData> args)
+    {
+        eventMessage.Add("RowUpdating Event triggered");
+        Console.WriteLine("RowUpdating Event triggered");
+    }
+    private void GanttUndoRedoHandler(GanttUndoRedoEventArgs<TaskData> args)
+    {
+        eventMessage.Add("UndoRedo Event triggered");
+        Console.WriteLine("UndoRedo Event triggered");
+    }
+    public void ZoomCompleteHandler(ZoomedEventArgs args)
+    {
+        eventMessage.Add("Zooming Event triggered");
+        Console.WriteLine("Zooming Event triggered");
+    }
+    public void RowUpdatedHandler(GanttRowUpdatedEventArgs<TaskData> args)
+    {
+        eventMessage.Add("RowUpdated Event triggered");
+        Console.WriteLine("RowUpdated Event triggered");
+    }
+    public void ColumnReorderingHandler(ColumnReorderingEventArgs args)
+    {
+        eventMessage.Add("ColumnReordering Event triggered");
+        Console.WriteLine("ColumnReordering Event triggered");
+    }
+    public void ColumnReorderedHandler(ColumnReorderedEventArgs args)
+    {
+        eventMessage.Add("ColumnReordered Event triggered");
+        Console.WriteLine("ColumnReordered Event triggered");
+    }
+    public void SortedHandler(SortedEventArgs args)
+    {
+        eventMessage.Add("Sorted Event triggered");
+        Console.WriteLine("Sorted Event triggered");
+    }
+    public void FilteredHandler(FilteredEventArgs args)
+    {
+        eventMessage.Add("Filtered Event triggered");
+        Console.WriteLine("Filtered Event triggered");
+    }
+    public void ZoomBeginHandler(ZoomEventArgs args)
+    {
+        eventMessage.Add("Zooming Event triggered");
+        Console.WriteLine("Zooming Event triggered");
+    }
+    public void ConnectorLineDrawCompletedHandler(TaskConnectorChangedEventArgs<TaskData> args)
+    {
+        eventMessage.Add("Connectorline Event triggered");
+        Console.WriteLine("Connectorline Event triggered");
+    }
+    public void SaveHandler(CellSaveArgs<TaskData> args)
+    {
+        eventMessage.Add("OnCellSave Event triggered");
+        Console.WriteLine("OnCellSave Event triggered");
+    }
+    public void ConnectorLineDrawHandler(TaskConnectorChangeEventArgs<TaskData> args)
+    {
+        eventMessage.Add("Connectorline Event triggered");
+        Console.WriteLine("Connectorline Event triggered");
+    }
+    public void ColumnResizedHandler(Syncfusion.Blazor.Grids.ResizeArgs args)
+    {
+        eventMessage.Add("ColumnResized Event triggered");
+        Console.WriteLine("ColumnResized Event triggered");
+    }
+    private void CellSavedHandler(CellSavedArgs<TaskData> args)
+    {
+        eventMessage.Add("CellSaved Event triggered");
+        Console.WriteLine("CellSaved Event triggered");
+    }
+    public void RowDeletingHandler(GanttRowDeletingEventArgs<TaskData> args)
+    {
+        eventMessage.Add("Deleting Event triggered");
+        Console.WriteLine("Deleting Event triggered");
+    }
+    public void FilteringHandler(Syncfusion.Blazor.Grids.FilteringEventArgs args)
+    {
+        eventMessage.Add("Filtering Event triggered");
+        Console.WriteLine("Filtering Event triggered");
+    }
+    public void RowDeletedHandler(GanttRowDeletedEventArgs<TaskData> args)
+    {
+        eventMessage.Add("RowDeleted Event triggered");
+        Console.WriteLine("RowDeleted Event triggered");
+    }
+    public void ColumnResizeStartHandler(Syncfusion.Blazor.Grids.ResizeArgs args)
+    {
+        eventMessage.Add("ColumnResize Event triggered");
+        Console.WriteLine("ColumnResize Event triggered");
+    }
+    public void CopyClip(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        eventMessage.Add("Copy Event triggered");
+        Console.WriteLine("Copy Event triggered");
+    }
+    public void SearchingHandler(SearchingEventArgs args)
+    {
+        eventMessage.Add("Searching Event triggered");
+        Console.WriteLine("Searching Event triggered");
+    }
+    public void SearchedHandler(SearchedEventArgs args)
+    {
+        eventMessage.Add("Searched Event triggered");
+        Console.WriteLine("Searched Event triggered");
+    }
+    public void actionBegin(GanttActionEventArgs<TaskData> args)
+    {
+        eventMessage.Add("ActionBegin Event triggered");
+        Console.WriteLine("ActionBegin Event triggered");
+    }
+    public void SortingHandler(SortingEventArgs args)
+    {
+        eventMessage.Add("Sorting Event triggered");
+        Console.WriteLine("Sorting Event triggered");
+    }
+    public void OnActionComplete(GanttActionEventArgs<TaskData> args)
+    {
+        eventMessage.Add("ActionComplete Event triggered");
+        Console.WriteLine("ActionComplete Event triggered");
+    }
+    public void CreatedHandler(object args)
+    {
+        eventMessage.Add("Created Event triggered");
+        Console.WriteLine("Created Event triggered");
+    }
+    public void LoadHandler(object args)
+    {
+        eventMessage.Add("Loading Event triggered");
+        Console.WriteLine("Loading Event triggered");
+    }
+    public void TaskbarEdited(TaskbarEditedEventArgs<TaskData> args)
+    {
+        eventMessage.Add("TaskbarEditing Event triggered");
+        Console.WriteLine("TaskbarEditing Event triggered");
+    }
+    public void TaskbarEditing(TaskbarEditingEventArgs<TaskData> args)
+    {
+        eventMessage.Add("TaskbarEdited Event triggered");
+        Console.WriteLine("TaskbarEdited Event triggered");
+    }
+    public void QueryChartRowInfo(QueryChartRowInfoEventArgs<TaskData> args)
+    {
+        Console.WriteLine("QueryChartRow Event triggered");
+    }
+    public void EndEdit(TaskbarEditedEventArgs<TaskData> args)
+    {
+        eventMessage.Add("EndEdit Event triggered");
+        Console.WriteLine("EndEdit Event triggered");
+    }
+    public void Resizestart(Syncfusion.Blazor.Layouts.ResizeEventArgs args)
+    {
+        eventMessage.Add("Splitter Event triggered");
+        Console.WriteLine("Splitter Event triggered");
+    }
+    public void Resized(Syncfusion.Blazor.Layouts.ResizingEventArgs args)
+    {
+        eventMessage.Add("Splitter Resized Event triggered");
+        Console.WriteLine("Splitter Resized Event triggered");
+    }
+    public void Collapsed(RowCollapsedEventArgs<TaskData> args)
+    {
+        eventMessage.Add("Collapsed Event triggered");
+        Console.WriteLine("Collapsed Event triggered");
+    }
+    public void Collapsing(RowCollapsingEventArgs<TaskData> args)
+    {
+        eventMessage.Add("Collapsing Event triggered");
+        Console.WriteLine("Collapsing Event triggered");
+    }
+    public void Expanding(Syncfusion.Blazor.TreeGrid.RowExpandingEventArgs<TaskData> args)
+    {
+        eventMessage.Add("Expanding Event triggered");
+        Console.WriteLine("Expanding Event triggered");
+    }
+    public void ExpandedHandler(RowExpandedEventArgs<TaskData> args)
+    {
+        eventMessage.Add("Expanded Event triggered");
+        Console.WriteLine("Expanded Event triggered");
+    }
+    private async Task UndoMethod()
+    {
+        await gantt.UndoAsync();
+    }
+    private async Task RedoMethod()
+    {
+        await gantt.RedoAsync();
+    }
+    public async void MethodChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, DropDownData> args)
+    {
+        if (args.Value == "ZoomIn")
+        {
+            await this.gantt.ZoomInAsync();
+        }
+        if (args.Value == "ZoomOut")
+        {
+            await this.gantt.ZoomOutAsync();
+        }
+        if (args.Value == "ZoomToFit")
+        {
+            await this.gantt.ZoomToFitAsync();
+        }
+        if (args.Value == "PreviousTimeSpan")
+        {
+            this.gantt.PreviousTimeSpan();
+        }
+        if (args.Value == "NextTimeSpan")
+        {
+            this.gantt.NextTimeSpan();
+        }
+        if (args.Value == "RemovePredecessor")
+        {
+            this.gantt.RemovePredecessor(4);
+        }
+        if (args.Value == "UpdatePredecessor")
+        {
+            this.gantt.UpdatePredecessor(2, "3");
+        }
+        if (args.Value == "AddPredecessor")
+        {
+            this.gantt.AddPredecessor(3, "2");
+        }
+        if (args.Value == "AddRecord")
+        {
+            TaskData addInt = new TaskData() { TaskId = 100, TaskName = "New Added Record", StartDate = new DateTime(2022, 04, 05), Duration = "3", Progress = 50 };
+            await this.gantt.AddRecordAsync(addInt, 2, Syncfusion.Blazor.Gantt.RowPosition.Below);
+        }
+        if (args.Value == "DeleteRecord")
+        {
+            await this.gantt.DeleteRecordAsync(7);
+        }
+        if (args.Value == "ExpandAllAsync")
+        {
+            await this.gantt.ExpandAllAsync();
+        }
+        if (args.Value == "CollapseAllAsync")
+        {
+            await this.gantt.CollapseAllAsync();
+        }
+        if (args.Value == "ExpandAtLevel")
+        {
+            await this.gantt.ExpandAtLevelAsync(1);
+        }
+        if (args.Value == "ExpandByKey")
+        {
+            await this.gantt.ExpandByKeyAsync(1);
+        }
+        if (args.Value == "CollapseAtLevel")
+        {
+            await this.gantt.CollapseAtLevelAsync(1);
+        }
+        if (args.Value == "CollapseByKey")
+        {
+            await this.gantt.CollapseByKeyAsync(1);
+        }
+        if (args.Value == "ClearFilteringAsync")
+        {
+            await this.gantt.ClearFilteringAsync();
+        }
+        if (args.Value == "ClearSortingAsync")
+        {
+            await this.gantt.ClearSortingAsync();
+        }
+        if (args.Value == "SearchAsync")
+        {
+            await this.gantt.SearchAsync("List");
+        }
+        if (args.Value == "CollapseByKey")
+        {
+            await this.gantt.CollapseByKeyAsync(1);
+        }
+        if (args.Value == "Filtering")
+        {
+            await this.gantt.FilterByColumnAsync("TaskName", "startswith", "Perf", "or", true, false);
+        }
+        if (args.Value == "Sorting")
+        {
+            await this.gantt.SortByColumnAsync("TaskId", Syncfusion.Blazor.Grids.SortDirection.Descending, false);
+        }
+        if (args.Value == "ReorderColumn")
+        {
+            await this.gantt.ReorderColumnsAsync(new List<string> { "TaskName" }, "Duration");
+        }
+        if (args.Value == "HideColumnAsync")
+        {
+            await this.gantt.HideColumnAsync("Job Name", "Name");
+        }
+        if (args.Value == "ShowColumnAsync")
+        {
+            await this.gantt.ShowColumnAsync("Job Name", "Name");
+        }
+        if (args.Value == "Indent")
+        {
+            await this.gantt.IndentAsync();
+        }
+        if (args.Value == "Outdent")
+        {
+            await this.gantt.OutdentAsync();
+        }
+        if (args.Value == "RowReorder")
+        {
+            await this.gantt.ReorderRowAsync(10, 3, "Below");
+        }
+        if (args.Value == "SplitterPosition")
+        {
+            await this.gantt.SetSplitterPositionAsync("0");
+        }
+    }
+    private void UpdateStepsCount()
+    {
+        count = 5;
+        eventMessage.Add("UndoRedo Steps Count Updated");
+        Console.WriteLine("UndoRedo Steps Count Updated");
+    }
+    private void UpdateUndoActions()
+    {
+        undoRedoAction = new List<GanttUndoRedoAction> {
+            GanttUndoRedoAction.Sort, GanttUndoRedoAction.Add, GanttUndoRedoAction.ColumnReorder, GanttUndoRedoAction.ColumnResize,
+            GanttUndoRedoAction.ColumnState, GanttUndoRedoAction.Delete };
+        eventMessage.Add("UndoRedo Actions Updated");
+        Console.WriteLine("UndoRedo Actions Updated");
+    }
+    private void DisableUndoRedo()
+    {
+        undoRedo = false;
+        eventMessage.Add("UndoRedo Disabled");
+        Console.WriteLine("UndoRedo Disabled");
+    }
+    private async Task ClearFiltering()
+    {
+        await gantt.ClearFilteringAsync();
+    }
+
+
+    public class AssignmentModel
+    {
+        public int PrimaryId { get; set; }
+        public int TaskId { get; set; }
+        public int ResourceId { get; set; }
+        public double? Unit { get; set; }
+    }
+    public class ResourceAlloacteData
+    {
+        public int ResourceId { get; set; }
+        public string ResourceName { get; set; }
+        public double? Unit { get; set; }
+        public string? ResourceGroup { get; set; }
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; }
+        public string Notes { get; set; }
+        public double? Work { get; set; }
+        public string TaskType { get; set; }
+        public string IsManual { get; set; }
+        public string TaskMode { get; set; }
+        public DateTime BaselineStartDate { get; set; }
+        public DateTime BaselineEndDate { get; set; }
+        public string? Details { get; set; }
+    }
+    public static List<ResourceAlloacteData> GetResources = new List<ResourceAlloacteData>()
+    {
+        new ResourceAlloacteData() { ResourceId= 1, ResourceName= "Martin Tamer", ResourceGroup="Planning Team"},
+        new ResourceAlloacteData() { ResourceId= 2, ResourceName= "Rose Fuller", ResourceGroup="Testing Team" },
+        new ResourceAlloacteData() { ResourceId= 3, ResourceName= "Margaret Buchanan", ResourceGroup="Approval Team" },
+        new ResourceAlloacteData() { ResourceId= 4, ResourceName= "Fuller King", ResourceGroup="Development Team" },
+        new ResourceAlloacteData() { ResourceId= 5, ResourceName= "Davolio Fuller", ResourceGroup="Approval Team" },
+        new ResourceAlloacteData() { ResourceId= 6, ResourceName= "Fuller Buchanan", ResourceGroup="Development Team" },
+        new ResourceAlloacteData() { ResourceId= 7, ResourceName= "Jack Davolio", ResourceGroup="Planning Team" },
+        new ResourceAlloacteData() { ResourceId= 8, ResourceName= "Tamer Vinet", ResourceGroup="Testing Team" },
+        new ResourceAlloacteData() { ResourceId= 9, ResourceName= "Vinet Fuller", ResourceGroup="Development Team" },
+        new ResourceAlloacteData() { ResourceId= 10, ResourceName= "Bergs Anton", ResourceGroup="Testing Team" },
+        new ResourceAlloacteData() { ResourceId= 11, ResourceName= "Construction Supervisor", ResourceGroup="Testing Team" },
+    };
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>()
+        {
+            new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 03, 28), EndDate = new DateTime(2022, 07, 28), TaskType = "FixedDuration", Work = 128, Duration = "4" },
+            new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 03, 29), BaselineStartDate = new DateTime(2022, 03, 29), BaselineEndDate = new DateTime(2022, 03, 31), Progress = 30, ParentId = 1, Duration = "5", Work = 16 },
+            new TaskData() { TaskId = 3, TaskName = "Site Analyze", StartDate = new DateTime(2022, 03, 29), BaselineStartDate = new DateTime(2022, 03, 29), BaselineEndDate = new DateTime(2022, 03, 31), Progress = 50, ParentId = 1, Duration = "5", Work = 16 },
+            new TaskData() { TaskId = 4, TaskName = "Perform soil test", StartDate = new DateTime(2022, 03, 29), ParentId = 1, Work = 96, Duration = "6", TaskType = "FixedWork", Predecessor = "2FS", Progress = 40 },
+            new TaskData() { TaskId = 5, TaskName = "Soil test approval", StartDate = new DateTime(2022, 03, 29), BaselineStartDate = new DateTime(2022, 03, 29), BaselineEndDate = new DateTime(2022, 03, 31), Duration = "4", Progress = 30, Work = 16, TaskType = "FixedWork" },
+            new TaskData() { TaskId = 6, TaskName = "Project estimation", StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 04, 2), TaskType = "FixedDuration", Duration = "7", Progress = 40, Work = 50, ParentId = 5 },
+            new TaskData() { TaskId = 7, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 03, 29), Duration = "9", Progress = 30, ParentId = 5, Work = 30, TaskType = "FixedDuration", Predecessor = "4FS" },
+            new TaskData() { TaskId = 8, TaskName = "List materials", StartDate = new DateTime(2022, 04, 01), Duration = "6", Progress = 30, ParentId = 5, TaskType = "FixedWork", Work = 48 },
+            new TaskData() { TaskId = 9, TaskName = "Estimation approval", Progress = 30, StartDate = new DateTime(2022, 04, 01), Duration = "8", ParentId = 5, BaselineStartDate = new DateTime(2022, 03, 29), BaselineEndDate = new DateTime(2022, 03, 31), Work = 60, TaskType = "FixedUnit", Predecessor = "8FS" },
+            new TaskData() { TaskId = 10, TaskName = "Building approval", StartDate = new DateTime(2022, 04, 01), Duration = "4", ParentId = 5, Work = 60, Progress = 50, TaskType = "FixedWork" },
+            new TaskData() { TaskId = 11, TaskName = "Construction initiation", StartDate = new DateTime(2022, 04, 01), Duration = "5", ParentId = 5, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+            new TaskData() { TaskId = 12, TaskName = "Ground floor initiation", StartDate = new DateTime(2022, 04, 05), Duration = "5", ParentId = 11, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+            new TaskData() { TaskId = 13, TaskName = "First floor initiation", StartDate = new DateTime(2022, 04, 01), Duration = "5", ParentId = 11, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+            new TaskData() { TaskId = 14, TaskName = "Electric work initiation", StartDate = new DateTime(2022, 04, 01), Duration = "5", ParentId = 11, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+            new TaskData() { TaskId = 15, TaskName = "Plumbing work", StartDate = new DateTime(2022, 04, 02), Duration = "5", ParentId = 11, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+            new TaskData() { TaskId = 16, TaskName = "Interior work", StartDate = new DateTime(2022, 04, 01), Duration = "5", ParentId = 11, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+            new TaskData() { TaskId = 17, TaskName = "Wiring test", StartDate = new DateTime(2022, 04, 04), Duration = "5", ParentId = 11, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+            new TaskData() { TaskId = 18, TaskName = "Tile test", StartDate = new DateTime(2022, 04, 06), Duration = "5", ParentId = 11, Work = 60, Progress = 100, TaskType = "FixedDuration" },
+            new TaskData() { TaskId = 19, TaskName = "Tile work initiation", StartDate = new DateTime(2022, 04, 09), Duration = "5", ParentId = 11, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+            new TaskData() { TaskId = 20, TaskName = "Building test", StartDate = new DateTime(2022, 04, 01), Duration = "4", ParentId = 5, Work = 60, Progress = 50, TaskType = "FixedWork" }
+        };
+        return Tasks;
+    }
+    public static List<AssignmentModel> GetAssignmentCollection()
+    {
+        List<AssignmentModel> assignments = new List<AssignmentModel>()
+    {
+        new AssignmentModel { PrimaryId = 1, TaskId = 2, ResourceId = 1, Unit = 70 },
+        new AssignmentModel { PrimaryId = 2, TaskId = 3, ResourceId = 1, Unit = 70 },
+        new AssignmentModel { PrimaryId = 3, TaskId = 4, ResourceId = 3 },
+        new AssignmentModel { PrimaryId = 4, TaskId = 5, ResourceId = 8 },
+        new AssignmentModel { PrimaryId = 5, TaskId = 6, ResourceId = 2 },
+        new AssignmentModel { PrimaryId = 6, TaskId = 7, ResourceId = 4, Unit = 30 },
+        new AssignmentModel { PrimaryId = 7, TaskId = 8, ResourceId = 8 },
+        new AssignmentModel { PrimaryId = 8, TaskId = 9, ResourceId = 11 },
+        new AssignmentModel { PrimaryId = 9, TaskId = 12, ResourceId = 2 },
+        new AssignmentModel { PrimaryId = 10, TaskId = 13, ResourceId = 6 },
+        new AssignmentModel { PrimaryId = 11, TaskId = 14, ResourceId = 7 },
+        new AssignmentModel { PrimaryId = 12, TaskId = 15, ResourceId = 9 },
+        new AssignmentModel { PrimaryId = 13, TaskId = 16, ResourceId = 10 },
+        new AssignmentModel { PrimaryId = 14, TaskId = 17, ResourceId = 7 },
+        new AssignmentModel { PrimaryId = 15, TaskId = 18, ResourceId = 5 },
+        new AssignmentModel { PrimaryId = 16, TaskId = 19, ResourceId = 5 }
+    };
+        return assignments;
+    }
+}

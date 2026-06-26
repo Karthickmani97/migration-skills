@@ -1,0 +1,76 @@
+﻿@page "/multipage-pdf-manual-taskmode"
+@using Syncfusion.Blazor.Gantt
+@rendermode InteractiveServer
+<button @onclick="PdfExportHandler">Pdf Export</button>
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt @ref="Gantt" DataSource="@TaskCollection" Height="450px" AllowPdfExport="true" Width="100%" TreeColumnIndex="1" ProjectStartDate="@ProjectStartDate" ProjectEndDate="@ProjectEndDate" TaskMode="ScheduleMode.Custom">
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Manual="IsManual">
+                </GanttTaskFields>
+                <GanttColumns>
+                    <GanttColumn Field="TaskId" ></GanttColumn>
+                    <GanttColumn Field="TaskName" ></GanttColumn>
+                    <GanttColumn Field="IsManual" HeaderText="Task Mode"></GanttColumn>
+                    <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+                    <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+                    <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+                    <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+                </GanttColumns>
+                <GanttLabelSettings LeftLabel="TaskName" TValue="ScheduleData.TaskData"></GanttLabelSettings>
+                <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+@code{
+    public SfGantt<ScheduleData.TaskData> Gantt { get; set; }
+    private DateTime ProjectStartDate { get; set; } = new DateTime(2021, 3, 27);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2021, 7, 6);
+    private List<ScheduleData.TaskData> TaskCollection { get; set; } = new List<ScheduleData.TaskData>();
+    protected override void OnInitialized()
+    {
+        TaskCollection = ScheduleData.GetTaskCollection();
+    }
+    public async Task PdfExportHandler()
+    {
+        await Gantt.ExportToPdfAsync(null, true);
+    }
+    public class ScheduleData
+    {
+        public class TaskData
+        {
+            public int TaskId { get; set; }
+            public string TaskName { get; set; } = string.Empty;
+            public DateTime StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
+            public string Duration { get; set; } = string.Empty;
+            public int Progress { get; set; }
+            public int? ParentId { get; set; }
+            public bool IsManual { get; set; }
+            public string TaskMode { get; set; } = string.Empty;
+        }
+        public static List<TaskData> GetTaskCollection()
+        {
+            List<TaskData> Tasks = new List<TaskData>()
+            {
+                new TaskData() { TaskId = 1, TaskName = "Parent task 1", StartDate = new DateTime(2021, 04, 04), EndDate = new DateTime(2021, 04, 06), IsManual= true },
+                new TaskData() { TaskId = 2, TaskName = "Child task 1", StartDate = new DateTime(2021, 04, 02), Duration = "2", Progress = 30, ParentId = 1 },
+                new TaskData() { TaskId = 3, TaskName = "Child task 2", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 06), Progress = 40, ParentId = 1, IsManual= true },
+                new TaskData() { TaskId = 4, TaskName = "Child task 3", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 06), Progress = 30, ParentId = 1 },
+                new TaskData() { TaskId = 5, TaskName = "Parent task 2", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 08), IsManual= true },
+                new TaskData() { TaskId = 6, TaskName = "Child task 1", StartDate = new DateTime(2021, 04, 02), Duration = "2", Progress = 30, ParentId = 5 },
+                new TaskData() { TaskId = 7, TaskName = "Child task 2", StartDate = new DateTime(2021, 04, 02), Duration = "4", Progress = 40, ParentId = 5 },
+                new TaskData() { TaskId = 8, TaskName = "Child task 3", StartDate = new DateTime(2021, 04, 02), Duration = "5", Progress = 30, ParentId = 5, IsManual= true },
+                new TaskData() { TaskId = 9, TaskName = "Child task 4", StartDate = new DateTime(2021, 04, 02), Duration = "2", Progress = 30, ParentId = 5, IsManual= true },
+                new TaskData() { TaskId = 10, TaskName = "Parent task 3", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 06), Progress = 40 },
+                new TaskData() { TaskId = 11, TaskName = "Child task 1", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 06), Progress = 30, ParentId = 10 },
+                new TaskData() { TaskId = 12, TaskName = "Child task 2", StartDate = new DateTime(2021, 04, 02), EndDate = new DateTime(2021, 04, 08), ParentId=10 },
+                new TaskData() { TaskId = 13, TaskName = "Child task 3", StartDate = new DateTime(2021, 04, 02), Duration = "2", Progress = 30, ParentId = 10 },
+                new TaskData() { TaskId = 14, TaskName = "Child task 4", StartDate = new DateTime(2021, 04, 02), Duration = "4", Progress = 40, ParentId = 10, IsManual= true },
+                new TaskData() { TaskId = 15, TaskName = "Child task 5", StartDate = new DateTime(2021, 04, 02), Duration = "5", Progress = 30, ParentId = 10 },
+            };
+            return Tasks;
+        }
+    }
+}

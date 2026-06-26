@@ -1,0 +1,228 @@
+﻿@page "/Predecessor/selfreference"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Buttons
+<SfGantt DataSource="@TaskCollection" @ref="Gantt" Height="550px" Width="100%" HighlightWeekends="true" EnablePredecessorValidation="@IsPredecessorValidation" EnableRowVirtualization="@IsRowVirtualization" EnableCriticalPath="@IsCriticalPath" EnableTimelineVirtualization="@IsTimeLineVirtualization"
+Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll", "Indent", "Outdent","ZoomIn","ZoomOut","ZoomToFit","CriticalPath" })"
+AllowSelection="true" GridLines="Syncfusion.Blazor.Gantt.GridLine.Both" TreeColumnIndex="1" RenderBaseline="@IsBaseLine"
+ScrollToTaskbarOnClick="true">
+    @if (SelectedDataCollectionType == "RenderWithoutDependency")
+    {
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+        ParentID="ParentId"></GanttTaskFields>
+    }
+    else
+    {
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+        Dependency="Predecessor" ParentID="ParentId" BaselineEndDate="BaselineEndDate" BaselineStartDate="BaselineStartDate"></GanttTaskFields>
+    }
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+    <GanttLabelSettings LeftLabel="TaskName" TaskLabel="Progress" TValue="TaskInfoModel"></GanttLabelSettings>
+    <GanttSplitterSettings ColumnIndex="2"></GanttSplitterSettings>
+    <GanttCriticalPathSettings SlackValue="6"></GanttCriticalPathSettings>
+    @if (IsEvents)
+    {
+        <GanttEvents TValue="TaskInfoModel" TaskbarEditing="OnTaskbarEditingHandler" TaskbarEdited="OnTaskbarEditedHandler" TaskConnectorChanging="ConnectorLineDrawHandler" TaskConnectorChanged="ConnectorLineDrawCompletedHandler"></GanttEvents>
+    }
+</SfGantt>
+<div>
+    <SfDropDownList @bind-Value="SelectedDataCollectionType" DataSource="DataCollection" Placeholder="DataSource" Width="300px">
+        <DropDownListEvents TItem="DropdownData" TValue="string" ValueChange="HandleDataCollectionChange"></DropDownListEvents>
+        <DropDownListFieldSettings Text="Text" Value="Value"></DropDownListFieldSettings>
+    </SfDropDownList>
+    <button @onclick="EnableEvents">Events</button>
+    <button @onclick="EnableCriticalPath">Critical Path</button>
+    <button @onclick="EnableBaseLine">Render BaseLine</button>
+</div>
+@code {
+    private SfGantt<TaskInfoModel> Gantt;
+    private DateTime ProjectStartDate = new DateTime(2025, 3, 25);
+    private DateTime ProjectEndDate = new DateTime(2025, 9, 01);
+    private List<TaskInfoModel> TaskCollection { get; set; }
+    public string SelectedDataCollectionType { get; set; } = "EditingData";
+    public bool IsRowVirtualization { get; set; }
+    public bool IsEvents { get; set; }
+    public bool IsBaseLine { get; set; }
+    public bool IsCriticalPath { get; set; }
+    public bool IsPredecessorValidation { get; set; } = true;
+    public bool IsTimeLineVirtualization { get; set; }
+    protected override void OnInitialized()
+    {
+        TaskCollection = EditingData().ToList();
+    }
+    private List<DropdownData> DataCollection = new List<DropdownData>
+    {
+        new DropdownData{ Text = "EditingData", Value = "EditingData" },
+        new DropdownData{ Text = "Disable Predecessor Validation", Value = "DisablePredecessorValidation" },
+        new DropdownData{ Text = "Render Without Dependency", Value = "RenderWithoutDependency" },
+        new DropdownData{ Text = "Virtual", Value = "Virtual" },
+    };
+    private void HandleDataCollectionChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, DropdownData> args)
+    {
+        SelectedDataCollectionType = args.Value;
+        SwitchDataSource();
+        StateHasChanged();
+    }
+    private void SwitchDataSource()
+    {
+        switch (SelectedDataCollectionType)
+        {
+            case "EditingData":
+                TaskCollection = EditingData().ToList();
+                break;
+            case "DisablePredecessorValidation":
+                IsPredecessorValidation = false;
+                TaskCollection = GetTaskCollection().ToList();
+                break;
+            case "RenderWithoutDependency":
+                TaskCollection = EditingData().ToList();
+                break;
+            case "Virtual":
+                IsRowVirtualization = true;
+                IsTimeLineVirtualization = true;
+                TaskCollection = GetVirtualData().ToList();
+                break;
+        }
+    }
+    private void EnableEvents()
+    {
+        IsEvents = IsEvents ? false : true;
+    }
+    private void EnableBaseLine()
+    {
+        IsBaseLine = IsBaseLine ? false : true;
+    }
+    private void EnableCriticalPath()
+    {
+        IsCriticalPath = IsCriticalPath ? false : true;
+    }
+    public async void ConnectorLineDrawHandler(TaskConnectorChangeEventArgs<TaskInfoModel> args)
+    {
+        args.Cancel = true;
+        await Task.CompletedTask;
+    }
+    public async void ConnectorLineDrawCompletedHandler(TaskConnectorChangedEventArgs<TaskInfoModel> args)
+    {
+        await Task.CompletedTask;
+    }
+    private async Task OnTaskbarEditingHandler(TaskbarEditingEventArgs<TaskInfoModel> args)
+    {
+        args.EnablePredecessorOffsetValidation = true;
+        await Task.CompletedTask;
+    }
+    private async Task OnTaskbarEditedHandler(TaskbarEditedEventArgs<TaskInfoModel> args)
+    {
+        await Task.CompletedTask;
+    }
+    public class DropdownData
+    {
+        public string? Text { get; set; }
+        public string? Value { get; set; }
+    }
+    public class TaskInfoModel
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public string Predecessor { get; set; }
+        public string Notes { get; set; }
+        public int? ParentId { get; set; }
+        public DateTime? BaselineStartDate { get; set; }
+        public DateTime? BaselineEndDate { get; set; }
+    }
+    public static List<TaskInfoModel> EditingData()
+    {
+        List<TaskInfoModel> Tasks = new List<TaskInfoModel>() {
+            new TaskInfoModel() { TaskId = 1, TaskName = "Planning and Permits", StartDate = new DateTime(2025, 04, 02), EndDate = new DateTime(2025, 04, 10),BaselineStartDate= new DateTime(2025, 04, 02), BaselineEndDate= new DateTime(2025, 04, 04), Duration = "7 days", Progress = 100 }, // Completed
+            new TaskInfoModel() { TaskId = 2, TaskName = "Site Evaluation", StartDate = new DateTime(2025, 04, 02), EndDate = new DateTime(2025, 04, 04), Duration = "2 days",BaselineStartDate= new DateTime(2025, 04, 02), BaselineEndDate= new DateTime(2025, 04, 05), Progress = 100, ParentId = 1 }, // Completed
+            new TaskInfoModel() { TaskId = 3, TaskName = "Obtain Permits", StartDate = new DateTime(2025, 04, 07), EndDate = new DateTime(2025, 04, 09), Duration = "3 days", Progress = 100, ParentId = 1, Predecessor = "2" }, // Completed
+            new TaskInfoModel() { TaskId = 4, TaskName = "Finalize Planning", StartDate = new DateTime(2025, 04, 10), EndDate = new DateTime(2025, 04, 11), Duration = "2 days", Progress = 100, ParentId = 1, Predecessor = "3" }, // Completed
+            new TaskInfoModel() { TaskId = 5, TaskName = "Site Preparation", StartDate = new DateTime(2025, 04, 14), EndDate = new DateTime(2025, 04, 18), Duration = "5 days", Progress = 100,  }, // Completed
+            new TaskInfoModel() { TaskId = 6, TaskName = "Site Clearing", StartDate = new DateTime(2025, 04, 14), Duration = "0", Progress = 100, ParentId = 5, Predecessor = "4",BaselineStartDate= new DateTime(2025, 04, 14), BaselineEndDate= new DateTime(2025, 04, 14)}, // Completed
+            new TaskInfoModel() { TaskId = 7, TaskName = "Grading and Excavation", StartDate = new DateTime(2025, 04, 15), EndDate = new DateTime(2025, 04, 17), Duration = "3 days", Progress = 100, ParentId = 5, Predecessor = "6" }, // Completed
+            new TaskInfoModel() { TaskId = 8, TaskName = "Foundation Work", StartDate = new DateTime(2025, 04, 18), EndDate = new DateTime(2025, 04, 21), Duration = "4 days", Progress = 100, ParentId = 5, Predecessor = "7" }, // Completed
+            new TaskInfoModel() { TaskId = 9, TaskName = "Foundation and Basement", StartDate = new DateTime(2025, 04, 22), EndDate = new DateTime(2025, 04, 28), Duration = "5 days", Progress = 100, ParentId = 5 }, // Completed
+            new TaskInfoModel() { TaskId = 10, TaskName = "Pour Foundation", StartDate = new DateTime(2025, 04, 22), EndDate = new DateTime(2025, 04, 23), Duration = "2 days", Progress = 100, ParentId = 9, Predecessor = "8" }, // Completed
+            new TaskInfoModel() { TaskId = 11, TaskName = "Cure Foundation", StartDate = new DateTime(2025, 04, 24), EndDate = new DateTime(2025, 04, 25), Duration = "2 days", Progress = 100, ParentId = 9, Predecessor = "10" }, // Completed
+            new TaskInfoModel() { TaskId = 12, TaskName = "Basement Walls", StartDate = new DateTime(2025, 04, 28), EndDate = new DateTime(2025, 04, 30), Duration = "3 days", Progress = 100, ParentId = 9, Predecessor = "11" }, // Completed
+            new TaskInfoModel() { TaskId = 13, TaskName = "Framing", StartDate = new DateTime(2025, 05, 01), EndDate = new DateTime(2025, 05, 07), Duration = "5 days", Progress = 100 }, // Completed
+            new TaskInfoModel() { TaskId = 14, TaskName = "Frame Floors", StartDate = new DateTime(2025, 05, 01), EndDate = new DateTime(2025, 05, 02), Duration = "2 days", Progress = 100, ParentId = 13, Predecessor = "12" }, // Completed
+            new TaskInfoModel() { TaskId = 15, TaskName = "Frame Walls", StartDate = new DateTime(2025, 05, 05), EndDate = new DateTime(2025, 05, 06), Duration = "2 days", Progress = 100, ParentId = 13, Predecessor = "14" }, // Completed
+            new TaskInfoModel() { TaskId = 16, TaskName = "Install Trusses", StartDate = new DateTime(2025, 05, 07), EndDate = new DateTime(2025, 05, 08), Duration = "2 days", Progress = 100, ParentId = 13, Predecessor = "15" }, // Completed
+            new TaskInfoModel() { TaskId = 17, TaskName = "Roofing", StartDate = new DateTime(2025, 05, 09), EndDate = new DateTime(2025, 05, 13), Duration = "3 days", Progress = 100, Predecessor = "16" }, // Completed
+            new TaskInfoModel() { TaskId = 18, TaskName = "Mechanical, Electrical, Plumbing", StartDate = new DateTime(2025, 05, 14), EndDate = new DateTime(2025, 05, 24), Duration = "9 days", Progress = 50 }, // In progress
+            new TaskInfoModel() { TaskId = 19, TaskName = "HVAC Installation", StartDate = new DateTime(2025, 05, 14), EndDate = new DateTime(2025, 05, 16), Duration = "3 days", Progress = 100, ParentId = 18, Predecessor = "17" }, // Completed
+            new TaskInfoModel() { TaskId = 20, TaskName = "Plumbing Installation", StartDate = new DateTime(2025, 05, 19), EndDate = new DateTime(2025, 05, 21), Duration = "3 days", Progress = 50, ParentId = 18, Predecessor = "19" }, // In progress
+            new TaskInfoModel() { TaskId = 21, TaskName = "Electrical Installation", StartDate = new DateTime(2025, 05, 22), EndDate = new DateTime(2025, 05, 24), Duration = "3 days", Progress = 0, ParentId = 18, Predecessor = "20" }, // Not started
+            new TaskInfoModel() { TaskId = 22, TaskName = "Interior Finishing", StartDate = new DateTime(2025, 05, 26), EndDate = new DateTime(2025, 06, 17), Duration = "15 days", Progress = 0, Predecessor = "21" }, // Not started
+            new TaskInfoModel() { TaskId = 23, TaskName = "Insulation and Drywall", StartDate = new DateTime(2025, 05, 26), EndDate = new DateTime(2025, 05, 30), Duration = "5 days", Progress = 0, ParentId = 22, Predecessor = "21" }, // Not started
+            new TaskInfoModel() { TaskId = 24, TaskName = "Interior Painting", StartDate = new DateTime(2025, 06, 02), EndDate = new DateTime(2025, 06, 05), Duration = "4 days", Progress = 0, ParentId = 22, Predecessor = "23" }, // Not started
+            new TaskInfoModel() { TaskId = 25, TaskName = "Flooring Installation", StartDate = new DateTime(2025, 06, 06), EndDate = new DateTime(2025, 06, 09), Duration = "4 days", Progress = 0, ParentId = 22, Predecessor = "24" }, // Not started
+        };
+        return Tasks;
+    }
+    public static List<TaskInfoModel> GetTaskCollection()
+    {
+        List<TaskInfoModel> Tasks = new List<TaskInfoModel>() {
+            new TaskInfoModel() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 04, 05)},
+            new TaskInfoModel() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 04, 05), Progress = 30, ParentId = 1},
+            new TaskInfoModel() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 04, 05), Duration = "3", Progress = 40, Predecessor = "2fs", ParentId = 1 },
+            new TaskInfoModel() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 04, 05), Duration = "1", Progress = 30, ParentId = 1 },
+            new TaskInfoModel() { TaskId = 5, TaskName = "Project estimation", StartDate = new DateTime(2022, 04, 06) },
+            new TaskInfoModel() { TaskId = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 30, ParentId = 5 },
+            new TaskInfoModel() { TaskId = 7, TaskName = "List materials", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 40, Predecessor = "6", ParentId = 5 },
+            new TaskInfoModel() { TaskId = 8, TaskName = "Estimation approval", StartDate = new DateTime(2022, 04, 06), Duration = "2", Progress = 30, ParentId = 5 }
+        };
+        return Tasks;
+    }
+    public static List<TaskInfoModel> GetVirtualData()
+    {
+        var dataCollection = new List<TaskInfoModel>();
+        int taskId = 0;
+        for (int i = 1; i <= 50; i++)
+        {
+            var parentTask = new TaskInfoModel
+                {
+                    TaskId = ++taskId,
+                    TaskName = "Task " + taskId,
+                    StartDate = new DateTime(2025, 4, 9),
+                    EndDate = new DateTime(2025, 4, 13),
+                    Duration = "10",
+                    Progress = 10,
+                    ParentId = null,
+                    Predecessor = null
+                };
+
+            dataCollection.Add(parentTask);
+            int parentId = parentTask.TaskId;
+            int prevChildId = 0;
+
+            for (int j = 1; j <= 9; j++)
+            {
+                int childId = ++taskId;
+                string predecessor = prevChildId > 0 ? $"{prevChildId}FS" : null;
+
+                var childTask = new TaskInfoModel
+                    {
+                        TaskId = childId,
+                        TaskName = "Task " + childId,
+                        StartDate = new DateTime(2025, 4, 9),
+                        EndDate = new DateTime(2025, 4, 13),
+                        Duration = "10",
+                        Progress = 30 + (j * 2),
+                        ParentId = parentId,
+                        Predecessor = predecessor
+                    };
+
+                dataCollection.Add(childTask);
+                prevChildId = childId;
+            }
+        }
+
+        return dataCollection;
+    }
+} 

@@ -1,0 +1,513 @@
+﻿@page "/CriticalPath/RTLCriticalPath"
+
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+<SfGantt ID="Gantt" @ref="GanttInstance" DataSource="@TaskCollection" Height="550px" WorkWeek="@WorkWeekDays" EnableRtl="true" AllowRowDragAndDrop="true" DurationUnit="@DurationValue" IncludeWeekend="@IsIncludeWeenEnd" ViewType="@viewType" EnableCriticalPath="EnableCriticalPath" RenderBaseline="@IsBaseLine" EnableContextMenu="true" Width="100%" HighlightWeekends="true"
+         AllowSelection="true" GridLines="Syncfusion.Blazor.Gantt.GridLine.Both" TreeColumnIndex="1" Toolbar="@(new List<string>() { "Add", "Cancel", "Delete", "Edit", "Update", "Indent", "Outdent","CriticalPath","ZoomIn","ZoomOut","ZoomToFit" })">
+    @if (isDisableDependency)
+    {
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                         ParentID="ParentId" BaselineEndDate="BaselineEndDate" BaselineStartDate="BaselineStartDate"></GanttTaskFields>
+    }
+    else
+    {
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                         ParentID="ParentId" Dependency="Predecessor" BaselineEndDate="BaselineEndDate" BaselineStartDate="BaselineStartDate"></GanttTaskFields>
+    }
+    <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskId" Width="100"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+        <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+        <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+        @if (!isDisableDependency)
+        {
+            <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+        }
+    </GanttColumns>
+    <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" MaxUnits="MaxUnit" Group="Group" TValue="TaskInfoModel" TResources="ResourceInfoModel"></GanttResource>
+    <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="Id" TaskID="TaskId" ResourceID="ResourceId" TValue="TaskInfoModel" TAssignment="AssignmentModel"></GanttAssignmentFields>
+    <GanttSegmentFields PrimaryKey="Id" ForeignKey="TaskId" StartDate="SegmentStartDate" EndDate="SegmentEndDate" Duration="SegmentDuration" TValue="TaskInfoModel" TSegments="SegmentModel" DataSource="SegmentCollection"></GanttSegmentFields>
+    <GanttSplitterSettings Position="40%"> </GanttSplitterSettings>
+    <GanttLabelSettings LeftLabel="TaskName" TaskLabel="Progress" TValue="TaskInfoModel"></GanttLabelSettings>
+    <GanttCriticalPathSettings SlackValue="@slackValue"> </GanttCriticalPathSettings>
+</SfGantt>
+<button @onclick="DisablePredecessor">Disable Predecessor</button>
+<button @onclick="EnableBaseLine">Render BaseLine</button>
+<button @onclick="ChangingSlackValue">Update Slack Value</button>
+<label class="labels">Work week:</label>
+<SfMultiSelect TValue="string[]" TItem="WorkWeek" Placeholder="Select week" Mode="@VisualMode.CheckBox" DataSource="@Weeks" PopupHeight="350px">
+    <MultiSelectEvents TItem="WorkWeek" TValue="string[]" ValueChange="@ValueChangeHandler"></MultiSelectEvents>
+    <MultiSelectFieldSettings Text="Week" Value="Week"></MultiSelectFieldSettings>
+</SfMultiSelect>
+<SfButton OnClick="IncludeWeekEnd">IncludeWeekEnd</SfButton>
+<label class="showhide">Resource View </label>
+<SfSwitch ValueChange="ChangeViewType" @bind-Checked="@IsCheck" TChecked="bool"></SfSwitch>
+<SfDropDownList @bind-Value="selectedMethod" DataSource="methods" Placeholder="Public Methods" Width="300px">
+    <DropDownListEvents TItem="DropdownData" TValue="string" ValueChange="HandleMethodChange"></DropDownListEvents>
+    <DropDownListFieldSettings Text="Text" Value="Value"></DropDownListFieldSettings>
+</SfDropDownList>
+<SfDropDownList TValue="string" TItem="DurationData" Placeholder="@DurationUnitValue" @bind-Value="@DurationUnitValue" DataSource="@Duration1" Width="150px" PopupHeight="350px">
+    <DropDownListEvents TItem="DurationData" TValue="string" ValueChange="@ValueChangeHandler"></DropDownListEvents>
+    <DropDownListFieldSettings Text="Unit" Value="Unit"></DropDownListFieldSettings>
+</SfDropDownList>
+<SfNumericTextBox TValue="int?" Format="n0" Value="@slackValue" Min="1" Max="50">
+    <NumericTextBoxEvents TValue="int?" ValueChange="@(e => { slackValue = e.Value ?? 1; })"></NumericTextBoxEvents>
+</SfNumericTextBox>
+@code {
+    public SfGantt<TaskInfoModel> GanttInstance;
+    private List<TaskInfoModel> TaskCollection { get; set; }
+    private bool EnableCriticalPath = true;
+    private bool isDisableDependency { get; set; }
+    private int slackValue { get; set; } = 10;
+    public bool IsBaseLine { get; set; }
+    public bool IsIncludeWeenEnd { get; set; }
+    public string[] WorkWeekDays { get; set; } = new string[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+    private static List<AssignmentModel> AssignmentCollection { get; set; }
+    private List<ResourceInfoModel> ResourceCollection { get; set; }
+    private List<SegmentModel> SegmentCollection { get; set; }
+    private ViewType viewType = ViewType.ProjectView;
+    public string DurationUnitValue { get; set; } = "Day";
+    public Syncfusion.Blazor.Gantt.DurationUnit DurationValue { get; set; } = DurationUnit.Day;
+    public Boolean IsCheck { get; set; } = true;
+    private string selectedMethod { get; set; } = "";
+    public List<DurationData> Duration1 = new List<DurationData>
+    {
+        new DurationData() { Unit = "Hour"},
+        new DurationData() { Unit = "Minute"},
+        new DurationData() { Unit = "Day"}
+    };
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        ResourceCollection = GetResources;
+        AssignmentCollection = GetAssignmentCollection();
+        SegmentCollection = GetSegmentCollection();
+    }
+    public void DisablePredecessor()
+    {
+        isDisableDependency = isDisableDependency ? false : true;
+    }
+    private void EnableBaseLine()
+    {
+        IsBaseLine = IsBaseLine ? false : true;
+    }
+    private void ChangingSlackValue()
+    {
+        slackValue = 6;
+    }
+    private void ValueChangeHandler(MultiSelectChangeEventArgs<string[]> args)
+    {
+        if (args.Value == null)
+        {
+            WorkWeekDays = new string[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+        }
+        else
+        {
+            WorkWeekDays = args.Value;
+        }
+    }
+    public void IncludeWeekEnd()
+    {
+        if (IsIncludeWeenEnd)
+        {
+            IsIncludeWeenEnd = false;
+        }
+        else
+        {
+            IsIncludeWeenEnd = true;
+        }
+    }
+    public void ChangeViewType()
+    {
+        if (viewType == ViewType.ResourceView)
+        {
+            viewType = ViewType.ProjectView;
+        }
+        else
+        {
+            viewType = ViewType.ResourceView;
+        }
+        StateHasChanged();
+    }
+    private void ValueChangeHandler(ChangeEventArgs<string, DurationData> args)
+    {
+        if (args.Value.Contains("Hour"))
+        {
+            DurationValue = DurationUnit.Hour;
+            DurationUnitValue = DurationValue.ToString();
+        }
+        else if (args.Value.Contains("Day"))
+        {
+            DurationValue = DurationUnit.Day;
+            DurationUnitValue = DurationValue.ToString();
+        }
+        else if (args.Value.Contains("Minute"))
+        {
+            DurationValue = DurationUnit.Minute;
+            DurationUnitValue = DurationValue.ToString();
+        }
+    }
+    private List<DropdownData> methods = new List<DropdownData>
+    {
+        new DropdownData{ Text = "Convert To Milestone", Value = "ConvertToMilestone" },
+        new DropdownData{ Text = "Update Progress Value", Value = "UpdateProgress" },
+        new DropdownData{ Text = "Update Duration Value", Value = "UpdateDuration" },
+        new DropdownData{ Text = "Remove Predecessor", Value = "RemovePredecessor" },
+        new DropdownData{ Text = "Indent Record", Value = "Indent" },
+        new DropdownData{ Text = "Outdent Record", Value = "Outdent" },
+        new DropdownData{ Text = "Add Record", Value = "AddRecord" },
+    };
+    private void HandleMethodChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, DropdownData> args)
+    {
+        selectedMethod = args.Value;
+        SwitchMethods();
+    }
+    private async void SwitchMethods()
+    {
+        switch (selectedMethod)
+        {
+            case "ConvertToMilestone":
+                this.GanttInstance.ConvertToMilestone("4");
+                break;
+            case "UpdateProgress":
+                var data = GanttInstance.GetTaskByID("4");
+                data.Progress = 100;
+                await GanttInstance.UpdateRecordByIDAsync(data);
+                break;
+            case "UpdateDuration":
+                var record = GanttInstance.GetTaskByID("3");
+                record.Duration = "5";
+                await GanttInstance.UpdateRecordByIDAsync(record);
+                break;
+            case "RemovePredecessor":
+                GanttInstance.RemovePredecessor(5);
+                break;
+            case "Indent":
+                await GanttInstance.IndentAsync();
+                break;
+            case "Outdent":
+                await GanttInstance.OutdentAsync();
+                break;
+            case "AddRecord":
+                var newRecord = new TaskInfoModel() { TaskId = 100, TaskName = "New Record", StartDate = new DateTime(2025, 04, 07), EndDate = new DateTime(2025, 05, 05), Duration = "21", Progress = 50, Predecessor = "2" };
+                await GanttInstance.AddRecordAsync(newRecord);
+                break;
+        }
+    }
+    public class DropdownData
+    {
+        public string? Text { get; set; }
+        public string? Value { get; set; }
+    }
+    public class WorkWeek
+    {
+        public string Week { get; set; }
+    }
+    public List<WorkWeek> Weeks = new List<WorkWeek>
+    {
+        new WorkWeek() { Week = "Monday"},
+        new WorkWeek() { Week = "Tuesday"},
+        new WorkWeek() { Week = "Wednesday"},
+        new WorkWeek() { Week = "Thursday"},
+        new WorkWeek() { Week = "Friday"},
+        new WorkWeek() { Week = "Saturday"}
+    };
+    public class DurationData
+    {
+        public string Unit { get; set; }
+    }
+    public class TaskInfoModel
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? Duration { get; set; }
+        public int Progress { get; set; }
+        public string? Predecessor { get; set; }
+        public string? Notes { get; set; }
+        public int? ParentId { get; set; }
+        public DateTime? BaselineStartDate { get; set; }
+        public DateTime? BaselineEndDate { get; set; }
+    }
+    public class ResourceInfoModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public double MaxUnit { get; set; }
+        public string? Group { get; set; }
+    }
+    public class AssignmentModel
+    {
+        public int Id { get; set; }
+        public int TaskId { get; set; }
+        public int ResourceId { get; set; }
+        public double Unit { get; set; }
+    }
+    public class SegmentModel
+    {
+        public int Id { get; set; }
+        public int TaskId { get; set; }
+        public DateTime SegmentStartDate { get; set; }
+        public DateTime SegmentEndDate { get; set; }
+        public string SegmentDuration { get; set; }
+    }
+    public static List<SegmentModel> GetSegmentCollection()
+    {
+        List<SegmentModel> segments = new List<SegmentModel>
+        {
+            new SegmentModel() { Id = 1, TaskId = 8, SegmentStartDate = new DateTime(2025, 04, 09), SegmentEndDate = new DateTime(2025, 04, 10) },
+            new SegmentModel() { Id = 2, TaskId = 8, SegmentStartDate = new DateTime(2025, 04, 11), SegmentDuration = "2" },
+            new SegmentModel() { Id = 3, TaskId = 11, SegmentStartDate = new DateTime(2025, 04, 15), SegmentDuration = "2" },
+            new SegmentModel() { Id = 4, TaskId = 11, SegmentStartDate = new DateTime(2025, 04, 17),  SegmentDuration = "1"},
+            new SegmentModel() { Id = 5, TaskId = 11, SegmentStartDate = new DateTime(2025, 04, 18),  SegmentDuration = "3"},
+        };
+        return segments;
+    }
+    public static List<ResourceInfoModel> GetResources = new List<ResourceInfoModel>()
+    {
+        new ResourceInfoModel() { Id= 1, Name= "Martin Tamer", Group="Planning Team"},
+        new ResourceInfoModel() { Id= 2, Name= "Rose Fuller", Group="Testing Team" },
+        new ResourceInfoModel() { Id= 3, Name= "Margaret Buchanan", Group="Approval Team" },
+        new ResourceInfoModel() { Id= 4, Name= "Fuller King", Group="Development Team" },
+        new ResourceInfoModel() { Id= 5, Name= "Davolio Fuller", Group="Approval Team" },
+        new ResourceInfoModel() { Id= 6, Name= "Fuller Buchanan", Group="Development Team" },
+        new ResourceInfoModel() { Id= 7, Name= "Jack Davolio", Group="Planning Team" },
+        new ResourceInfoModel() { Id= 8, Name= "Tamer Vinet", Group="Testing Team" },
+        new ResourceInfoModel() { Id= 9, Name= "Vinet Fuller", Group="Development Team" },
+        new ResourceInfoModel() { Id= 10, Name= "Bergs Anton", Group="Testing Team" },
+        new ResourceInfoModel() { Id= 11, Name= "Construction Supervisor", Group="Testing Team" },
+    };
+    public static List<AssignmentModel> GetAssignmentCollection()
+    {
+        List<AssignmentModel> assignments = new List<AssignmentModel>()
+        {
+            new AssignmentModel(){ Id=1, TaskId = 2 , ResourceId=1, Unit=70},
+            new AssignmentModel(){ Id=2, TaskId = 3 , ResourceId=1, Unit=70},
+            new AssignmentModel(){ Id=3, TaskId = 4 , ResourceId=3},
+            new AssignmentModel(){ Id=4, TaskId = 5 , ResourceId=8},
+            new AssignmentModel(){ Id=5, TaskId = 6 , ResourceId=2},
+            new AssignmentModel(){ Id=6, TaskId = 7 , ResourceId=4, Unit=30},
+            new AssignmentModel(){ Id=7, TaskId = 8 , ResourceId=8},
+            new AssignmentModel(){ Id=8, TaskId = 9 , ResourceId=11},
+            new AssignmentModel(){ Id=9, TaskId = 12 , ResourceId=2},
+            new AssignmentModel(){ Id=10, TaskId = 13 , ResourceId=6},
+            new AssignmentModel(){ Id=11, TaskId = 14 , ResourceId=7},
+            new AssignmentModel(){ Id=12, TaskId = 15 , ResourceId=9},
+            new AssignmentModel(){ Id=13, TaskId = 16 , ResourceId=10},
+            new AssignmentModel(){ Id=14, TaskId = 17 , ResourceId=7},
+            new AssignmentModel(){ Id=15, TaskId = 18 , ResourceId=5},
+            new AssignmentModel(){ Id=16, TaskId = 19 , ResourceId=5}
+        };
+        return assignments;
+    }
+    private static List<TaskInfoModel> GetTaskCollection()
+    {
+        List<TaskInfoModel> Tasks = new List<TaskInfoModel>()
+        {
+            new TaskInfoModel() {
+            TaskId = 1,
+            TaskName = "Product concept",
+            StartDate = new DateTime(2025, 04, 02),
+            EndDate = new DateTime(2025, 04, 08),
+            Duration = "5 days",
+            BaselineStartDate= new DateTime(2025, 04, 02),
+            BaselineEndDate= new DateTime(2025, 04, 04)
+        },
+        new TaskInfoModel() {
+            TaskId = 2,
+            TaskName = "Defining the product usage",
+            StartDate = new DateTime(2025, 04, 02),
+            EndDate = new DateTime(2025, 04, 08),
+            Duration = "3",
+            Progress = 30,
+            ParentId = 1
+        },
+        new TaskInfoModel() {
+            TaskId = 3,
+            TaskName = "Defining the target audience",
+            StartDate = new DateTime(2025, 04, 02),
+            EndDate = new DateTime(2025, 04, 04),
+            Duration = "3",
+            Progress = 40,
+            ParentId = 1,
+            BaselineStartDate= new DateTime(2025, 04, 02),
+            BaselineEndDate= new DateTime(2025, 04, 05)
+        },
+        new TaskInfoModel() {
+            TaskId = 4,
+            TaskName = "Prepare product sketch and notes",
+            StartDate = new DateTime(2025, 04, 05),
+            EndDate = new DateTime(2025, 04, 08),
+            Duration = "2",
+            Progress = 30,
+            ParentId = 1,
+            Predecessor="2"
+        },
+        new TaskInfoModel() {
+            TaskId = 5,
+            TaskName = "Concept approval",
+            StartDate = new DateTime(2025, 04, 08),
+            EndDate = new DateTime(2025, 04, 08),
+            Duration="0",
+            Predecessor="3,4"
+        },
+        new TaskInfoModel() {
+            TaskId = 6,
+            TaskName = "Market research",
+            StartDate = new DateTime(2025, 04, 09),
+            EndDate = new DateTime(2025, 04, 18),
+            Predecessor="2",
+            Duration = "4",
+            Progress = 30
+        },
+        new TaskInfoModel() {
+            TaskId = 7,
+            TaskName = "Demand analysis",
+            StartDate = new DateTime(2025, 04, 09),
+            EndDate = new DateTime(2025, 04, 12),
+            Duration = "4",
+            Progress = 40,
+            ParentId = 6,
+            BaselineStartDate= new DateTime(2025, 04, 14),
+            BaselineEndDate= new DateTime(2025, 04, 14)
+        },
+        new TaskInfoModel() {
+            TaskId = 8,
+            TaskName = "Customer strength",
+            StartDate = new DateTime(2025, 04, 09),
+            EndDate = new DateTime(2025, 04, 12),
+            Duration = "4",
+            Progress = 30,
+            ParentId = 7,
+            Predecessor="5"
+        }, new TaskInfoModel() {
+            TaskId = 9,
+            TaskName = "Market opportunity analysis",
+            StartDate = new DateTime(2025, 04, 09),
+            EndDate = new DateTime(2025, 04, 12),
+            Duration="4",
+            ParentId= 7,
+            Predecessor="5",
+            BaselineStartDate= new DateTime(2025, 04, 09),
+            BaselineEndDate= new DateTime(2025, 04, 10)
+        },
+        new TaskInfoModel() {
+            TaskId = 10,
+            TaskName = "Competitor analysis",
+            StartDate = new DateTime(2025, 04, 15),
+            EndDate = new DateTime(2025, 04, 18),
+            Duration = "4",
+            Progress = 30,
+            ParentId= 6,
+            Predecessor="7,8"
+        },
+        new TaskInfoModel() {
+            TaskId = 11,
+            TaskName = "Product strength analysis",
+            StartDate = new DateTime(2025, 04, 15),
+            EndDate = new DateTime(2025, 04, 20),
+            Duration = "6",
+            Progress = 40,
+            ParentId = 6,
+            Predecessor="9"
+        },
+        new TaskInfoModel() {
+            TaskId = 12,
+            TaskName = "Research completed",
+            StartDate = new DateTime(2025, 04, 18),
+            EndDate = new DateTime(2025, 04, 18),
+            Duration = "0",
+            Progress = 30,
+            ParentId = 6,
+            Predecessor="10",
+            BaselineStartDate= new DateTime(2025, 04, 18,08,00,00),
+            BaselineEndDate= new DateTime(2025, 04, 18,08,00,00)
+        },
+         new TaskInfoModel() {
+            TaskId = 13,
+            TaskName = "Product design and development",
+            StartDate = new DateTime(2025, 04, 19),
+            EndDate = new DateTime(2025, 05, 16),
+            Duration="20",
+            Predecessor="6"
+         },
+        new TaskInfoModel() {
+            TaskId = 14,
+            TaskName = "Functionality design",
+            StartDate = new DateTime(2025, 04, 19),
+            EndDate = new DateTime(2025, 04, 23),
+            Duration = "3",
+            Progress = 30,
+            ParentId = 13,
+            Predecessor="12"
+        },
+        new TaskInfoModel() {
+            TaskId = 15,
+            TaskName = "Quality design",
+            StartDate = new DateTime(2025, 04, 19),
+            EndDate = new DateTime(2025, 04, 23),
+            Duration = "3",
+            Progress = 40,
+            ParentId = 13,
+            Predecessor="12"
+        },
+        new TaskInfoModel() {
+            TaskId = 16,
+            TaskName = "Define reliability",
+            StartDate = new DateTime(2025, 04, 24),
+            EndDate = new DateTime(2025, 04, 25),
+            Duration = "2",
+            Progress = 30,
+            ParentId = 13,
+            Predecessor="15"
+        },
+         new TaskInfoModel() {
+            TaskId = 17,
+            TaskName = "Identifying raw materials",
+            StartDate = new DateTime(2025, 04, 24),
+            EndDate = new DateTime(2025, 04, 25),
+            Duration="2",
+            ParentId=13,
+            Predecessor="15"
+        },
+        new TaskInfoModel() {
+            TaskId = 18,
+            TaskName = "Define cost plan",
+            StartDate = new DateTime(2025, 04, 26),
+            EndDate = new DateTime(2025, 04, 29),
+            Duration = "2",
+            Progress = 30,
+            ParentId=13,
+            Predecessor="17"
+        },
+        new TaskInfoModel() {
+            TaskId = 19,
+            TaskName = "Manufacturing cost",
+            StartDate = new DateTime(2025, 04, 26),
+            EndDate = new DateTime(2025, 04, 29),
+            Duration = "2",
+            Progress = 40,
+            ParentId = 18,
+            Predecessor="17"
+        },
+        new TaskInfoModel() {
+            TaskId = 20,
+            TaskName = "Selling cost",
+            StartDate = new DateTime(2025, 04, 26),
+            EndDate = new DateTime(2025, 04, 29),
+            Duration = "2",
+            Progress = 30,
+            ParentId = 18,
+            Predecessor="17"
+        },
+        };
+        return Tasks;
+    }
+}

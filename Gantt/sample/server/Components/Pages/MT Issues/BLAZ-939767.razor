@@ -1,0 +1,150 @@
+@page "/BLAZ-939767"
+
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@rendermode InteractiveServer
+<button @onclick="AddAssignment">Add Assignment</button>
+<SfGantt DataSource="@EditingData" @ref="Gantt" Height="450px" Width="700px"
+TaskType="TaskType.FixedDuration"
+AllowSelection="true" HighlightWeekends="true" WorkUnit="WorkUnit.Hour" ProjectStartDate="@ProjectStartDate" ProjectEndDate="@ProjectEndDate" GridLines="Syncfusion.Blazor.Gantt.GridLine.Both" TreeColumnIndex="1" AllowReordering="true"
+Toolbar="@(new List<string>() { "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll", "Indent", "Outdent","ZoomToFit","ZoomIn" })" EnableContextMenu="true" AllowFiltering="true" AllowPdfExport AllowResizing="true">
+    <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" Dependency="Predecessor" Child="Subtasks" Work="Work" TaskType="TaskType" Notes="Info">
+    </GanttTaskFields>
+    <GanttEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+    <GanttColumns>
+        <GanttColumn Field="TaskID" Width="80"></GanttColumn>
+        <GanttColumn Field="TaskName" HeaderText="Job Name" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+        <GanttColumn Field="StartDate"></GanttColumn>
+        <GanttColumn Field="EndDate"></GanttColumn>
+        <GanttColumn Field="Duration"></GanttColumn>
+        <GanttColumn Field="Progress"></GanttColumn>
+        <GanttColumn Field="Predecessor"></GanttColumn>
+    </GanttColumns>
+    <GanttSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple"></GanttSelectionSettings>
+    <GanttTimelineSettings>
+        <GanttTopTierSettings Unit="TimelineViewMode.Month" Format="MMM"></GanttTopTierSettings>
+        <GanttBottomTierSettings Unit="TimelineViewMode.Day" Format="d" Count="1"></GanttBottomTierSettings>
+    </GanttTimelineSettings>
+    <GanttResource DataSource="ResourceCollection" Id="Id" Name="Name" MaxUnits="MaxUnit" Group="Group" TValue="TaskData" TResources="ResourceInfoModel"></GanttResource>
+    <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="Id" TaskID="TaskId" ResourceID="ResourceId" TValue="TaskData" TAssignment="AssignmentModel"></GanttAssignmentFields>
+    @* <GanttEditDialogFields>
+        <GanttEditDialogField Type="GanttDialogFieldType.General" HeaderText="General"></GanttEditDialogField>
+        <GanttEditDialogField Type="GanttDialogFieldType.Dependency"></GanttEditDialogField>
+        <GanttEditDialogField Type="GanttDialogFieldType.Resources"></GanttEditDialogField>
+        <GanttEditDialogField Type="GanttDialogFieldType.Notes"></GanttEditDialogField>
+    </GanttEditDialogFields>
+    <GanttAddDialogFields>
+        <GanttAddDialogField Type="GanttDialogFieldType.General" HeaderText="General"></GanttAddDialogField>
+        <GanttAddDialogField Type="GanttDialogFieldType.Dependency"></GanttAddDialogField>
+        <GanttAddDialogField Type="GanttDialogFieldType.Notes"></GanttAddDialogField>
+    </GanttAddDialogFields> *@
+    <GanttEvents RowUpdating="RowUpdatingHandler" TValue="TaskData"></GanttEvents>
+</SfGantt>
+
+@code {
+    private List<TaskData> EditingData { get; set; }
+    private DateTime ProjectStartDate { get; set; } = new DateTime(2019, 3, 28);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2019, 7, 28);
+    private List<ResourceInfoModel> ResourceCollection { get; set; }
+    private static List<AssignmentModel> AssignmentCollection { get; set; }
+    public SfGantt<TaskData> Gantt { get; set; }
+    private string Format = "M/d/y";
+    private object ValidationRules = new { Date = true };
+    private bool visible = false;
+    private DateEditCellParams NumericParams = new DateEditCellParams() { Params = new Syncfusion.Blazor.Calendars.DatePickerModel() { EnableRtl = true } };
+
+
+    protected override void OnInitialized()
+    {
+        EditingData = GetEditingData();
+        ResourceCollection = GetResources;
+        AssignmentCollection = GetAssignmentCollection();
+    }
+    private async void AddAssignment()
+    {
+        var record = new AssignmentModel() { Id = 8, TaskId = 9, ResourceId = 2 };
+        Gantt.AddResourceAssignmentAsync(record);
+    }
+    public void RowUpdatingHandler(GanttRowUpdatingEventArgs<TaskData> args)
+    {
+        args.Data.TaskName = "Row Updated";
+        var record = new AssignmentModel() { Id = 8, TaskId = args.Data.TaskID, ResourceId = 2 };
+        Gantt.AddResourceAssignmentAsync(record);
+    }
+    public class TaskData
+    {
+        public int TaskID { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public int Duration { get; set; }
+        public string Hours { get; set; }
+        public string Custom { get; set; }
+        public decimal Progress { get; set; }
+        public List<TaskData> Subtasks { get; set; }
+        public double? Work { get; set; }
+        public string TaskType { get; set; }
+        public string Predecessor { get; set; }
+        public string Info { get; set; }
+    }
+    public class ResourceInfoModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public double MaxUnit { get; set; }
+        public string? Group { get; set; }
+    }
+    public class AssignmentModel
+    {
+        public int Id { get; set; }
+        public int TaskId { get; set; }
+        public int ResourceId { get; set; }
+        public double? Unit { get; set; }
+    }
+    public static List<ResourceInfoModel> GetResources = new List<ResourceInfoModel>()
+    {
+        new ResourceInfoModel() { Id= 1, Name= "Martin Tamer", Group="Planning Team"},
+        new ResourceInfoModel() { Id= 2, Name= "Rose Fuller", Group="Testing Team" },
+        new ResourceInfoModel() { Id= 3, Name= "Margaret Buchanan", Group="Approval Team" },
+        new ResourceInfoModel() { Id= 4, Name= "Fuller King", Group="Development Team" },
+        new ResourceInfoModel() { Id= 5, Name= "Davolio Fuller", Group="Approval Team" },
+        new ResourceInfoModel() { Id= 6, Name= "Fuller Buchanan", Group="Development Team" },
+        new ResourceInfoModel() { Id= 7, Name= "Jack Davolio", Group="Planning Team" },
+        new ResourceInfoModel() { Id= 8, Name= "Tamer Vinet", Group="Testing Team" },
+        new ResourceInfoModel() { Id= 9, Name= "Vinet Fuller", Group="Development Team" },
+        new ResourceInfoModel() { Id= 10, Name= "Bergs Anton", Group="Testing Team" },
+        new ResourceInfoModel() { Id= 11, Name= "Construction Supervisor", Group="Testing Team" },
+    };
+    public static List<AssignmentModel> GetAssignmentCollection()
+    {
+        List<AssignmentModel> assignments = new List<AssignmentModel>()
+        {
+            new AssignmentModel(){ Id=1, TaskId = 1 , ResourceId=1,Unit=70},
+            new AssignmentModel(){ Id=2, TaskId = 1 , ResourceId=2,Unit=50},
+            new AssignmentModel(){ Id=3, TaskId = 3 , ResourceId=3},
+            new AssignmentModel(){ Id=4, TaskId = 3 , ResourceId=5},
+            new AssignmentModel(){ Id=5, TaskId = 6 , ResourceId=4},
+            new AssignmentModel(){ Id=6, TaskId = 7 , ResourceId=4},
+            new AssignmentModel(){ Id=7, TaskId = 7 , ResourceId=8},
+        };
+        return assignments;
+    }
+    public List<TaskData> GetEditingData()
+    {
+        return new List<TaskData>
+    {
+        new TaskData
+        {
+            TaskID = 1,
+            TaskName = "Project initiation",
+            StartDate = new DateTime(2019, 3, 29),
+            EndDate = new DateTime(2019, 3, 29),
+            Duration = 2,
+            Progress = 30,
+            Work = 16,
+            TaskType = "FixedDuration",
+        }
+    };
+    }
+
+}

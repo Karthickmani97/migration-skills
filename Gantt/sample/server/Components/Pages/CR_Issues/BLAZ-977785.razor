@@ -1,0 +1,298 @@
+@page "/BLAZ-997456"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Popups
+<div>@messsage</div>
+<SfGantt @ref="GanttRef" ID="GanttOverview" DataSource="ganttTaskList" Height="100%" Width="100%" ScrollToTaskbarOnClick="true" TreeColumnIndex="1"
+         AllowExcelExport="true" AllowPdfExport="true" GridLines="Syncfusion.Blazor.Gantt.GridLine.Both"
+         WorkUnit="WorkUnit.Hour" HighlightWeekends="true" EnableRowHover="true" AutoCalculateDateScheduling="true" EnablePredecessorValidation="true"
+         AllowSorting="true" AllowFiltering="true" EnableContextMenu="false" AllowResizing="true">
+    <GanttEditSettings AllowEditing="true" Mode="Syncfusion.Blazor.Gantt.EditMode.Dialog"></GanttEditSettings>
+    <GanttTaskFields Id="Id" Name="TaskName" StartDate="StartDate" EndDate="EndDate"  Child="taskLIst" Notes="Notes">
+    </GanttTaskFields>
+    <GanttEvents TValue="ganttTaskObject" GanttDialogOpening="OnGanttDialogOpening"OnActionFailure="ActionFailureHandler"></GanttEvents>
+    <GanttTemplates TValue="ganttTaskObject">
+        <TaskbarTemplate>
+            @{
+                var task = context as ganttTaskObject; // Cast context to your task data model
+
+                <div class="e-gantt-child-taskbar @task.StatusColor"
+                     style="height:20px; border-radius:20px; padding:4px; display:flex; align-items:center; width:100%; box-sizing:border-box;"
+                     tabindex="-1">
+
+
+                    <div style="flex: 1; overflow: hidden; white-space: normal; word-break: break-word; display: flex; flex-direction: column;">
+                        @if (task.StatusId == 1)
+                        {
+                            <span class="e-task-label">Not Started</span>
+                        }
+
+                    </div>
+
+                </div>
+            }
+        </TaskbarTemplate>
+    </GanttTemplates>
+
+    <GanttColumns>
+        <GanttColumn Field="Id" HeaderText="Task TaskId" Visible="false" />
+        <GanttColumn Field="TaskName" HeaderText="Tasks" Width="300" IsFrozen="true" ClipMode="ClipMode.EllipsisWithTooltip" />
+        <GanttColumn Field="AssignedTo" HeaderText="Assigned To" Width="150" IsFrozen="true" ClipMode="ClipMode.EllipsisWithTooltip" />
+
+
+    </GanttColumns>
+    <GanttSplitterSettings ColumnIndex="3"></GanttSplitterSettings>
+
+</SfGantt>
+
+<SfDialog Width="60%" AllowDragging="true" IsModal="true" ShowCloseIcon="true" @bind-Visible="@ShowEditDialog">
+    <DialogTemplates>
+        <Header>
+
+            <div id="template" class="e-icon-settings">New Task</div>
+        </Header>
+        <Content>
+
+           @*  <TasksEditComponent TaskId="Selected.Id" ></TasksEditComponent> *@
+        </Content>
+    </DialogTemplates>
+
+</SfDialog>
+
+@code {
+    SfGantt<ganttTaskObject> GanttRef;
+    private bool ShowEditDialog;
+    private ganttTaskObject? Selected;
+    public void UpdateRecord()
+    {
+        //this.Gantt.UpdateRecordByIDAsync(new TaskData() { TaskId = 3, TaskName = "Updated by ID value", StartDate = new DateTime(2022, 04, 05), EndDate = new DateTime(2022, 04, 10), Duration = "6" });
+    }
+    private List<TaskData> TaskCollection { get; set; }
+    List<ProjectTaskModel> TaskList = new();
+    List<TaskProjectModel> ProjectList = new();
+    public string messsage{ get; set; }
+    List<ganttTaskObject> ganttTaskList = new();
+    protected override async Task OnInitializedAsync()
+    {
+        for (int x = 1; x < 4; x++)
+        {
+
+            TaskProjectModel projectModel = new();
+            projectModel.Id = x;
+            projectModel.ProjectName = $"project name {x}";
+            projectModel.DueDate = DateTime.Today.AddDays(20);
+
+            for (int y = 1; y < 4; y++)
+            {
+                ProjectTaskModel taskModel = new();
+                taskModel.Id = y * x * 10;
+                taskModel.TaskProjectId = x;
+                taskModel.TaskTypeName = $"Task Type {y}";
+                TaskList.Add(taskModel);
+            }
+
+            ProjectList.Add(projectModel);
+        }
+
+
+
+        //  ProjectList = await taskSystemController.Project_GetAll();
+        // TaskList = await taskSystemController.ProjectTask_GetByAssignedToUserId(0);
+        // StatusData = await commontTypeController.GetByName("TaskStatus");
+        //  EmployeeList = await hubUserController.SelectForDropdown("", 0, 0, true);
+
+        foreach (var project in ProjectList)
+        {
+            ganttTaskObject gtObject = new();
+            gtObject.Id = project.Id;
+            //gtObject.ParentId = 0;
+            gtObject.TaskName = project.ProjectName + " - " + project.ProjectType;
+            gtObject.EndDate = project.DueDate;
+            gtObject.StartDate = project.RecordCreated;
+            gtObject.Note = project.ProjectDescription ?? "";
+
+            foreach (var task in TaskList.Where(x => x.TaskProjectId == project.Id))
+            {
+                ganttTaskObject gtChildObject = new();
+                gtChildObject.Id = task.Id;
+                //gtChildObject.ParentId = task.TaskProjectId;
+                gtChildObject.TaskName = task.TaskTypeName;
+                gtChildObject.StartDate = task.StartDate ?? DateTime.Today;
+                gtChildObject.EndDate = task.DueDate;
+                gtChildObject.Note = task.TaskNote ?? "";
+                gtChildObject.AssignedTo = task.AssignedToName;
+                gtChildObject.StatusId = task.StatusId ?? 1;
+                gtChildObject.StatusColor = task.StatusColor;
+                gtObject.taskLIst.Add(gtChildObject);
+
+            }
+
+
+            //project.Tasks = TaskList.Where(x => x.TaskProjectId == project.Id).ToList();
+            ganttTaskList.Add(gtObject);
+
+            //  dashboardNotificationService.TaskChanged += ExternalTaskAddedHandler;
+        }
+    }
+    public void ActionFailureHandler(Syncfusion.Blazor.Grids.FailureEventArgs args)
+    {
+       messsage += " OnAction failure Event triggered";
+    }
+
+    private void OnGanttDialogOpening(GanttDialogOpenEventArgs<ganttTaskObject> args)
+    {
+        args.Cancel = true;
+        //if (args.Data.ParentId == 0) return; //top level project
+        Selected = args.Data;        // the double-clicked task
+        ShowEditDialog = true;
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string StatusColor { get; set; }
+        public List<TaskData> taskLIst { get; set; } = new();
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+            new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 04, 05), EndDate = new DateTime(2022, 04, 21), },
+            // new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 30, ParentId = 1 },
+            new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 04, 05), EndDate = new DateTime(2022, 04, 08), Duration = "4", Progress = 40, ParentId = 1 },
+            // new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 04, 05), Duration = "0", Progress = 30, ParentId = 1 },
+            new TaskData() { TaskId = 5, TaskName = "Project estimation", StartDate = new DateTime(2022, 04, 06), EndDate = new DateTime(2022, 04, 21), },
+            new TaskData() { TaskId = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 30, ParentId = 5 },
+            new TaskData() { TaskId = 7, TaskName = "List materials", StartDate = new DateTime(2022, 04, 06), Duration = "3", Progress = 40, ParentId = 5 },
+            new TaskData() { TaskId = 8, TaskName = "Estimation approval", StartDate = new DateTime(2022, 04, 06), Duration = "0", Progress = 30, ParentId = 5 }
+        };
+        return Tasks;
+    }
+
+    private class ganttTaskObject
+    {
+
+        public string TaskName { get; set; } = "";
+        public int Id { get; set; }
+        public int ParentId { get; set; }
+        public DateTime? StartDate { get; set; }
+        public int StatusId { get; set; } = 1;
+        public string StatusColor { get; set; } = "";
+        public DateTime? EndDate { get; set; }
+        public string Note { get; set; } = "";
+        public string AssignedTo { get; set; } = "";
+        public List<ganttTaskObject> taskLIst { get; set; } = new();
+
+    }
+
+    public class TaskProjectModel
+    {
+        public int Id { get; set; }
+        public int ProjectTypeId { get; set; }
+        public string ProjectType { get; set; }
+        public DateTime DueDate { get; set; }
+        public string ProjectName { get; set; } = "";
+        public string ProjectDescription { get; set; }
+        public int RecordCreatedBy { get; set; }
+        public DateTime? RecordCreated { get; set; }
+        public int? RecordUpdatedBy { get; set; }
+        public DateTime? RecordUpdated { get; set; }
+
+        public bool IsRecordActive { get; set; } = true;
+
+        //public List<ProjectTaskToEntityLinkModel> TaskRelations { get; set; } = new();
+
+        public List<ProjectTaskModel> Tasks { get; set; } = new();
+
+    }
+
+    public class ProjectTaskModel
+    {
+        public int Id { get; set; } = 0;
+
+        public string TaskTitle { get; set; } = "";
+        public int TaskProjectId { get; set; } = 0;
+        public string TaskProjectName { get; set; } = "";
+        public int TaskTypeId { get; set; }
+        public string TaskTypeName { get; set; } = "";
+        public int? ParentTaskId { get; set; }
+        public string EntityType { get; set; }
+        public int? EntityId { get; set; }
+        public string EntityName { get; set; } = "";
+
+        public int? AuthorId { get; set; }
+        public int? TypeId { get; set; }
+        public int? AssignedToId { get; set; }
+        public string AssignedToName { get; set; } = "";
+        public DateTime? DueDate { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public int? StatusId { get; set; } = 1;
+        public string StatusIdAsString
+        {
+            get
+            {
+                return StatusId?.ToString() ?? "";
+
+            }
+            set
+            {
+                StatusId = Convert.ToInt32(value);
+
+            }
+        }
+        public string StatusType { get
+            {
+                return StatusId switch
+                {
+                    1 => "New",
+                    2 => "In Process",
+                    3 => "Completed",
+                    4 => "Cancelled",
+                    5 => "In Review",
+                    _ => ""
+                };
+
+            }
+        } 
+        public DateTime? TaskSeenDate { get; set; }
+        public int? TaskSeenById { get; set; }
+        public DateTime? RecordCreated { get; set; }
+        public DateTime? RecordUpdated { get; set; }
+        public bool? IsRecordActive { get; set; } = true;
+        public int? CompletedById { get; set; }
+        public int? MeetingAppointmentId { get; set; }
+        public int? OriginalAssignedToId { get; set; }
+        public string RecurrencRule { get; set; }
+        public int? ReviewerId { get; set; }
+
+        public string TaskNote { get; set; } = "";
+
+        public string StatusColor
+        {
+            get
+            {
+
+                return StatusId switch
+                {
+                    // case "Overdue":
+                    //     <span class="badge text-bg-danger">Overdue</span>
+                    //    break;
+                    1 => "text-bg-danger",  //new
+                    2 => "text-bg-warning", //in process
+                    3 => "text-bg-success", //completed
+                    4 => "text-bg-secondary", //Cancelled
+                    5 => "text-bg-success", //in review
+                    _ => ""
+                };
+            }
+        }
+
+    }
+}

@@ -1,0 +1,284 @@
+@page "/SplitTask-rtl"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.TreeGrid
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Data
+@using System.Collections;
+@using Syncfusion.Blazor.Inputs;
+@using Syncfusion.Blazor.DropDowns;
+<div>
+
+    <button id="MergeTask" @onclick="MergeTask" class="btn btn-success">MergeTask</button>
+    <button id="SplitTask" @onclick="SplitTask" class="btn btn-success">SplitTask</button>
+</div>
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGantt @ref="Gantt" ID="Gantt" EnableRtl="true" TValue="TaskData" GridLines="Syncfusion.Blazor.Gantt.GridLine.Both" AllowSorting="true" AllowFiltering="true" EnableContextMenu DataSource="@TaskCollection" Height="550px" Width="1300px" AllowUnscheduledTasks AllowRowDragAndDrop="true"
+                     Toolbar="@(new List<Object>() { "Add", "Cancel", "Update" , "Delete", "Edit", "CollapseAll", "ExpandAll", "Search", "ZoomIn", "ZoomOut", "ZoomToFit" })" AllowResizing ProjectStartDate="@ProjectStart" ProjectEndDate="@ProjectEnd">
+                <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress"
+                                 ParentID="ParentId" Work="Work" Dependency="Predecessor">
+                </GanttTaskFields>
+                <GanttResource Group="ResourceGroup" DataSource="@ResourceCollection" Id="ResourceId" Name="ResourceName" MaxUnits="Unit" TResources="ResourceAlloacteData" TValue="TaskData"></GanttResource>
+                <GanttAssignmentFields DataSource="AssignmentCollection" PrimaryKey="@nameof(AssignmentModel.PrimaryId)" TaskID="@nameof(AssignmentModel.TaskId)" ResourceID="@nameof(AssignmentModel.ResourceId)" Units="@nameof(AssignmentModel.Unit)" TValue="TaskData" TAssignment="AssignmentModel">
+                </GanttAssignmentFields>
+
+                <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+                <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="TaskData" TSegments="SegmentModel" SegmentChanging="SegmentSaveHanlder" DataSource="segmentCollection">
+
+                </GanttSegmentFields>
+                <GanttSplitterSettings View="SplitterView.Chart"></GanttSplitterSettings>
+                <GanttTimelineSettings TimelineUnitSize="@DefaultUnitWidth">
+                    <GanttTopTierSettings Unit="@TopTierUnit" Count="@TopTierCount" Format="@TopTierFormat"></GanttTopTierSettings>
+                    <GanttBottomTierSettings Count="@BottomTierCount" Unit="@BottomTierUnit" Format="@BottomTierFormat"></GanttBottomTierSettings>
+                </GanttTimelineSettings>
+                <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+                <GanttEvents TaskbarEditing="TaskbarEditingHandler" TaskbarEdited="TaskbarEditedHandler" OnActionBegin="ActionBeginHandler" OnActionComplete="ActionCompleteHandler" TValue="TaskData"></GanttEvents>
+            </SfGantt>
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+    public SfGantt<TaskData> Gantt;
+    private DateTime ProjectStart = new DateTime(2022, 03, 25);
+    private DateTime ProjectEnd = new DateTime(2022, 05, 10);
+    private List<TaskData> TaskCollection { get; set; }
+    private List<ResourceAlloacteData> ResourceCollection { get; set; }
+    private static List<AssignmentModel> AssignmentCollection { get; set; } = new();
+    private List<SegmentModel> segmentCollection { get; set; }
+    private ViewType viewType { get; set; } = ViewType.ResourceView;
+    private bool ShowOverallocation { get; set; } = true;
+    private Boolean Check = true;
+    private int DefaultUnitWidth = 33;
+    private int TopTierCount = 1;
+    private int BottomTierCount = 1;
+    private string TopTierFormat = "MMM dd, yyyy";
+    private string BottomTierFormat = "";
+    private TimelineViewMode TopTierUnit = TimelineViewMode.Week;
+    private TimelineViewMode BottomTierUnit = TimelineViewMode.Day;
+
+    public class TimelineUnit
+    {
+        public string Id { get; set; }
+        public string Unit { get; set; }
+    }
+    public class DayFormat
+    {
+        public string Id { get; set; }
+        public string Format { get; set; }
+    }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+        this.ResourceCollection = GetResources;
+        AssignmentCollection = GetAssignmentCollection();
+        this.segmentCollection = GetSegmentCollection();
+    }
+    private void TaskbarEditingHandler(TaskbarEditingEventArgs<TaskData> args)
+    {
+
+    }
+    private void TaskbarEditedHandler(TaskbarEditedEventArgs<TaskData> args)
+    {
+
+    }
+    private void SegmentSaveHanlder(SegmentEventArgs<SegmentModel> args)
+    {
+        @* if (args.UpdatedSegments != null)
+        {
+            foreach (var data in args.UpdatedSegments)
+            {
+                var record = segmentCollection.Where(s => s.id == data.id).FirstOrDefault();
+                record = data;
+            }
+        }
+        if (args.DeletedSegments != null)
+        {
+            // args.Cancel = true;
+            foreach (var data in args.DeletedSegments)
+            {
+                var record = segmentCollection.Where(s => s.id == data.id).FirstOrDefault();
+                segmentCollection.Remove(record);
+            }
+        }
+        if (args.AddedSegments != null)
+        {
+            foreach (var data in args.AddedSegments)
+            {
+                var maxId = segmentCollection.Count() + 1;
+              //  data.id = maxId;
+                //var record = segmentCollection.Where(s => s.id == data.id).FirstOrDefault();
+                segmentCollection.Add(data);
+            }
+        } *@
+    }
+    public class SegmentModel
+    {
+        public int id { get; set; }
+        public int TaskId { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+    }
+    public class AssignmentModel
+    {
+        public int PrimaryId { get; set; }
+        public int TaskId { get; set; }
+        public int ResourceId { get; set; }
+        public double? Unit { get; set; }
+    }
+    public class ResourceAlloacteData
+    {
+        public int ResourceId { get; set; }
+        public string ResourceName { get; set; }
+        public double? Unit { get; set; }
+        public string? ResourceGroup { get; set; }
+    }
+
+    public static List<ResourceAlloacteData> GetResources = new List<ResourceAlloacteData>()
+    {
+        new ResourceAlloacteData() { ResourceId= 1, ResourceName= "Martin Tamer", ResourceGroup="Planning Team"},
+        new ResourceAlloacteData() { ResourceId= 2, ResourceName= "Rose Fuller", ResourceGroup="Testing Team" },
+        new ResourceAlloacteData() { ResourceId= 3, ResourceName= "Margaret Buchanan", ResourceGroup="Approval Team" },
+        new ResourceAlloacteData() { ResourceId= 4, ResourceName= "Fuller King", ResourceGroup="Development Team" },
+        new ResourceAlloacteData() { ResourceId= 5, ResourceName= "Davolio Fuller", ResourceGroup="Approval Team" },
+        new ResourceAlloacteData() { ResourceId= 6, ResourceName= "Fuller Buchanan", ResourceGroup="Development Team" },
+        new ResourceAlloacteData() { ResourceId= 7, ResourceName= "Jack Davolio", ResourceGroup="Planning Team" },
+        new ResourceAlloacteData() { ResourceId= 8, ResourceName= "Tamer Vinet", ResourceGroup="Testing Team" },
+        new ResourceAlloacteData() { ResourceId= 9, ResourceName= "Vinet Fuller", ResourceGroup="Development Team" },
+        new ResourceAlloacteData() { ResourceId= 10, ResourceName= "Bergs Anton", ResourceGroup="Testing Team" },
+        new ResourceAlloacteData() { ResourceId= 11, ResourceName= "Construction Supervisor", ResourceGroup="Testing Team" },
+    };
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Duration { get; set; }
+        public int Progress { get; set; }
+        public int? ParentId { get; set; }
+        public string Predecessor { get; set; }
+        public string Notes { get; set; }
+        public double? Work { get; set; }
+        public string TaskType { get; set; }
+        public DateTime BaselineStartDate { get; set; }
+        public DateTime BaselineEndDate { get; set; }
+        public string? Details { get; set; }
+    }
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+        new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 03, 28), EndDate = new DateTime(2022, 07, 28), TaskType = "FixedDuration", Work = 128, Duration = "4" },
+        new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 03, 29), BaselineStartDate = new DateTime(2022, 03, 29), BaselineEndDate = new DateTime(2022, 03, 31), Progress = 30, ParentId = 1, Duration = "5", Work = 16 },
+        new TaskData() { TaskId = 3, TaskName = "Site Analyze", StartDate = new DateTime(2022, 03, 29), BaselineStartDate = new DateTime(2022, 03, 29), BaselineEndDate = new DateTime(2022, 03, 31), Progress = 50, ParentId = 1, Duration = "5", Work = 16 },
+        new TaskData() { TaskId = 4, TaskName = "Perform soil test", StartDate = new DateTime(2022, 03, 29), ParentId = 1, Work = 96, Duration = "6", TaskType = "FixedWork", Predecessor = "2FS", Progress = 40 },
+        new TaskData() { TaskId = 5, TaskName = "Soil test approval", StartDate = new DateTime(2022, 03, 29), BaselineStartDate = new DateTime(2022, 03, 29), BaselineEndDate = new DateTime(2022, 03, 31), Duration = "4", Progress = 30, ParentId = 1, Work = 16, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 6, TaskName = "Project estimation", StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 04, 2), TaskType = "FixedDuration", Duration = "7", Progress = 40, Work = 50 },
+        new TaskData() { TaskId = 7, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 03, 29), Duration = "9", Progress = 30, ParentId = 5, Work = 30, TaskType = "FixedDuration", Predecessor = "4FS" },
+        new TaskData() { TaskId = 8, TaskName = "List materials", StartDate = new DateTime(2022, 04, 01), Duration = "6", Progress = 30, ParentId = 5, TaskType = "FixedWork", Work = 48 },
+        new TaskData() { TaskId = 9, TaskName = "Estimation approval", Progress = 30, StartDate = new DateTime(2022, 04, 01), Duration = "8", ParentId = 5, BaselineStartDate = new DateTime(2022, 03, 29), BaselineEndDate = new DateTime(2022, 03, 31), Work = 60, TaskType = "FixedUnit", Predecessor = "8FS" },
+        new TaskData() { TaskId = 10, TaskName = "Building approval", StartDate = new DateTime(2022, 04, 01), Duration = "4", ParentId = 5, Work = 60, Progress = 50, TaskType = "FixedWork" },
+        new TaskData() { TaskId = 11, TaskName = "Construction initiation", StartDate = new DateTime(2022, 04, 01), Duration = "5", ParentId = 5, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 12, TaskName = "Ground floor initiation", StartDate = new DateTime(2022, 04, 05), Duration = "5", ParentId = 11, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 13, TaskName = "First floor initiation", StartDate = new DateTime(2022, 04, 01), Duration = "5", ParentId = 11, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 14, TaskName = "Electric work initiation", StartDate = new DateTime(2022, 04, 01), Duration = "5", ParentId = 11, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 15, TaskName = "Plumbing work", StartDate = new DateTime(2022, 04, 02), Duration = "5", ParentId = 11, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 16, TaskName = "Interior work", StartDate = new DateTime(2022, 04, 01), Duration = "5", ParentId = 11, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 17, TaskName = "Wiring test", StartDate = new DateTime(2022, 04, 04), Duration = "5", ParentId = 11, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 18, TaskName = "Tile test", StartDate = new DateTime(2022, 04, 06), Duration = "5", ParentId = 11, Work = 60, Progress = 100, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 19, TaskName = "Tile work initiation", StartDate = new DateTime(2022, 04, 09), Duration = "5", ParentId = 11, Work = 60, Progress = 40, TaskType = "FixedDuration" },
+        new TaskData() { TaskId = 20, TaskName = "Building test", StartDate = new DateTime(2022, 04, 01), Duration = "4", ParentId = 5, Work = 60, Progress = 50, TaskType = "FixedWork" }
+    };
+        return Tasks;
+    }
+    public static List<AssignmentModel> GetAssignmentCollection()
+    {
+        List<AssignmentModel> assignments = new List<AssignmentModel>()
+    {
+        new AssignmentModel { PrimaryId = 1, TaskId = 2, ResourceId = 1, Unit = 70 },
+        new AssignmentModel { PrimaryId = 2, TaskId = 3, ResourceId = 1, Unit = 70 },
+        new AssignmentModel { PrimaryId = 3, TaskId = 4, ResourceId = 3 },
+        new AssignmentModel { PrimaryId = 4, TaskId = 5, ResourceId = 8 },
+        new AssignmentModel { PrimaryId = 5, TaskId = 6, ResourceId = 2 },
+        new AssignmentModel { PrimaryId = 6, TaskId = 7, ResourceId = 4, Unit = 30 },
+        new AssignmentModel { PrimaryId = 7, TaskId = 8, ResourceId = 8 },
+        new AssignmentModel { PrimaryId = 8, TaskId = 9, ResourceId = 11 },
+        new AssignmentModel { PrimaryId = 9, TaskId = 12, ResourceId = 2 },
+        new AssignmentModel { PrimaryId = 10, TaskId = 13, ResourceId = 6 },
+        new AssignmentModel { PrimaryId = 11, TaskId = 14, ResourceId = 7 },
+        new AssignmentModel { PrimaryId = 12, TaskId = 15, ResourceId = 9 },
+        new AssignmentModel { PrimaryId = 13, TaskId = 16, ResourceId = 10 },
+        new AssignmentModel { PrimaryId = 14, TaskId = 17, ResourceId = 7 },
+        new AssignmentModel { PrimaryId = 15, TaskId = 18, ResourceId = 5 },
+        new AssignmentModel { PrimaryId = 16, TaskId = 19, ResourceId = 5 }
+    };
+        return assignments;
+    }
+
+
+
+    private async void MergeTask()
+    {
+        List<ValueTuple<int, int>> indexes = new List<ValueTuple<int, int>>();
+        indexes.Add((0, 1));
+        indexes.Add((-1, 0));
+        indexes.Add((2, 5));
+        indexes.Add((3, 4));
+        await Gantt.MergeTaskAsync(3, indexes);
+    }
+
+    private async void SplitTask()
+    {
+        await Gantt.SplitTaskAsync("3", new List<DateTime>() { new DateTime(2022, 04, 07), new DateTime(2022, 04, 11) });
+    }
+
+    private List<SegmentModel> GetSegmentCollection()
+    {
+        List<SegmentModel> segments = new List<SegmentModel>();
+        segments.Add(new SegmentModel() { id = 1, TaskId = 1, StartDate = new DateTime(2022, 04, 01), Duration = "1" });
+        segments.Add(new SegmentModel() { id = 2, TaskId = 1, StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { id = 3, TaskId = 2, StartDate = new DateTime(2022, 04, 01), Duration = "1" });
+        segments.Add(new SegmentModel() { id = 4, TaskId = 2, StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { id = 5, TaskId = 3, StartDate = new DateTime(2022, 04, 01), Duration = "1" });
+        segments.Add(new SegmentModel() { id = 6, TaskId = 3, StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { id = 7, TaskId = 4, StartDate = new DateTime(2022, 04, 01), Duration = "1" });
+        segments.Add(new SegmentModel() { id = 8, TaskId = 4, StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { id = 9, TaskId = 6, StartDate = new DateTime(2022, 04, 01), Duration = "1" });
+        segments.Add(new SegmentModel() { id = 10, TaskId = 6, StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { id = 11, TaskId = 7, StartDate = new DateTime(2022, 04, 01), Duration = "1" });
+        segments.Add(new SegmentModel() { id = 12, TaskId = 7, StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { id = 13, TaskId = 8, StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { id = 14, TaskId = 8, StartDate = new DateTime(2022, 04, 01), Duration = "1" });
+        segments.Add(new SegmentModel() { id = 15, TaskId = 9, StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { id = 16, TaskId = 9, StartDate = new DateTime(2022, 04, 01), Duration = "1" });
+        segments.Add(new SegmentModel() { id = 17, TaskId = 10, StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 03, 31) });
+        segments.Add(new SegmentModel() { id = 18, TaskId = 10, StartDate = new DateTime(2022, 03, 29), EndDate = new DateTime(2022, 03, 31) });
+        return segments;
+    }
+    private IList GetSegmentsData(TaskData data)
+    {
+        return Gantt.GetRowTaskModel(data).Segments;
+    }
+
+    private bool IsSegmentTaskbar(TaskData record)
+    {
+        return true; //record.Segments != null && record.Segments.Count > 1;
+    }
+
+    private async Task ActionCompleteHandler(GanttActionEventArgs<TaskData> args)
+    {
+        await Task.CompletedTask;
+    }
+
+    private async Task ActionBeginHandler(GanttActionEventArgs<TaskData> args)
+    {
+        await Task.CompletedTask;
+    }
+}

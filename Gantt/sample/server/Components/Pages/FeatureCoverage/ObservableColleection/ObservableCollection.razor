@@ -1,0 +1,219 @@
+﻿@page "/observablecollection"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Navigations
+@using System.Collections.ObjectModel
+@using System.ComponentModel
+@using System.Runtime.CompilerServices
+@using System.Threading.Tasks
+<SfButton OnClick="() => TaskCollection = GetTaskCollection()">Get Tasks</SfButton>
+<SfButton OnClick="CustomIndent">Indent Task</SfButton>
+<SfButton OnClick="CustomOutdent">Outdent Task</SfButton>
+<SfButton OnClick="CustomAdd">Add Task</SfButton>
+@if (IsGanttVisible)
+{
+    <SfGantt @ref="Gantt" class="gantt" ID="ScheduleBuilder" ScrollToTaskbarOnClick DataSource="@TaskCollection" Height="100%" Width="100%" TreeColumnIndex="0">
+        <GanttColumns>
+            <GanttColumn Field="TaskID" HeaderText="ID" Width="120">
+                <Template>
+                    @{
+                        var data = context as TaskData;
+                    }
+                    <span>@($"#{data?.TaskID}")</span>
+                </Template>
+            </GanttColumn>
+            <GanttColumn Field="TaskName" HeaderText="Task Name" Width="250"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date" Format="yyyy-MM-dd" Width="150"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date" Format="yyyy-MM-dd" Width="150"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration" Width="80"></GanttColumn>
+            <GanttColumn Field="ParentId" HeaderText="ParentId" Width="80"></GanttColumn>
+        </GanttColumns>
+        <GanttTaskFields Id="TaskID" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Work="Work" TaskType="TaskType" Dependency="Predecessor" Manual="IsManual" ExpandState="IsExpanded" Notes="Notes">
+        </GanttTaskFields><GanttTooltipSettings TValue="TaskData" ShowTooltipOnEditing="false"></GanttTooltipSettings>
+        <GanttEditSettings AllowSchedulingOnDrag="@true" AllowAdding="@true" AllowDeleting="false" AllowEditing="@true" AllowTaskbarEditing="@true" ShowDeleteConfirmDialog="false" Mode="Syncfusion.Blazor.Gantt.EditMode.Auto">
+        </GanttEditSettings>
+        <GanttEvents TValue="TaskData" ContextMenuOpen="() => { }" RowSelected="OnRowSelected"></GanttEvents>
+        <GanttSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Both" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple" AllowDragSelection EnableToggle />
+    </SfGantt>
+
+
+}
+@code {
+    public int SelectedRowIndex { get; set; } = -1;
+    public bool IsGanttVisible { get; set; } = true;
+    public SfGantt<TaskData> Gantt;
+
+
+    private ObservableCollection<TaskData> TaskCollection { get; set; }
+
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+
+    public class TaskData : INotifyPropertyChanged
+    {
+        private int _taskID;
+        private string _taskName = string.Empty;
+        private DateTime _startDate;
+        private DateTime? _endDate;
+        private string _duration = string.Empty;
+        private int _progress;
+        private int? _parentId;
+        private string? _predecessor;
+        private bool _isManual;
+        private bool _isExpanded = true;
+        private double? _work;
+        private string? _taskType;
+        private string? _notes;
+
+        public int TaskID
+        {
+            get => _taskID;
+            set => SetProperty(ref _taskID, value);
+        }
+
+        public string TaskName
+        {
+            get => _taskName;
+            set => SetProperty(ref _taskName, value);
+        }
+
+        public DateTime StartDate
+        {
+            get => _startDate;
+            set => SetProperty(ref _startDate, value);
+        }
+
+        public DateTime? EndDate
+        {
+            get => _endDate;
+            set => SetProperty(ref _endDate, value);
+        }
+
+        public string Duration
+        {
+            get => _duration;
+            set => SetProperty(ref _duration, value);
+        }
+
+        public int Progress
+        {
+            get => _progress;
+            set => SetProperty(ref _progress, value);
+        }
+
+        public int? ParentId
+        {
+            get => _parentId;
+            set => SetProperty(ref _parentId, value);
+        }
+
+        public string? Predecessor
+        {
+            get => _predecessor;
+            set => SetProperty(ref _predecessor, value);
+        }
+
+        public bool IsManual
+        {
+            get => _isManual;
+            set => SetProperty(ref _isManual, value);
+        }
+
+        public bool IsExpanded
+        {
+            get => _isExpanded;
+            set => SetProperty(ref _isExpanded, value);
+        }
+
+        public double? Work
+        {
+            get => _work;
+            set => SetProperty(ref _work, value);
+        }
+
+        public string? TaskType
+        {
+            get => _taskType;
+            set => SetProperty(ref _taskType, value);
+        }
+
+        public string? Notes
+        {
+            get => _notes;
+            set => SetProperty(ref _notes, value);
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        /// <summary>
+        /// Sets the field to the provided value and raises PropertyChanged if the value changed.
+        /// Returns true if the value was changed; otherwise false.
+        /// </summary>
+        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+    }
+
+    public void OnRowSelected(RowSelectEventArgs<TaskData> args)
+    {
+        SelectedRowIndex = args.RowIndex;
+    }
+
+    public void CustomAdd()
+    {
+        TaskCollection.Add(
+            new TaskData() { TaskID = TaskCollection.Select(o => o.TaskID).Max() + 1, TaskName = "Estimation approval", StartDate = new DateTime(2024, 04, 26), Duration = "1", EndDate = new DateTime(2024, 04, 27), Progress = 30, ParentId = 5 });
+        TaskCollection = new(TaskCollection);
+    }
+
+    public async Task CustomIndent()
+    {
+        if (SelectedRowIndex - 1 < 0 || SelectedRowIndex >= TaskCollection.Count)
+        {
+            return;
+        }
+
+        TaskCollection[SelectedRowIndex].ParentId = TaskCollection[SelectedRowIndex - 1].TaskID;
+    }
+
+    public async Task CustomOutdent()
+    {
+        if (SelectedRowIndex < 0 || SelectedRowIndex >= TaskCollection.Count)
+        {
+            return;
+        }
+
+        TaskCollection[SelectedRowIndex].ParentId = TaskCollection.FirstOrDefault(o => o.TaskID == TaskCollection[SelectedRowIndex].ParentId)?.ParentId;
+
+    }
+
+    public static ObservableCollection<TaskData> GetTaskCollection()
+    {
+        ObservableCollection<TaskData> Tasks = new ObservableCollection<TaskData>()
+        {
+            new TaskData() { TaskID = 1, TaskName = "Project initiation", StartDate = new DateTime(2024, 04, 05), EndDate = new DateTime(2024, 04, 07)},
+            new TaskData() { TaskID = 2, TaskName = "Identify site location", StartDate = new DateTime(2024, 04, 05), Duration = "0", Progress = 30, ParentId = 1 },
+            new TaskData() { TaskID = 3, TaskName = "Perform soil test", StartDate = new DateTime(2024, 04, 03), Duration = "4", Progress = 40, ParentId = 1, Predecessor="2FS"},
+            new TaskData() { TaskID = 4, TaskName = "Soil test approval", StartDate = new DateTime(2024, 04, 05), Duration = "0", Progress = 30, ParentId = 1},
+            new TaskData() { TaskID = 5, TaskName = "Project estimation", StartDate = new DateTime(2024, 04, 06), EndDate = new DateTime(2024, 04, 21)},
+            new TaskData() { TaskID = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2024, 03, 06), Duration = "3", EndDate = new DateTime(2024, 03, 29), Progress = 30, ParentId = 5},
+            new TaskData() { TaskID = 7, TaskName = "List materials", StartDate = new DateTime(2024, 04, 06), Duration = "3", EndDate = new DateTime(2024, 04, 29), Progress = 40, ParentId = 5},
+            new TaskData() { TaskID = 8, TaskName = "Estimation approval", StartDate = new DateTime(2024, 04, 06), Duration = "1", EndDate = new DateTime(2024, 04, 27), Progress = 30, ParentId = 5},
+            new TaskData() { TaskID = 9, TaskName = "Estimation approval", StartDate = new DateTime(2024, 04, 26), Duration = "1", EndDate = new DateTime(2024, 04, 27), Progress = 30, ParentId = 5}
+
+        };
+        return Tasks;
+    }
+
+}

@@ -1,0 +1,89 @@
+@page "/BLAZ-940352"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Navigations
+@using System
+
+<div class="control-pane">
+    <div class="control-section">
+        <SfGantt @ref="GanttObject" DataSource="@TaskCollection" Height="410px" ProjectStartDate="@ProjectStartDate" ProjectEndDate="@ProjectEndDate" Width="100%" Toolbar="@(new List<string>(){ "Add", "Edit", "Update", "Delete", "Cancel", "ExpandAll", "CollapseAll","Indent","Outdent"})" AllowUnscheduledTasks="true" AllowSelection="true">
+            <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration"></GanttTaskFields>
+            <GanttColumns>
+                <GanttColumn Field="TaskId" Width="90px"></GanttColumn>
+                <GanttColumn Field="TaskName" Width="80px"></GanttColumn>
+                <GanttColumn Field="StartDate"></GanttColumn>
+                <GanttColumn Field="EndDate"></GanttColumn>
+                <GanttColumn Field="ActualStartDate" ></GanttColumn>
+                <GanttColumn Field="ActualEndDate"></GanttColumn>
+                <GanttColumn Field="Duration" Width="90px"></GanttColumn>
+            </GanttColumns>
+            <GanttEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" AllowTaskbarEditing="true" ShowDeleteConfirmDialog="true"></GanttEditSettings>
+            <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+            <GanttEvents OnActionBegin="ActionBeginHandler" CellSaved="CellSavedHandler" OnCellSave="SaveHandler" TValue=TaskData></GanttEvents>
+        </SfGantt>
+    </div>
+</div>
+
+@code {
+    private SfGantt<TaskData> GanttObject;
+    private List<TaskData> TaskCollection;
+    private DateTime ProjectStartDate { get; set; } = new DateTime(2019, 1, 1);
+    private DateTime ProjectEndDate { get; set; } = new DateTime(2019, 1, 20);
+    protected override void OnInitialized()
+    {
+        TaskCollection = new List<TaskData>
+        {
+            new TaskData { TaskId = 1, TaskName = "Task 1", StartDate = new DateTime(2019, 1, 3), EndDate = new DateTime(2019, 1, 8), Duration = "0"},
+            new TaskData { TaskId = 2, TaskName = "Task 2", Duration = "5", },
+            new TaskData { TaskId = 3, TaskName = "Task 3", StartDate = new DateTime(2019, 1, 3) },
+            new TaskData { TaskId = 4, TaskName = "Task 4", EndDate = new DateTime(2019, 1, 8) }
+        };
+    }
+
+    public async Task ActionBeginHandler(GanttActionEventArgs<TaskData> args)
+    {
+        if (args.RequestType == Syncfusion.Blazor.Gantt.Action.BeforeSave)
+        {
+            args.Data.EndDate = args.Data.ActualEndDate;
+        }
+        await Task.CompletedTask;
+    }
+    public async void SaveHandler(CellSaveArgs<TaskData> args)
+    {
+        await Task.CompletedTask;
+    }
+    public async void CellSavedHandler(CellSavedArgs<TaskData> args)
+    {
+        var temp1 = GanttObject.GetTaskByID("1");
+        temp1.EndDate = args.Data.ActualEndDate;
+        await GanttObject.UpdateRecordByIDAsync(temp1);
+        await Task.CompletedTask;
+    }
+    private async Task ToolbarClick(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        if (args.Item.Id == "toolbarAdd")
+        {
+            var newTask = new TaskData
+            {
+                TaskId = TaskCollection.Count + 1,
+                TaskName = "New Task",
+                StartDate = null,
+                EndDate = null
+            };
+            await GanttObject.AddRecordAsync(newTask);
+        }
+    }
+
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public DateTime? ActualStartDate { get; set; }
+        public DateTime? ActualEndDate { get; set; }
+        public string Duration { get; set; }
+        public string TaskType { get; set; }
+    }
+}

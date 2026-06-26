@@ -1,0 +1,102 @@
+@page "/contextmenu"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+<SfGantt ID="GanttContextmenu" DataSource="@TaskCollection" AllowUnscheduledTasks="true" EnableContextMenu="true" Height="450px" Width="1400px" AllowFiltering="true" AllowSorting="true">
+    <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Interval" Progress="Progress" Dependency="Predecessor" Child="SubTasks">
+    </GanttTaskFields>
+    <GanttEditSettings AllowEditing="true" AllowAdding="true" AllowDeleting="true" AllowTaskbarEditing="true">
+    </GanttEditSettings>
+    <GanttSplitterSettings Position="50%"></GanttSplitterSettings>
+    <GanttEvents TValue="TaskData" Created="Created" ></GanttEvents>
+</SfGantt>
+
+@code{
+    public List<TaskData> TaskCollection { get; set; }
+    protected override void OnInitialized()
+    {
+        this.TaskCollection = GetTaskCollection();
+    }
+    public async Task Created()
+    {   
+     
+    }
+    public class TaskData
+    {
+        public int TaskId { get; set; }
+        public string TaskName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Interval { get; set; }
+        public int Progress { get; set; }
+        public string Predecessor { get; set; }
+        public List<TaskData> SubTasks { get; set; }
+    }
+
+    public static List<TaskData> GetTaskCollection()
+    {
+        List<TaskData> Tasks = new List<TaskData>() {
+        new TaskData() {
+            TaskId = 1,
+            TaskName = "Project initiation",
+            StartDate = new DateTime(2019, 04, 02),
+            EndDate = new DateTime(2019, 04, 21),
+            SubTasks = (new List <TaskData> () {
+                new TaskData() {
+                    TaskId = 2,
+                    TaskName = "Identify Site location",
+                    StartDate = new DateTime(2019, 04, 02),
+                    Progress = 30,
+                },
+                new TaskData() {
+                    TaskId = 3,
+                    TaskName = "Perform soil test",
+                    StartDate = new DateTime(2019, 04, 02),
+                    Interval = "4",
+                    Progress = 40,
+                    Predecessor = "2"
+                },
+                new TaskData() {
+                    TaskId = 4,
+                    TaskName = "Soil test approval",
+                    StartDate = new DateTime(2019, 04, 02),
+                    Interval = "0",
+                    Progress = 30,
+                },
+            })
+        },
+        new TaskData() {
+            TaskId = 5,
+            TaskName = "Project estimation",
+            StartDate = new DateTime(2019, 04, 02),
+            EndDate = new DateTime(2019, 04, 21),
+            SubTasks = (new List <TaskData> () {
+                new TaskData() {
+                    TaskId = 6,
+                    TaskName = "Develop floor plan for estimation",
+                    StartDate = new DateTime(2019, 04, 04),
+                    Interval = "3",
+                    Progress = 30,
+                    Predecessor = "5"
+                },
+                new TaskData() {
+                    TaskId = 7,
+                    TaskName = "List materials",
+                    StartDate = new DateTime(2019, 04, 04),
+                    Interval = "3",
+                    Progress = 40,
+                },
+                new TaskData() {
+                    TaskId = 8,
+                    TaskName = "Estimation approval",
+                    StartDate = new DateTime(2019, 04, 04),
+                    Interval = "0",
+                    Progress = 30,
+                    Predecessor = "7"
+                },
+            })
+        }
+    };
+
+        return Tasks;
+    }
+}

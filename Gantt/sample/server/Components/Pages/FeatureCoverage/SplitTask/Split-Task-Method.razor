@@ -1,0 +1,189 @@
+﻿@page "/split-task-method"
+@rendermode InteractiveServer
+
+@using System.Dynamic
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Data
+
+
+<SfDropDownList @bind-Value="selectedIdType" DataSource="@IdTypes" TValue="string" TItem="string" Placeholder="Select ID Type">
+    <DropDownListFieldSettings Text="Text" Value="Value"></DropDownListFieldSettings>
+    <DropDownListEvents TValue="string" TItem="string" ValueChange="OnIdTypeChange"></DropDownListEvents>
+</SfDropDownList>
+
+@if (currentDataType == "int")
+{
+    <SfGantt @ref="GanttInt" TValue="TaskDataInt" DataSource="@TaskCollectionInt" Height="450px" Width="100%" TreeColumnIndex="1" Toolbar="@(new List<Object>() { "Add", "Cancel", "Update", "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit" })" EnableContextMenu="true" RowHeight="37" ProjectStartDate="ProjectStartDate" ProjectEndDate="ProjectEndDate" ScrollToTaskbarOnClick="true">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor"></GanttTaskFields>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="TaskDataInt" TSegments="SegmentModelInt" DataSource="SegmentCollectionInt"></GanttSegmentFields>
+        <GanttLabelSettings LeftLabel="TaskName" TValue="TaskDataInt"></GanttLabelSettings>
+        <GanttColumns>
+            <GanttColumn Field="TaskId" Width="100" Visible="false"></GanttColumn>
+            <GanttColumn Field="TaskName" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+            <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+        </GanttColumns>
+        <GanttSplitterSettings Position="28%"></GanttSplitterSettings>
+    </SfGantt>
+}
+else if (currentDataType == "object")
+{
+    <SfGantt @ref="GanttObject" TValue="TaskDataObject" DataSource="@TaskCollectionObject" Height="450px" Width="100%" TreeColumnIndex="1" Toolbar="@(new List<Object>() { "Add", "Cancel", "Update", "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit" })" EnableContextMenu="true" RowHeight="37" ProjectStartDate="ProjectStartDate" ProjectEndDate="ProjectEndDate" ScrollToTaskbarOnClick="true">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor"></GanttTaskFields>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="TaskDataObject" TSegments="SegmentModelObject" DataSource="SegmentCollectionObject"></GanttSegmentFields>
+        <GanttLabelSettings LeftLabel="TaskName" TValue="TaskDataObject"></GanttLabelSettings>
+        <GanttColumns>
+            <GanttColumn Field="TaskId" Width="100" Visible="false"></GanttColumn>
+            <GanttColumn Field="TaskName" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+            <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+        </GanttColumns>
+        <GanttSplitterSettings Position="28%"></GanttSplitterSettings>
+    </SfGantt>
+}
+else if (currentDataType == "string")
+{
+    <SfGantt @ref="GanttString" TValue="TaskDataString" DataSource="@TaskCollectionString" Height="450px" Width="100%" TreeColumnIndex="1" Toolbar="@(new List<Object>() { "Add", "Cancel", "Update", "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit" })" EnableContextMenu="true" RowHeight="37" ProjectStartDate="ProjectStartDate" ProjectEndDate="ProjectEndDate" ScrollToTaskbarOnClick="true">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor"></GanttTaskFields>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="TaskDataString" TSegments="SegmentModelString" DataSource="SegmentCollectionString"></GanttSegmentFields>
+        <GanttLabelSettings LeftLabel="TaskName" TValue="TaskDataString"></GanttLabelSettings>
+        <GanttColumns>
+            <GanttColumn Field="TaskId" Width="100" Visible="false"></GanttColumn>
+            <GanttColumn Field="TaskName" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+            <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+        </GanttColumns>
+        <GanttSplitterSettings Position="28%"></GanttSplitterSettings>
+    </SfGantt>
+}
+else if (currentDataType == "guid")
+{
+    <SfGantt @ref="GanttGuid" TValue="TaskDataGuid" DataSource="@TaskCollectionGuid" Height="450px" Width="100%" TreeColumnIndex="1" Toolbar="@(new List<Object>() { "Add", "Cancel", "Update", "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit" })" EnableContextMenu="true" RowHeight="37" ProjectStartDate="ProjectStartDate" ProjectEndDate="ProjectEndDate" ScrollToTaskbarOnClick="true">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor"></GanttTaskFields>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="TaskDataGuid" TSegments="SegmentModelGuid" DataSource="SegmentCollectionGuid"></GanttSegmentFields>
+        <GanttLabelSettings LeftLabel="TaskName" TValue="TaskDataGuid"></GanttLabelSettings>
+        <GanttColumns>
+            <GanttColumn Field="TaskId" Width="100" Visible="false"></GanttColumn>
+            <GanttColumn Field="TaskName" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+            <GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+            <GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+            <GanttColumn Field="Duration" HeaderText="Duration"></GanttColumn>
+            <GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+            <GanttColumn Field="Predecessor" HeaderText="Dependency"></GanttColumn>
+        </GanttColumns>
+        <GanttSplitterSettings Position="28%"></GanttSplitterSettings>
+    </SfGantt>
+}
+else if (currentDataType == "expando")
+{
+    <SfGantt TValue="ExpandoObject" DataSource="@TaskCollectionExpando" @ref="GanttExpando" Height="450px" Width="100%" TreeColumnIndex="1" Toolbar="@(new List<Object>() { "Add", "Cancel", "Update", "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit" })" EnableContextMenu="true">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor">
+        </GanttTaskFields>
+        <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="ExpandoObject" TSegments="SegmentModelInt" DataSource="SegmentCollectionInt"></GanttSegmentFields>
+        <GanttLabelSettings LeftLabel="TaskName" TValue="ExpandoObject"></GanttLabelSettings>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttSplitterSettings Position="28%"></GanttSplitterSettings>
+    </SfGantt>
+
+}
+else if (currentDataType == "dynamic object")
+{
+    <SfGantt TValue="DynamicDictionary" DataSource="@TaskCollectionDynamic" @ref="GanttDynamic" Height="450px" Width="100%" TreeColumnIndex="1" Toolbar="@(new List<Object>() { "Add", "Cancel", "Update", "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit" })" EnableContextMenu="true">
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor">
+        </GanttTaskFields>
+        <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="DynamicDictionary" TSegments="SegmentModelInt" DataSource="SegmentCollectionInt"></GanttSegmentFields>
+        <GanttLabelSettings LeftLabel="TaskName" TValue="DynamicDictionary"></GanttLabelSettings>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttSplitterSettings Position="28%"></GanttSplitterSettings>
+    </SfGantt>
+}
+else if (currentDataType == "custom adaptor")
+{
+    <SfGantt TValue="TaskDataInt" @ref="GanttCustomAdaptor" Height="450px" Width="100%" TreeColumnIndex="1" Toolbar="@(new List<Object>() { "Add", "Cancel", "Update", "Delete", "Edit", "CollapseAll", "ExpandAll", "ZoomIn", "ZoomOut", "ZoomToFit" })" EnableContextMenu="true">
+        <SfDataManager AdaptorInstance="@typeof(CustomAdaptor)" Adaptor="Adaptors.CustomAdaptor"></SfDataManager>
+        <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor">
+        </GanttTaskFields>
+        <GanttSegmentFields PrimaryKey="id" ForeignKey="TaskId" StartDate="StartDate" EndDate="EndDate" Duration="Duration" TValue="TaskDataInt" TSegments="SegmentModelInt" DataSource="SegmentCollectionInt"></GanttSegmentFields>
+        <GanttLabelSettings LeftLabel="TaskName" TValue="TaskDataInt"></GanttLabelSettings>
+        <GanttEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" AllowTaskbarEditing="true"></GanttEditSettings>
+        <GanttSplitterSettings Position="28%"></GanttSplitterSettings>
+    </SfGantt>
+}
+@code {
+
+    public class DynamicDictionary : DynamicObject
+    {
+        Dictionary<string, object> dictionary = new Dictionary<string, object>();
+        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        {
+            string name = binder.Name;
+            return dictionary.TryGetValue(name, out result);
+        }
+
+        public override bool TrySetMember(SetMemberBinder binder, object value)
+        {
+            dictionary[binder.Name] = value;
+            return true;
+        }
+
+        public override System.Collections.Generic.IEnumerable<string> GetDynamicMemberNames()
+        {
+            return this.dictionary?.Keys;
+        }
+    }
+
+    public class CustomAdaptor : DataAdaptor
+    {
+        public override Task<object> ReadAsync(DataManagerRequest dm, string? key = null)
+        {
+            IEnumerable<TaskDataInt>? DataSource = TaskCollectionInt;
+
+            if (dm.Search?.Count > 0)
+            {
+                DataSource = DataOperations.PerformSearching(DataSource, dm.Search);
+            }
+            if (dm.Sorted?.Count > 0)
+            {
+                DataSource = DataOperations.PerformSorting(DataSource, dm.Sorted);
+            }
+            if (dm.Where?.Count > 0)
+            {
+                if (dm.Where[0].Field != null && dm.Where[0].Field != "ParentId")
+                {
+                    DataSource = DataOperations.PerformFiltering(DataSource, dm.Where, dm.Where[0].Operator);
+                }
+            }
+
+            int count = DataSource?.Count() ?? 0;
+
+            if (dm.Skip != 0)
+            {
+                DataSource = DataOperations.PerformSkip(DataSource, dm.Skip);
+            }
+            if (dm.Take != 0)
+            {
+                DataSource = DataOperations.PerformTake(DataSource, dm.Take);
+            }
+
+            object result = dm.RequiresCounts ? new DataResult { Result = DataSource, Count = count } : (object)DataSource;
+            return Task.FromResult(result);
+        }
+    }
+}
+

@@ -1,0 +1,64 @@
+﻿@page "/WBS_rtl"
+@rendermode InteractiveServer
+@using Syncfusion.Blazor.Gantt
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Buttons
+
+<SfGantt ID="GanttContainer" @ref="Gantt" EnableRtl="true" DataSource="@TaskCollection" Height="550px" Width="900px" ShowWbsColumn="true" AutoGenerateWbs="true">
+	<GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" Duration="Duration" Progress="Progress" ParentID="ParentId" Dependency="Predecessor" WbsCode="Wbs" WbsPredecessor="WbsPredecessor"></GanttTaskFields>
+	<GanttEditSettings AllowEditing="true" AllowDeleting="true" AllowAdding="true" AllowTaskbarEditing="true"></GanttEditSettings>
+
+	<GanttColumns>
+		<GanttColumn Field="TaskId" Width="100" Visible="false"></GanttColumn>
+		<GanttColumn Field="Wbs" HeaderText="WBS Code" Width="120"></GanttColumn>
+		<GanttColumn Field="TaskName" Width="250" ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip"></GanttColumn>
+		<GanttColumn Field="Predecessor" HeaderText="Predecessor" Visible="false"></GanttColumn>
+		<GanttColumn Field="WbsPredecessor" HeaderText="WBS Predecessor" Width="120"></GanttColumn>
+		<GanttColumn Field="StartDate" HeaderText="Start Date"></GanttColumn>
+		<GanttColumn Field="EndDate" HeaderText="End Date"></GanttColumn>
+		<GanttColumn Field="Progress" HeaderText="Progress"></GanttColumn>
+	</GanttColumns>
+</SfGantt>
+
+@code {
+	public SfGantt<TaskData> Gantt;
+	private List<TaskData> TaskCollection { get; set; }
+	private bool IsEnableRTL { get; set; } = true;
+
+	protected override void OnInitialized()
+	{
+		this.TaskCollection = GetTaskCollection();
+	}
+
+	public class TaskData
+	{
+		public int TaskId { get; set; }
+		public string TaskName { get; set; }
+		public DateTime StartDate { get; set; }
+		public DateTime EndDate { get; set; }
+		public string Duration { get; set; }
+		public int Progress { get; set; }
+		public int? ParentId { get; set; }
+		public string Predecessor { get; set; }
+		public string Wbs { get; set; }
+		public string WbsPredecessor { get; set; }
+	}
+
+	private static List<TaskData> GetTaskCollection()
+	{
+		List<TaskData> Tasks = new List<TaskData>()
+		{
+			new TaskData() { TaskId = 1, TaskName = "Project initiation", StartDate = new DateTime(2022, 01, 04), EndDate = new DateTime(2022, 01, 23), },
+			new TaskData() { TaskId = 2, TaskName = "Identify Site location", StartDate = new DateTime(2022, 01, 04), Duration = "0", Progress = 30, ParentId = 1, },
+			new TaskData() { TaskId = 3, TaskName = "Perform soil test", StartDate = new DateTime(2022, 01, 04), Duration = "4", Progress = 40, ParentId = 1, Predecessor = "2FS" },
+			new TaskData() { TaskId = 4, TaskName = "Soil test approval", StartDate = new DateTime(2022, 01, 04), Duration = "0", Progress = 30, ParentId = 1, Predecessor = "3FS" },
+			new TaskData() { TaskId = 5, TaskName = "Project estimation", StartDate = new DateTime(2022, 01, 04), EndDate = new DateTime(2022, 01, 23), },
+			new TaskData() { TaskId = 6, TaskName = "Develop floor plan for estimation", StartDate = new DateTime(2022, 01, 06), Duration = "3", Progress = 30, ParentId = 5, },
+			new TaskData() { TaskId = 7, TaskName = "List materials", StartDate = new DateTime(2022, 01, 06), Duration = "3", Progress = 40, ParentId = 5, Predecessor = "6FS" },
+			new TaskData() { TaskId = 8, TaskName = "Estimation approval", StartDate = new DateTime(2022, 01, 06), Duration = "0", Progress = 30, ParentId = 5, Predecessor = "7FS" }
+
+		};
+		return Tasks;
+	}
+}
