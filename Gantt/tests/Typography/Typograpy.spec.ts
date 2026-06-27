@@ -1,11 +1,12 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
 
-test.use({
+test.describe('Gantt Tests', () => {
+  test.use({
     launchOptions: {
-        ignoreDefaultArgs: [], // Disable the scrollbar argument
+      ignoreDefaultArgs: [],
     },
-});
+  });
 
 test('2-Overview - settings', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
