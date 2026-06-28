@@ -1,4 +1,4 @@
-ï»¿@page "/undo-redo/rtl"
+@page "/undo-redo/rtl"
 @rendermode InteractiveServer
 
 @using Syncfusion.Blazor.Gantt
@@ -44,11 +44,11 @@ ProjectStartDate="@ProjectStartDate" ProjectEndDate="@ProjectEndDate" ScrollToTa
     }
     List<GanttUndoRedoAction> undoRedoAction = new List<GanttUndoRedoAction> {
         GanttUndoRedoAction.Sort, GanttUndoRedoAction.Add, GanttUndoRedoAction.ColumnReorder, GanttUndoRedoAction.ColumnResize,
-Â Â Â Â Â Â Â Â GanttUndoRedoAction.ColumnState, GanttUndoRedoAction.Delete, GanttUndoRedoAction.Edit, GanttUndoRedoAction.Filter,
-Â Â Â Â Â Â Â Â GanttUndoRedoAction.Indent, GanttUndoRedoAction.Outdent, GanttUndoRedoAction.NextTimeSpan, GanttUndoRedoAction.PreviousTimeSpan,
-Â Â Â Â Â Â Â Â GanttUndoRedoAction.RowDragAndDrop, GanttUndoRedoAction.Search,
+        GanttUndoRedoAction.ColumnState, GanttUndoRedoAction.Delete, GanttUndoRedoAction.Edit, GanttUndoRedoAction.Filter,
+        GanttUndoRedoAction.Indent, GanttUndoRedoAction.Outdent, GanttUndoRedoAction.NextTimeSpan, GanttUndoRedoAction.PreviousTimeSpan,
+        GanttUndoRedoAction.RowDragAndDrop, GanttUndoRedoAction.Search,
         GanttUndoRedoAction.ZoomIn, GanttUndoRedoAction.ZoomOut, GanttUndoRedoAction.ZoomToFit,GanttUndoRedoAction.Collapse,GanttUndoRedoAction.Expand,GanttUndoRedoAction.SplitterResize
-Â Â Â Â };
+    };
     private async Task ReOrderColumn()
     {
         await gantt.ReorderColumnsAsync(new List<string> { "TaskName"}, "EndDate");

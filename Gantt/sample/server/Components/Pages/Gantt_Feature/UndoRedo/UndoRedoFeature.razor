@@ -1,4 +1,4 @@
-ï»¿@page "/undo-redo/default"
+@page "/undo-redo/default"
 @rendermode InteractiveServer
 @using Syncfusion.Blazor.Gantt
 @using Syncfusion.Blazor.Grids
@@ -129,11 +129,11 @@ ScrollToTaskbarOnClick="true" AllowResizing="true" ShowInlineNotes="true" MaxUnd
     }
     List<GanttUndoRedoAction> undoRedoAction = new List<GanttUndoRedoAction> {
            GanttUndoRedoAction.Sort, GanttUndoRedoAction.Add, GanttUndoRedoAction.ColumnReorder, GanttUndoRedoAction.ColumnResize,
-Â Â Â Â Â Â Â Â Â Â Â GanttUndoRedoAction.ColumnState, GanttUndoRedoAction.Delete, GanttUndoRedoAction.Edit, GanttUndoRedoAction.Filter,
-Â Â Â Â Â Â Â Â Â Â Â GanttUndoRedoAction.Indent, GanttUndoRedoAction.Outdent, GanttUndoRedoAction.NextTimeSpan, GanttUndoRedoAction.PreviousTimeSpan,
-Â Â Â Â Â Â Â Â Â Â Â GanttUndoRedoAction.RowDragAndDrop, GanttUndoRedoAction.Search,GanttUndoRedoAction.Delete, GanttUndoRedoAction.TaskbarEdit,
+           GanttUndoRedoAction.ColumnState, GanttUndoRedoAction.Delete, GanttUndoRedoAction.Edit, GanttUndoRedoAction.Filter,
+           GanttUndoRedoAction.Indent, GanttUndoRedoAction.Outdent, GanttUndoRedoAction.NextTimeSpan, GanttUndoRedoAction.PreviousTimeSpan,
+           GanttUndoRedoAction.RowDragAndDrop, GanttUndoRedoAction.Search,GanttUndoRedoAction.Delete, GanttUndoRedoAction.TaskbarEdit,
            GanttUndoRedoAction.ZoomIn, GanttUndoRedoAction.ZoomOut, GanttUndoRedoAction.ZoomToFit,GanttUndoRedoAction.Collapse,GanttUndoRedoAction.Expand,GanttUndoRedoAction.SplitterResize
-Â Â Â Â };
+    };
 
     public void RowUpdatingHandler(GanttRowUpdatingEventArgs<TaskData> args)
     {

@@ -1,4 +1,4 @@
-﻿@page "/gantt-hierarchy-custom"
+@page "/gantt-hierarchy-custom"
 
 @rendermode InteractiveServer
 @using Syncfusion.Blazor.Gantt
@@ -427,7 +427,7 @@
             {
                 if (value == null)
                     return new ValidationResult("Review Date is required.");
-                // Original message: "can be within the provided range" — if you want a fixed range, add checks here.
+                // Original message: "can be within the provided range" � if you want a fixed range, add checks here.
                 var dt = (DateTime)value;
                 if (dt < Min || dt > Max)
                     return new ValidationResult("Baseline End Date must be between 01-Jan-2020 and 31-Dec-2030.");
