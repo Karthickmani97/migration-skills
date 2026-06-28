@@ -1,12 +1,5 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-
-test.use({
-    launchOptions: {
-      ignoreDefaultArgs: [], // Disable the scrollbar argument
-    },
-  });
-
 //Fluent 2 themes 
 // test('1-Overview sample - fluent2', async ({ page }) => {
 //     await page.goto(Helper.baseUrl + 'overview?theme=fluent2');

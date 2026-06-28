@@ -1,13 +1,6 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-import { pdf } from 'pdf-to-img';
-
-test.use({
-  launchOptions: {
-    ignoreDefaultArgs: [], // Disable the scrollbar argument
-  },
-});
-
+import { pdf } from '../Helper/pdfStub';
 async function clearPdfFooter(page: any) {
   const footerInput = page.locator("input[placeholder='Footer']").or(page.locator("input[name='footer']")).or(page.locator(".e-footer input")).first();
   if (await footerInput.count() > 0) {

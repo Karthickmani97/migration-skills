@@ -1,12 +1,5 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-
-test.use({
-    launchOptions: {
-        ignoreDefaultArgs: [], // Disable the scrollbar argument
-    },
-});
-
 const baseUrl = 'http://localhost:5004';
 
 test('1-Add Edit Dialog', async ({ page }) => {

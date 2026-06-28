@@ -1,12 +1,5 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-
-test.use({
-    launchOptions: {
-        ignoreDefaultArgs: [], // Disable the scrollbar argument
-    },
-});
-
 test('1-Load sample', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto(Helper.baseUrl + 'tooltip-template?theme=fluent2');

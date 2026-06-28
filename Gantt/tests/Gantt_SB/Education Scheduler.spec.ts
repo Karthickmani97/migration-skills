@@ -1,12 +1,5 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-
-test.use({
-    launchOptions: {
-        ignoreDefaultArgs: [], // Disable the scrollbar argument
-    },
-});
-
 test('1-Console error on dynamically changing segment c', async ({ page }) => {
     await page.goto(Helper.baseUrl + 'education-scheduler?theme=fluent2-highcontrast');
     await page.waitForTimeout(2000);

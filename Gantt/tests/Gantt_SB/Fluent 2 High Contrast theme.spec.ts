@@ -1,12 +1,5 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-
-test.use({
-    launchOptions: {
-        ignoreDefaultArgs: [], // Disable the scrollbar argument
-    },
-});
-
 //Fluent 2 High Contrast theme
 // test('1-Overview sample - fluent2-highcontrast', async ({ page }) => {
 //     await page.goto(Helper.baseUrl + 'overview?theme=fluent2-highcontrast');

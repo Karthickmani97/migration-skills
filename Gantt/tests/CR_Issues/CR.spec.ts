@@ -1,7 +1,7 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
 import Excel from "exceljs";
-import { pdf } from 'pdf-to-img';
+import { pdf } from '../Helper/pdfStub';
 
 //https://dev.azure.com/EssentialStudio/Ej2-Web/_workitems/edit/827747
 //https://dev.azure.com/EssentialStudio/Ej2-Web/_workitems/edit/67425

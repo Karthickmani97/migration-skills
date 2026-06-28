@@ -1,12 +1,5 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-
-test.use({
-    launchOptions: {
-        ignoreDefaultArgs: [], // Disable the scrollbar argument
-    },
-});
-
 test('1-Initial load of the sample digital marketing.', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto(Helper.baseUrl + 'digital-marketing?theme=fluent2');

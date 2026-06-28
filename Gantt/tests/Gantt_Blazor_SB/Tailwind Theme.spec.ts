@@ -1,12 +1,5 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-
-test.use({
-    launchOptions: {
-        ignoreDefaultArgs: [], // Disable the scrollbar argument
-    },
-});
-
 //Overview
 // test('1-Overview sample - tailwind theme', async ({ page }) => {
 //     await page.goto(Helper.baseUrl + 'overview?theme=tailwind');

@@ -1,13 +1,6 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-import { pdf } from 'pdf-to-img';
-
-test.use({
-    launchOptions: {
-        ignoreDefaultArgs: [], // Disable the scrollbar argument
-    },
-});
-
+import { pdf } from '../Helper/pdfStub';
 test('1-Default Exporting initial load', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto(Helper.baseUrl + 'exporting?theme=fluent2');

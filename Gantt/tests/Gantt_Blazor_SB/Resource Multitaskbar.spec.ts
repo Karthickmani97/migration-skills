@@ -1,12 +1,5 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-
-test.use({
-    launchOptions: {
-        ignoreDefaultArgs: [], // Disable the scrollbar argument
-    },
-});
-
 test('1-Resource Multitaskbar  initial load', async ({ page }) => {
     await page.goto(Helper.baseUrl + 'multi-taskbar?theme=fluent');
     await page.waitForTimeout(5000);

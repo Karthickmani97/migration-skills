@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { Helper } from '../Helper/helper';
-import { pdf } from 'pdf-to-img';
+import { pdf } from '../Helper/pdfStub';
 
 //Intiall load of Multipdf-page-size
 test('1-MPDF', async ({ page },) => {

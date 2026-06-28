@@ -1,12 +1,5 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-
-test.use({
-    launchOptions: {
-        ignoreDefaultArgs: [], // Disable the scrollbar argument
-    },
-});
-
 // Initial load of the keyboard navigation
 test('1-Keyboard Navigation initial load', async ({ page }) => {
     await page.goto(Helper.baseUrl + 'keyboard-navigation?theme=fluent');

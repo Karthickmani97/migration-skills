@@ -1,11 +1,6 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-import { pdf } from 'pdf-to-img';
-test.use({
-    launchOptions: {
-        ignoreDefaultArgs: [], // Disable the scrollbar argument
-    },
-});
+import { pdf } from '../Helper/pdfStub';
 //https://dev.azure.com/EssentialStudio/Ej2-Web/_workitems/edit/924770
 test('1-924770-Connector Lines Misaligned ', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });

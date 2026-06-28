@@ -1,6 +1,6 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-import { pdf } from 'pdf-to-img';
+import { pdf } from '../Helper/pdfStub';
 
 test('MTD-001', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 1920, height: 1080 });

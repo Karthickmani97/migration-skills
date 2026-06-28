@@ -1,12 +1,5 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-
-test.use({
-    launchOptions: {
-        ignoreDefaultArgs: [], // Disable the scrollbar argument
-    },
-});
-
 test('1-Filter the Taskname ', async ({ page }) => {
     await page.goto(Helper.baseUrl + 'advanced-filtering?theme=fluent');
     await page.waitForTimeout(2000);

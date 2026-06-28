@@ -1,6 +1,6 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-import { pdf } from 'pdf-to-img';
+import { pdf } from '../Helper/pdfStub';
 
 async function clearPdfFooter(page: any) {
   const footerInput = page.locator("input[placeholder='Footer']").or(page.locator("input[name='footer']")).or(page.locator(".e-footer input")).first();

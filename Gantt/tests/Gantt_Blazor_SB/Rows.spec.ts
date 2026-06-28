@@ -1,13 +1,6 @@
 import {test, expect} from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-
-test.use({
-    launchOptions: {
-      ignoreDefaultArgs: [], // Disable the scrollbar argument
-    },
-  });
-
-    test('1-Row Height initial load', async ({ page }) => {
+test('1-Row Height initial load', async ({ page }) => {
         await page.goto(Helper.baseUrl + 'row-height?theme=fluent');
         await page.waitForTimeout(5000);
         expect(await page.locator('.e-gantt').screenshot()).toMatchSnapshot({ maxDiffPixels: 100 });

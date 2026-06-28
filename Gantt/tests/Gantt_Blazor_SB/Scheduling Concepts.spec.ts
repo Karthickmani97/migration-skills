@@ -1,13 +1,5 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-
-test.use({
-  launchOptions: {
-    ignoreDefaultArgs: [], // Disable the scrollbar argument
-  },
-});
-
-
 test('1-Scheduling mode sample', async ({ page }) => {
   await page.goto(Helper.baseUrl + 'scheduling-mode?theme=fluent');
   await page.waitForTimeout(1000);

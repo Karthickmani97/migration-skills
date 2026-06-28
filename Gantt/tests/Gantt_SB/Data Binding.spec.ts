@@ -1,13 +1,5 @@
 import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
-
-test.use({
-  launchOptions: {
-    ignoreDefaultArgs: [], // Disable the scrollbar argument
-  },
-});
-
-
 // test('1-Remote data initial load ', async ({ page }) => {
 //   await page.goto(Helper.baseUrl + 'remote-data?theme=fluent');
 //   await page.waitForTimeout(2000);

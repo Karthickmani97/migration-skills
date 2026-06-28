@@ -2,12 +2,6 @@ import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
 
 test.describe('Gantt Tests', () => {
-  test.use({
-    launchOptions: {
-      ignoreDefaultArgs: [],
-    },
-  });
-
 test('2-Overview - settings', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto(Helper.baseUrl + 'overview?theme=tailwind3');
@@ -1058,4 +1052,6 @@ test('93-Split task - Segment tab', async ({ page }) => {
     await page.locator('(//div[contains(@class,"e-tab-text")])[5]').click();
     await page.waitForTimeout(1000);
     expect(await page.locator('.e-gantt').screenshot()).toMatchSnapshot({ maxDiffPixels: 100 });
+});
+
 });
