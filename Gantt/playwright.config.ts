@@ -1,11 +1,10 @@
 import type { PlaywrightTestConfig } from '@playwright/test';
 import { devices } from '@playwright/test';
 
-const isCI = !!process.env.CI; // Detect CI / sandbox
+const isCI = !!process.env.CI;
 
 const config: PlaywrightTestConfig = {
   testDir: './tests',
-
   timeout: 40 * 1000,
 
   expect: {
@@ -13,60 +12,34 @@ const config: PlaywrightTestConfig = {
   },
 
   fullyParallel: true,
-
   forbidOnly: isCI,
-
   retries: isCI ? 1 : 0,
 
   reporter: [
-    ['html', { open: 'never' }],
-    ['junit', { outputFile: 'testResults.xml' }]
+    ['html', { outputFolder: 'playwright-report', open: 'never' }],
+    ['json', { outputFile: 'playwright-report/results.json' }]
   ],
 
   use: {
     headless: true,
-    actionTimeout: 0,
 
-    launchOptions: {
-      ignoreDefaultArgs: ['--hide-scrollbars'],
-    },
-
-    // ✅ VERY IMPORTANT
-    // Use baseURL instead of webServer in shared VM
+    // ✅ VERY IMPORTANT → correct server URL
     baseURL: 'http://127.0.0.1:5004',
 
     trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure'
   },
 
   projects: [
     {
       name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-      },
-    },
+      use: { ...devices['Desktop Chrome'] }
+    }
   ],
 
-  /**
-   * ✅ KEY FIX
-   * Only start webServer in LOCAL (not in sandbox/CI)
-   */
-  webServer: isCI
-    ? undefined // ✅ disable in VM / E2B
-    : [
-        {
-          command: 'npm run start-server',
-          url: 'http://127.0.0.1:5004',
-          reuseExistingServer: true,
-          timeout: 300000,
-        },
-        {
-          command: 'npm run start-locale',
-          url: 'http://127.0.0.1:5001',
-          reuseExistingServer: true,
-          timeout: 300000,
-        }
-      ],
+  // ✅ DO NOT start server here in CI
+  webServer: isCI ? undefined : undefined
 };
 
 export default config;
