@@ -26,7 +26,7 @@ app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapControllers();
-
+app.MapGet("/home", () => "");
 // ✅ ONLY ONE endpoint system
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
