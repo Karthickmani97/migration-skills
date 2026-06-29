@@ -4,14 +4,35 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    
+<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  <WarningsAsErrors></WarningsAsErrors>
+  <NoWarn>BL0005</NoWarn>
+
   </PropertyGroup>
 
+
+<ItemGroup>
+  <Compile Remove="Components\Pages\**\*PdfExport*.razor.cs" />
+  <Content Remove="Components\Pages\**\*PdfExport*.razor" />
+<Content Remove="Components\Pages\**\*Pdf*.razor" />
+  <Compile Remove="Components\Pages\**\*Pdf*.razor.cs" />
+
+  
+<Content Remove="Components\Pages\MT Issues\BLAZ-936473.razor" />
+  <Content Remove="Components\Pages\MT Issues\BLAZ-940361.razor" />
+  <Compile Remove="Components\Pages\MT Issues\BLAZ-936473.razor.cs" />
+  <Compile Remove="Components\Pages\MT Issues\BLAZ-940361.razor.cs" />
+
+
+</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Syncfusion.Blazor.Gantt" Version="*" />
 		<PackageReference Include="Syncfusion.Blazor.Themes" Version="*" />
 		<PackageReference Include="Syncfusion.Licensing" Version="*" />
     <PackageReference Include="Syncfusion.Blazor.Core" Version="*" />
+    <PackageReference Include="Syncfusion.Pdf.Net.Core" Version="33.2.15" />
     <PackageReference Include="Syncfusion.PdfExport.Net.Core" Version="*" />
   <PackageReference Include="Syncfusion.ExcelExport.Net.Core" Version="*" />
 	</ItemGroup>
