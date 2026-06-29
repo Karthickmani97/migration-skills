@@ -8,7 +8,7 @@
     "checkout-samples": "gulp CheckoutSamples --option",
     "clone-sb": "dotnet build ./sample/ej2-blazor-samples/Blazor-Server-Demos/Blazor_Server_Demos_NET10.csproj -c Release",
     "start-server":"dotnet run --project ./sample/server/SyncfusionBlazorApp.csproj -c Release --urls \"http://localhost:5004\"",
-	  "start-locale": "dotnet run --project ./sample/localization/Localisation.csproj -c Release --urls \"http://localhost:5001\"",
+	  "start-locale": "dotnet run --project ./sample/localization/Localization.csproj -c Release --urls \"http://localhost:5001\"",
     "start-sb": "dotnet run --project ./sample/ej2-blazor-samples/Blazor-Server-Demos/Blazor_Server_Demos_NET10.csproj -c Release --urls \"http://localhost:5050\""
   },
   "devDependencies": {
