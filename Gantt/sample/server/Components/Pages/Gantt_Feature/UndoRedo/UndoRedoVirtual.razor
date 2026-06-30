@@ -65,13 +65,22 @@
     public int RowCount { get; set; } = 1000;
     SfGantt<TaskData> gantt;
     private List<TaskData> TaskCollection { get; set; } = new List<TaskData>();
-    List<GanttUndoRedoAction> undoRedoAction = new List<GanttUndoRedoAction> {
-        GanttUndoRedoAction.Sort, GanttUndoRedoAction.Add, GanttUndoRedoAction.ColumnReorder, GanttUndoRedoAction.ColumnResize,
-        GanttUndoRedoAction.ColumnState, GanttUndoRedoAction.Delete, GanttUndoRedoAction.Edit, GanttUndoRedoAction.Filter,
-        GanttUndoRedoAction.Indent, GanttUndoRedoAction.Outdent, GanttUndoRedoAction.NextTimeSpan, GanttUndoRedoAction.PreviousTimeSpan,
-        GanttUndoRedoAction.RowDragAndDrop, GanttUndoRedoAction.Search,
-        GanttUndoRedoAction.ZoomIn, GanttUndoRedoAction.ZoomOut, GanttUndoRedoAction.ZoomToFit,GanttUndoRedoAction.Collapse,GanttUndoRedoAction.Expand,GanttUndoRedoAction.SplitterResize
-    };
+  List<GanttUndoRedoAction> undoRedoAction = new List<GanttUndoRedoAction> {
+    GanttUndoRedoAction.Sort,
+    GanttUndoRedoAction.Add,
+    GanttUndoRedoAction.ColumnReorder,
+    GanttUndoRedoAction.ColumnState,
+    GanttUndoRedoAction.Delete,
+    GanttUndoRedoAction.Edit,
+    GanttUndoRedoAction.Indent,
+    GanttUndoRedoAction.Outdent,
+    GanttUndoRedoAction.NextTimeSpan,
+    GanttUndoRedoAction.RowDragAndDrop,
+    GanttUndoRedoAction.Search,
+    GanttUndoRedoAction.ZoomIn,
+    GanttUndoRedoAction.ZoomOut,
+    GanttUndoRedoAction.ZoomToFit
+};
     protected override void OnInitialized()
     {
         StartLoadTime = DateTime.Now;
