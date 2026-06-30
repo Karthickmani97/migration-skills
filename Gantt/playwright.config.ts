@@ -24,7 +24,7 @@ const config: PlaywrightTestConfig = {
     headless: true,
 
     // ✅ VERY IMPORTANT → correct server URL
-    baseURL: 'http://127.0.0.1:5004',
+    baseURL: 'http://localhost:5004/',
 
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
