@@ -2,7 +2,7 @@ import { test, expect } from '../Helper/ScriptErrorFinder';
 import { Helper } from '../Helper/helper';
 
 test('1-Edit custom column value through cell edit', async ({ page }) => {
-  await page.goto('http://127.0.0.1:5004'+'/methods');
+  await page.goto(Helper.baseUrlserver + '/methods');
   await page.waitForTimeout(1000);
   //parent custom column
   await page.locator('//*[@id="treeGridGantt_gridcontrol_content_table"]/tbody/tr[1]/td[9]').dblclick();
