@@ -1,0 +1,32 @@
+import { test, expect } from '../Helper/ScriptErrorFinder';
+import { Helper } from '../Helper/helper';
+
+test('1-Zoom-out continuosly', async ({ page }) => {
+  await page.goto(Helper.baseUrlserver + '/zooming');
+  await page.waitForTimeout(500);
+  await page.getByRole('button', { name: 'InitDataAsync' }).click();
+  await page.waitForTimeout(500);
+  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await page.waitForTimeout(200);
+  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await page.waitForTimeout(200);
+  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await page.waitForTimeout(200);
+  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await page.waitForTimeout(200);
+  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await page.waitForTimeout(200);
+  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await page.waitForTimeout(200);
+  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await page.waitForTimeout(200);
+  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await page.waitForTimeout(200);
+  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await page.waitForTimeout(200);
+  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await page.waitForTimeout(200);
+  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await page.waitForTimeout(1000);
+  expect(await page.locator('.e-gantt').screenshot()).toMatchSnapshot({ maxDiffPixels: 100 });
+});
