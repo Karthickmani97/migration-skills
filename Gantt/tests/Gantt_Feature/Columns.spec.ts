@@ -18,23 +18,8 @@ test('1-Edit custom column value through cell edit', async ({ page }) => {
   await page.locator('(//div[contains(@class, "e-tab-text")])[3]').click();
   await page.waitForTimeout(800);
   await page.locator('(//div[contains(@class,"e-footer-content")])[2]').click();
-  // ✅ Ensure Gantt fully rendered
-const gantt = page.locator('.e-gantt');
-await page.waitForSelector('.e-gantt', { state: 'visible' });
-await page.waitForLoadState('networkidle');
-
-// ✅ Ensure not 0x0
-const box = await gantt.boundingBox();
-if (!box || box.width === 0 || box.height === 0) {
-  throw new Error('Gantt not rendered properly (0x0)');
-}
-
-// ✅ Stabilize UI (important)
-await page.waitForTimeout(1000);
-
-// ✅ Snapshot
-await expect(await gantt.screenshot()).toMatchSnapshot({
-  maxDiffPixels: 100
+  await page.waitForTimeout(1200);
+  expect(await page.locator('.e-gantt').screenshot()).toMatchSnapshot({ maxDiffPixels: 100 });
 });
 
 test('2-Edit custom column value through dialog edit', async ({ page }) => {
@@ -56,25 +41,9 @@ test('2-Edit custom column value through dialog edit', async ({ page }) => {
   await page.waitForTimeout(800);
   //custom column tab
   await page.locator('(//div[contains(@class, "e-tab-text")])[3]').click();
-  // ✅ Ensure Gantt fully rendered
-const gantt = page.locator('.e-gantt');
-await page.waitForSelector('.e-gantt', { state: 'visible' });
-await page.waitForLoadState('networkidle');
-
-// ✅ Ensure not 0x0
-const box = await gantt.boundingBox();
-if (!box || box.width === 0 || box.height === 0) {
-  throw new Error('Gantt not rendered properly (0x0)');
-}
-
-// ✅ Stabilize UI (important)
-await page.waitForTimeout(1000);
-
-// ✅ Snapshot
-await expect(await gantt.screenshot()).toMatchSnapshot({
-  maxDiffPixels: 100
+  await page.waitForTimeout(1200);
+  expect(await page.locator('.e-gantt').screenshot()).toMatchSnapshot({ maxDiffPixels: 100 });
 });
-``
 
 test('3-Edit custom column through cell and press escape', async ({ page }) => {
   await page.goto(Helper.baseUrlserver + '/methods');
